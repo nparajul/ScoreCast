@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Only build when explicitly targeted: dotnet build Migrations/ScoreCast.Ws.Migrations -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);Migrations/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\APIs\ScoreCast.Ws.Infrastructure\ScoreCast.Ws.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

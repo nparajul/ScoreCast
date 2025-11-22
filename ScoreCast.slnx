@@ -1,4 +1,10 @@
 <Solution>
+  <Folder Name="/Migrations/">
+    <Project Path="Migrations/ScoreCast.Ws.Migrations/ScoreCast.Ws.Migrations.csproj">
+      <Configuration Solution="Debug|*" Project="Debug|*" Build="false" />
+      <Configuration Solution="Release|*" Project="Release|*" Build="false" />
+    </Project>
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
     <File Path=".gitignore" />
