@@ -1,0 +1,23 @@
+## .NET
+bin/
+obj/
+/packages/
+
+## IDE
+.vs/
+.idea/
+*.user
+*.suo
+*.DotSettings.user
+_ReSharper.Caches/
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Build
+*.nupkg
+*.snupkg
+
+## User secrets
+secrets.json

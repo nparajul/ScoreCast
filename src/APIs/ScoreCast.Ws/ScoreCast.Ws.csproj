@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <PackageReference Include="FastEndpoints" />
+    <PackageReference Include="FastEndpoints.Swagger" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ScoreCast.Ws.Endpoints\ScoreCast.Ws.Endpoints.csproj" />
+    <ProjectReference Include="..\ScoreCast.Ws.Infrastructure\ScoreCast.Ws.Infrastructure.csproj" />
+    <ProjectReference Include="..\ScoreCast.Ws.Services\ScoreCast.Ws.Services.csproj" />
+  </ItemGroup>
+
+</Project>
