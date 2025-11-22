@@ -10,6 +10,8 @@ public static class WebApplicationExtensions
     {
         app.UseSerilogRequestLogging();
         app.UseCors("ScoreCastCorsPolicy");
+        app.UseAuthentication();
+        app.UseAuthorization();
 
         app.UseFastEndpoints(c =>
         {
