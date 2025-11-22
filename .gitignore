@@ -19,5 +19,8 @@ Thumbs.db
 *.nupkg
 *.snupkg
 
+## Logs
+logs/
+
 ## User secrets
 secrets.json

@@ -1,0 +1,11 @@
+global using System.Text.Encodings.Web;
+global using System.Text.Json;
+global using System.Text.Json.Serialization;
+global using Asp.Versioning;
+global using FastEndpoints;
+global using FastEndpoints.Swagger;
+global using Microsoft.AspNetCore.Http.Json;
+global using ScoreCast.Ws.Endpoints;
+global using ScoreCast.Ws.Extensions;
+global using ScoreCast.Ws.Infrastructure;
+global using Serilog;
