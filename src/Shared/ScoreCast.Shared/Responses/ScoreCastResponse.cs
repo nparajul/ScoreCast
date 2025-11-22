@@ -2,6 +2,7 @@ namespace ScoreCast.Shared.Responses;
 
 public record ScoreCastResponse
 {
+    private protected ScoreCastResponse() { }
     public string? Message { get; init; }
     public required ScoreCastResultType ResultType { get; init; }
     public string? Code { get; init; }
