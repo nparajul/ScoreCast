@@ -6,7 +6,7 @@ namespace ScoreCast.Shared.Types;
 [JsonConverter(typeof(ScoreCastDateTimeJsonConverter))]
 public sealed record ScoreCastDateTime
 {
-    private const string DefaultFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
+    private const string _defaultFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
 
     private ScoreCastDateTime()
     {
@@ -62,7 +62,7 @@ public sealed record ScoreCastDateTime
 
     public static bool operator <=(ScoreCastDateTime left, ScoreCastDateTime right) => left.Value <= right.Value;
 
-    public override string ToString() => Value.ToString(DefaultFormat);
+    public override string ToString() => Value.ToString(_defaultFormat);
 
     public string ToString(string format) => Value.ToString(format);
 
