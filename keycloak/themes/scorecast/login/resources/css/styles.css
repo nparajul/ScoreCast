@@ -1,0 +1,43 @@
+/* ScoreCast Premier League themed login */
+body.kcBodyClass {
+    background: linear-gradient(135deg, #37003C 0%, #2D0033 50%, #1a001f 100%) !important;
+}
+
+#kc-header-wrapper {
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    color: #00FF87 !important;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding-bottom: 1rem;
+}
+
+#kc-login {
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+#kc-form-login .pf-v5-c-button.pf-m-primary,
+#kc-form-login .pf-c-button.pf-m-primary,
+input[type="submit"].pf-c-button,
+input[type="submit"].pf-v5-c-button {
+    background-color: #00FF87 !important;
+    color: #37003C !important;
+    font-weight: 700 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#kc-form-login .pf-v5-c-button.pf-m-primary:hover,
+#kc-form-login .pf-c-button.pf-m-primary:hover,
+input[type="submit"].pf-c-button:hover,
+input[type="submit"].pf-v5-c-button:hover {
+    background-color: #00cc6a !important;
+}
+
+a.pf-v5-c-button.pf-m-link,
+a.pf-c-button.pf-m-link {
+    color: #00FF87 !important;
+}
