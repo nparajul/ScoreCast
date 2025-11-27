@@ -1,0 +1,40 @@
+@inherits MudBlazor.MudTextField<T>
+@using Microsoft.JSInterop
+@using MudBlazor
+@typeparam T
+@inject IJSRuntime Js
+
+<style>
+    .inlineIconButton {
+        margin: 9.965px 0 auto 0
+    }
+
+    .nonOverflowingFlex {
+        width: 100%;
+        min-width: 0;
+    }
+</style>
+
+<script>
+    var hasHandler = false;
+    window.setHasHandler = (flag) => {
+        hasHandler = flag;
+    };
+
+    window.setOnKeyDown = () => document.querySelectorAll('.scannable').forEach(element => {
+        element.addEventListener('keydown', function (event) {
+            if (event.key === 'Tab' && hasHandler === true) {
+                event.preventDefault();
+            }
+        });
+    });
+</script>
+
+<MudElement Class="d-flex gap-2 nonOverflowingFlex">
+    @BaseContent
+    @if (Lockable)
+    {
+        <MudIconButton OnClick="(Action)(() => { Locked = !Locked; })" Class="inlineIconButton"
+                       Icon="@(Locked ? Icons.Material.Filled.Lock : Icons.Material.Outlined.LockOpen)"/>
+    }
+</MudElement>

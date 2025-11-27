@@ -20,7 +20,9 @@
       }
     ]
   },
-  "defaultRoles": ["sc_user"],
+  "defaultRoles": [
+    "sc_user"
+  ],
   "clients": [
     {
       "clientId": "scorecast-api",
@@ -47,11 +49,13 @@
       "baseUrl": "/",
       "redirectUris": [
         "http://localhost:5000/*",
-        "http://localhost:5105/*"
+        "http://localhost:5105/*",
+        "http://localhost:5200/*"
       ],
       "webOrigins": [
         "http://localhost:5000",
-        "http://localhost:5105"
+        "http://localhost:5105",
+        "http://localhost:5200"
       ],
       "fullScopeAllowed": true,
       "protocolMappers": [
@@ -150,7 +154,10 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["sc_admin", "sc_user"]
+      "realmRoles": [
+        "sc_admin",
+        "sc_user"
+      ]
     },
     {
       "username": "testuser",
@@ -166,7 +173,9 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["sc_user"]
+      "realmRoles": [
+        "sc_user"
+      ]
     }
   ]
 }
