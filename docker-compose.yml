@@ -42,12 +42,15 @@ services:
       KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
       KC_HOSTNAME: localhost
       KC_HTTP_PORT: 8080
+      KC_SPI_THEME_STATIC_MAX_AGE: "-1"
+      KC_SPI_THEME_CACHE_THEMES: "false"
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
     ports:
       - "8080:8080"
     volumes:
       - ./keycloak/scorecast-realm.json:/opt/keycloak/data/import/scorecast-realm.json:ro
+      - ./keycloak/themes/scorecast:/opt/keycloak/themes/scorecast:ro
     depends_on:
       keycloak-db:
         condition: service_healthy

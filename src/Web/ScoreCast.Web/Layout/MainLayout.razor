@@ -16,31 +16,40 @@
         <LoginDisplay />
     </MudAppBar>
     <MudMainContent>
+        <UserSync />
         @Body
     </MudMainContent>
 </MudLayout>
 
 @code {
     private MudThemeProvider _themeProvider = default!;
-    private bool _isDarkMode;
+    private bool _isDarkMode = false;
 
     private readonly MudTheme _theme = new()
     {
         PaletteLight = new PaletteLight
         {
-            Primary = "#37003C",
-            Secondary = "#00FF87",
-            AppbarBackground = "#37003C",
-            AppbarText = "#FFFFFF"
+            Primary = "#0A1929",
+            Secondary = "#00E5FF",
+            Tertiary = "#FF6B35",
+            AppbarBackground = "#0A1929",
+            AppbarText = "#FFFFFF",
+            Background = "#F5F7FA",
+            Surface = "#FFFFFF",
+            DrawerBackground = "#0A1929",
+            DrawerText = "#FFFFFF"
         },
         PaletteDark = new PaletteDark
         {
-            Primary = "#00FF87",
-            Secondary = "#37003C",
-            Surface = "#1E1E2E",
-            Background = "#181825",
-            AppbarBackground = "#1E1E2E",
-            AppbarText = "#00FF87"
+            Primary = "#00E5FF",
+            Secondary = "#FF6B35",
+            Tertiary = "#00E5FF",
+            Surface = "#132F4C",
+            Background = "#0A1929",
+            AppbarBackground = "#0A1929",
+            AppbarText = "#00E5FF",
+            DrawerBackground = "#071318",
+            DrawerText = "#00E5FF"
         }
     };
 
