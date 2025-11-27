@@ -9,6 +9,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddMudServices();
+builder.Services.AddScoreCastComponentServices();
 builder.AddScoreCastAuth();
 builder.AddScoreCastApiClients();
 
