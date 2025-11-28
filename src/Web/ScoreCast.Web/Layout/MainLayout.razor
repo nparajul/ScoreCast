@@ -15,10 +15,9 @@
 <MudSnackbarProvider />
 
 <MudBreakpointProvider>
-<div>
-    <MudLayout>
-        <MudAppBar Elevation="2" Color="Color.Primary">
-            <MudIcon Icon="@Icons.Material.Filled.SportsSoccer" Class="mr-2" />
+<MudLayout>
+    <MudAppBar Elevation="2" Color="Color.Primary">
+            <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="36" Height="36" Class="mr-2" />
             <MudText Typo="Typo.h6" Class="mr-4">ScoreCast</MudText>
             <MudSpacer />
             <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
@@ -26,12 +25,17 @@
                            OnClick="ToggleDarkMode" />
             <LoginDisplay />
         </MudAppBar>
-        <MudMainContent>
-            <UserSync />
-            @Body
+        <MudMainContent Style="min-height:calc(100vh - 64px - 80px); padding-bottom:2rem;">
+            <CascadingValue Value="_isDarkMode" Name="IsDarkMode">
+                <UserSync />
+                @Body
+            </CascadingValue>
         </MudMainContent>
+        <footer class="d-flex flex-column align-center justify-center pa-4" style="background:var(--mud-palette-primary);color:var(--mud-palette-primary-text);height:80px;">
+            <MudText Typo="Typo.body2">© @DateTime.Now.Year ScoreCast. All rights reserved.</MudText>
+            <MudText Typo="Typo.caption" Style="opacity:0.6;">Premier League Predictions</MudText>
+        </footer>
     </MudLayout>
-</div>
 </MudBreakpointProvider>
 
 <script>
