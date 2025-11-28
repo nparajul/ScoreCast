@@ -28,4 +28,9 @@
     <Project Path="src/Shared/ScoreCast.Models/ScoreCast.Models.csproj" />
     <Project Path="src/Shared/ScoreCast.Shared/ScoreCast.Shared.csproj" />
   </Folder>
+  <Folder Name="/src/Web/">
+    <Project Path="src/Web/ScoreCast.Web/ScoreCast.Web.csproj" />
+    <Project Path="src/Web/ScoreCast.Web.Components/ScoreCast.Web.Components.csproj" />
+    <Project Path="src/Web/ScoreCast.Web.Server/ScoreCast.Web.Server.csproj" />
+  </Folder>
 </Solution>

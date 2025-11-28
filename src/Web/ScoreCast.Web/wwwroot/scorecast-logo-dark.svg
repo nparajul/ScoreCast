@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <defs>
+    <linearGradient id="ballBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A1929"/>
+      <stop offset="100%" stop-color="#142840"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Football icon -->
+  <g transform="translate(60, 56)">
+    <!-- Ball background -->
+    <circle cx="0" cy="0" r="38" fill="url(#ballBg)"/>
+
+    <!-- Ball outline -->
+    <circle cx="0" cy="0" r="38" fill="none" stroke="#FFFFFF" stroke-width="2.5"/>
+
+    <!-- Panel lines -->
+    <path d="M0,-38 L0,-20 M0,20 L0,38
+             M-33,-19 L-16,-10 M16,-10 L33,-19
+             M-16,10 L-33,19 M33,19 L16,10"
+          fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+
+    <!-- Center pentagon -->
+    <polygon points="0,-18 -17,-6 -10,15 10,15 17,-6"
+             fill="#8B1A9E" stroke="#8B1A9E" stroke-width="1" opacity="0.9"/>
+
+    <!-- Target dot -->
+    <circle cx="0" cy="0" r="3" fill="#FF6B35"/>
+  </g>
+
+  <!-- Text: "Score" -->
+  <text x="112" y="68" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="48" font-weight="700" fill="#FFFFFF" letter-spacing="-1">
+    Score
+  </text>
+
+  <!-- Text: "Cast" -->
+  <text x="258" y="68" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="48" font-weight="700" fill="#8B1A9E" letter-spacing="-1">
+    Cast
+  </text>
+
+  <!-- Tagline -->
+  <text x="113" y="88" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="11" font-weight="400" fill="#FFFFFF" opacity="0.5" letter-spacing="3">
+    PREDICT · COMPETE · WIN
+  </text>
+
+  <!-- Orange accent underline -->
+  <line x1="112" y1="94" x2="370" y2="94" stroke="#FF6B35" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+</svg>

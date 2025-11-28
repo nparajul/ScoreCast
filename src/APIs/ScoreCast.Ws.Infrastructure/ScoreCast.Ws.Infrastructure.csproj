@@ -10,4 +10,8 @@
     <ProjectReference Include="..\ScoreCast.Ws.Application\ScoreCast.Ws.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="V1\UserManagement\" />
+  </ItemGroup>
+
 </Project>

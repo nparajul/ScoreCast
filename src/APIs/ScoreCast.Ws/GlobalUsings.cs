@@ -6,6 +6,7 @@ global using FastEndpoints;
 global using FastEndpoints.Swagger;
 global using Microsoft.AspNetCore.Http.Json;
 global using ScoreCast.Ws.Endpoints;
+global using ScoreCast.Ws.Endpoints.Preprocessors;
 global using ScoreCast.Ws.Extensions;
 global using ScoreCast.Ws.Infrastructure;
 global using Serilog;

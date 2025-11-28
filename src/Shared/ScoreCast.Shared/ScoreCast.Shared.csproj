@@ -1,3 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http" />
+    <PackageReference Include="Serilog" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Helpers\LoggerHelper\" />
+  </ItemGroup>
 </Project>

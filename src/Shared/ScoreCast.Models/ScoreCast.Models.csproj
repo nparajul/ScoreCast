@@ -1,3 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+  <ItemGroup>
+    <Folder Include="V1\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ScoreCast.Shared\ScoreCast.Shared.csproj" />
+  </ItemGroup>
 </Project>

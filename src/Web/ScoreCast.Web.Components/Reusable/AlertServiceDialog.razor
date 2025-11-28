@@ -1,0 +1,51 @@
+@using ScoreCast.Web.Components.Helpers
+<MudDialog OnKeyUp="CloseIfEnter">
+    <TitleContent>
+        <MudText Typo="Typo.h5">@(Title ?? Alert.Severity.ToString())</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (Alert.Content.TryPickT0(out var markup, out var renderFragment))
+        {
+            <MudText Typo="Typo.body1">@markup</MudText>
+        }
+        else
+        {
+            @renderFragment
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Variant="Variant.Filled" Size="Size.Large" Color="GetColor()">OK</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public required ScoreCastAlert Alert { get; set; }
+    [Parameter] public string? Title { get; set; }
+
+    [CascadingParameter] public IMudDialogInstance? Dialog { get; set; }
+
+    public Color GetColor()
+    {
+        switch (Alert.Severity)
+        {
+            case Severity.Error:
+                return Color.Error;
+            case Severity.Warning:
+                return Color.Warning;
+            default:
+                return Color.Primary;
+        }
+    }
+
+    public void CloseDialog()
+    {
+        Dialog?.Close(DialogResult.Ok(true));
+    }
+
+    public void CloseIfEnter(KeyboardEventArgs e)
+    {
+        if (e.Key is "Tab" or "Enter")
+            CloseDialog();
+    }
+
+}
