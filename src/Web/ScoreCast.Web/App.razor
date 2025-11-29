@@ -1,5 +1,6 @@
+@using ScoreCast.Web.Pages
 <CascadingAuthenticationState>
-    <Router AppAssembly="typeof(App).Assembly">
+    <Router AppAssembly="typeof(App).Assembly" NotFoundPage="typeof(NotFoundPage)">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
                 <NotAuthorized>
@@ -7,12 +8,5 @@
                 </NotAuthorized>
             </AuthorizeRouteView>
         </Found>
-        <NotFound>
-            <LayoutView Layout="typeof(MainLayout)">
-                <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="height:80vh;">
-                    <MudText Typo="Typo.h5">Page not found.</MudText>
-                </MudContainer>
-            </LayoutView>
-        </NotFound>
     </Router>
 </CascadingAuthenticationState>
