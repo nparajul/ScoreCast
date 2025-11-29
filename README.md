@@ -91,6 +91,7 @@ After `docker compose down/up`, re-apply via admin API:
 2. Add `localhost:5200` to redirect URIs and web origins for `scorecast-web` client
 3. Ensure `openid`, `profile`, `email` client scopes are assigned as defaults
 4. Set `firstName`/`lastName` to optional in user profile
+5. Add Google identity provider (Client ID + Secret from Google Cloud Console — not committed to git)
 
 Test users: `admin`/`admin`, `testuser`/`test`
 
@@ -126,6 +127,7 @@ Located at `keycloak/themes/scorecast/login/` — custom login and register page
 ## Key Features (Built)
 
 - User registration and login via Keycloak
+- Google Sign-In (social login via Keycloak identity provider)
 - Automatic user sync on first login (Blazor → API)
 - User profile management (GET/PUT /api/v1/users/me)
 - Dark/light mode toggle with theme-aware logos

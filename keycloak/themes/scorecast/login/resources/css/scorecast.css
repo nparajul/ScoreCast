@@ -248,3 +248,48 @@ body {
 .sc-password-requirements li {
     line-height: 1.5;
 }
+
+.sc-divider {
+    display: flex;
+    align-items: center;
+    margin: 1.25rem 0;
+    color: #90A4AE;
+    font-size: 0.8rem;
+}
+
+.sc-divider::before,
+.sc-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #E0E0E0;
+}
+
+.sc-divider span {
+    padding: 0 0.75rem;
+}
+
+.sc-social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #CFD8DC;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    font-family: 'Roboto', sans-serif;
+    color: #0A1929;
+    background: #FFFFFF;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    margin-bottom: 0.5rem;
+}
+
+.sc-social-btn:hover {
+    background: #F5F7FA;
+    border-color: #90A4AE;
+}
