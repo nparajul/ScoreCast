@@ -6,7 +6,7 @@ namespace ScoreCast.Ws.Domain.V1.Entities.Football;
 public sealed record Competition : ScoreCastEntity
 {
     public required string Name { get; set; }
-    public string? Code { get; set; }
+    public required string Code { get; set; }
     public required long CountryId { get; set; }
     public string? LogoUrl { get; set; }
     public string? ExternalId { get; set; }
