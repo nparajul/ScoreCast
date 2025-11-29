@@ -9,6 +9,10 @@ public sealed class ScoreCastDbContext(DbContextOptions<ScoreCastDbContext> opti
     : DbContext(options), IScoreCastDbContext
 {
     public DbSet<UserMaster> UserMasters => Set<UserMaster>();
+    public DbSet<RoleMaster> RoleMasters => Set<RoleMaster>();
+    public DbSet<PageMaster> PageMasters => Set<PageMaster>();
+    public DbSet<UserRole> UserRoles => Set<UserRole>();
+    public DbSet<RolePage> RolePages => Set<RolePage>();
     public DbSet<Country> Countries => Set<Country>();
     public DbSet<Competition> Competitions => Set<Competition>();
     public DbSet<Team> Teams => Set<Team>();

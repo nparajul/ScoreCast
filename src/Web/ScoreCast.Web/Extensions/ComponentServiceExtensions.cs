@@ -9,6 +9,7 @@ public static class ComponentServiceExtensions
         services.AddScoped<INotifyService, NotifyService>();
         services.AddScoped<ILoadingService, LoadingService>();
         services.AddScoped<IAlertService, AlertService>();
+        services.AddScoped<IRoleNavigationService, RoleNavigationService>();
         return services;
     }
 }

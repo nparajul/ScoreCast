@@ -8,6 +8,8 @@
 @inject IAlertService Alert
 @inject ILoadingService Loading
 
+@inject IRoleNavigationService RoleNav
+
 <PageTitle>ScoreCast</PageTitle>
 <MudThemeProvider @ref="_themeProvider" @bind-IsDarkMode="_isDarkMode" Theme="AppTheme.Theme" />
 <MudDialogProvider FullWidth="true" MaxWidth="MaxWidth.Medium" CloseButton="true"/>
@@ -19,37 +21,63 @@
     <MudAppBar Elevation="2" Color="Color.Primary">
             <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="36" Height="36" Class="mr-2" />
             <MudText Typo="Typo.h6" Class="mr-4">ScoreCast</MudText>
+
+            @foreach (var onePage in RoleNav.Pages)
+            {
+                <MudButton Href="@onePage.PageUrl" Color="Color.Inherit">@onePage.PageName</MudButton>
+            }
+
             <MudSpacer />
+
+            @if (RoleNav.Roles.Count > 1)
+            {
+                <select @onchange="OnRoleChangedFromSelect" style="background:transparent; color:inherit; border:1px solid rgba(255,255,255,0.3); border-radius:4px; padding:4px 8px; margin-right:8px;">
+                    @foreach (var role in RoleNav.Roles)
+                    {
+                        <option value="@role.Id" selected="@(role.Id == _selectedRoleId)">@role.Name</option>
+                    }
+                </select>
+            }
             <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
                            Color="Color.Inherit"
                            OnClick="ToggleDarkMode" />
             <LoginDisplay />
         </MudAppBar>
-        <MudMainContent Style="flex:1; padding-bottom:2rem;">
+        <MudContainer Class="main-container" MaxWidth="MaxWidth.ExtraExtraLarge" Style="flex:1; padding-top:80px;">
             <CascadingValue Value="_isDarkMode" Name="IsDarkMode">
                 <UserSync />
-                @if (Loading.IsLoading)
-                {
-                    <div class="d-flex flex-column align-center justify-center" style="min-height:60vh;">
-                        <img src="scorecast-icon.svg" alt="ScoreCast" width="80" height="80" style="animation:pulse 1.5s ease-in-out infinite;" />
-                        <img src="@(_isDarkMode ? "scorecast-logo-dark.svg" : "scorecast-logo.svg")" alt="ScoreCast" width="280" style="margin-top:1rem;" />
-                        <MudText Typo="Typo.body2" Class="mt-4" Color="Color.Inherit" Style="opacity:0.6;">
-                            @(Loading.LoadingMessage ?? "Loading...")
-                        </MudText>
-                    </div>
-                    <style>@@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(.95)}}</style>
-                }
-                else
-                {
-                    @Body
-                }
+                <MudContainer MaxWidth="Alert.Width" Class="d-flex flex-column gap-4">
+                    @foreach (var alert in Alert.Alerts.ToList())
+                    {
+                        <MudAlert Severity="@alert.Severity" Dense="true"
+                                  ShowCloseIcon="true" Variant="Variant.Filled"
+                                  CloseIconClicked="@(() => Alert.Remove(alert.Key))">
+                            @if (alert.Content.TryPickT0(out var markup, out var renderFragment))
+                            {
+                                @markup
+                            }
+                            else
+                            {
+                                @renderFragment
+                            }
+                        </MudAlert>
+                    }
+                </MudContainer>
+                @Body
             </CascadingValue>
-        </MudMainContent>
-        <footer class="d-flex flex-column align-center justify-center pa-4" style="background:var(--mud-palette-primary);color:var(--mud-palette-primary-text);height:80px;">
-            <MudText Typo="Typo.body2">© @DateTime.Now.Year ScoreCast. All rights reserved.</MudText>
-            <MudText Typo="Typo.caption" Style="opacity:0.6;">Premier League Predictions</MudText>
-        </footer>
-    </MudLayout>
+        </MudContainer>
+    <footer class="d-flex flex-column align-center justify-center pa-4" style="background:var(--mud-palette-primary);color:var(--mud-palette-primary-text);height:80px;">
+        <MudText Typo="Typo.body2">© @DateTime.Now.Year ScoreCast. All rights reserved.</MudText>
+        <MudText Typo="Typo.caption" Style="opacity:0.6;">Premier League Predictions</MudText>
+    </footer>
+
+    <MudOverlay Visible="Loading.IsLoading" DarkBackground="true" ZIndex="9999">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            <MudText Typo="Typo.body1" Class="mt-4" Color="Color.Surface">
+                @(Loading.LoadingMessage ?? "Loading...")
+            </MudText>
+    </MudOverlay>
+</MudLayout>
 </MudBreakpointProvider>
 
 <script>
@@ -62,3 +90,15 @@
         document.body.removeChild(link);
     }
 </script>
+
+<style>
+    ::deep .main-container{
+        min-height:700px;
+        margin-bottom:60px;
+        margin-top:var(--mud-appbar-height);
+        padding-top:16px;
+        padding-bottom:2%;
+        padding-left: 0;
+        padding-right: 0;
+    }
+</style>
