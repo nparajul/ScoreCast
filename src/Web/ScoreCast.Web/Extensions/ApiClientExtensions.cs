@@ -23,7 +23,7 @@ public static class ApiClientExtensions
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
 
         builder.Services
-            .AddRefitClient<ILeagueApi>()
+            .AddRefitClient<IFootballApi>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
     }
 }
