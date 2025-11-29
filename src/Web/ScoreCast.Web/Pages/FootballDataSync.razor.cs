@@ -6,7 +6,7 @@ using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
 
-public partial class DataSync
+public partial class FootballDataSync
 {
     [Inject] private IScoreCastApiClient Api { get; set; } = default!;
     [Inject] private ILoadingService Loading { get; set; } = default!;
@@ -72,6 +72,44 @@ public partial class DataSync
                     Alert.Add(result.Message ?? $"Synced {competition.Name} successfully", Severity.Success);
                 else
                     Alert.Add(result.Message ?? "Sync failed", Severity.Error);
+            });
+        }
+        catch (Exception ex)
+        {
+            await Alert.ShowDialogForException(ex, Severity.Error);
+        }
+    }
+
+    private async Task SyncTeamsAsync(CompetitionResult competition)
+    {
+        try
+        {
+            await Loading.While(async () =>
+            {
+                var result = await Api.SyncTeamsAsync(new SyncCompetitionRequest { CompetitionCode = competition.Code }, CancellationToken.None);
+                if (result.Success)
+                    Alert.Add(result.Message ?? $"Synced teams for {competition.Name}", Severity.Success);
+                else
+                    Alert.Add(result.Message ?? "Team sync failed", Severity.Error);
+            });
+        }
+        catch (Exception ex)
+        {
+            await Alert.ShowDialogForException(ex, Severity.Error);
+        }
+    }
+
+    private async Task SyncMatchesAsync(CompetitionResult competition)
+    {
+        try
+        {
+            await Loading.While(async () =>
+            {
+                var result = await Api.SyncMatchesAsync(new SyncCompetitionRequest { CompetitionCode = competition.Code }, CancellationToken.None);
+                if (result.Success)
+                    Alert.Add(result.Message ?? $"Synced matches for {competition.Name}", Severity.Success);
+                else
+                    Alert.Add(result.Message ?? "Match sync failed", Severity.Error);
             });
         }
         catch (Exception ex)

@@ -16,5 +16,6 @@ public sealed record Season : ScoreCastEntity
     public Competition Competition { get; init; } = null!;
     public Team? WinnerTeam { get; set; }
     public ICollection<SeasonTeam> SeasonTeams { get; init; } = [];
+    public ICollection<TeamPlayer> TeamPlayers { get; init; } = [];
     public ICollection<Gameweek> Gameweeks { get; init; } = [];
 }

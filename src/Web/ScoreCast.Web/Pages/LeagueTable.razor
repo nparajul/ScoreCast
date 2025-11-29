@@ -1,0 +1,88 @@
+@page "/league-table"
+@using ScoreCast.Models.V1.Responses.Football
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
+    <MudText Typo="Typo.h4" Class="mb-4">League Table</MudText>
+
+    <div class="d-flex gap-4 mb-6">
+        <MudAutocomplete T="CompetitionResult"
+                         Label="Competition"
+                         Value="_selectedCompetition"
+                         SearchFunc="SearchCompetitions"
+                         ToStringFunc="@(c => c?.Name ?? string.Empty)"
+                         Variant="Variant.Outlined"
+                         Dense="true"
+                         Margin="Margin.Dense"
+                         Style="max-width:350px;"
+                         ResetValueOnEmptyText="true"
+                         ValueChanged="OnCompetitionChanged" />
+
+        <MudSelect T="SeasonResult"
+                   Label="Season"
+                   Value="_selectedSeason"
+                   Variant="Variant.Outlined"
+                   Dense="true"
+                   Margin="Margin.Dense"
+                   Style="max-width:250px;"
+                   Disabled="@(_seasons.Count == 0)"
+                   ValueChanged="OnSeasonChanged"
+                   ToStringFunc="@(s => s?.Name ?? string.Empty)">
+            @foreach (var season in _seasons)
+            {
+                <MudSelectItem T="SeasonResult" Value="season">@season.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </div>
+
+    @if (_table.Count > 0)
+    {
+        <div class="d-flex gap-4 mb-3 flex-wrap">
+            @foreach (var zone in _zones)
+            {
+                <div class="d-flex align-center gap-1">
+                    <span style="width:12px;height:12px;border-radius:2px;background:@zone.Color;display:inline-block;"></span>
+                    <MudText Typo="Typo.caption">@zone.Name</MudText>
+                </div>
+            }
+        </div>
+
+        <MudTable Items="_table" Dense="true" Hover="true" Elevation="1" RowStyleFunc="RowStyleFunc">
+            <HeaderContent>
+                <MudTh Style="width:50px;">#</MudTh>
+                <MudTh>Team</MudTh>
+                <MudTh Style="text-align:center;">P</MudTh>
+                <MudTh Style="text-align:center;">W</MudTh>
+                <MudTh Style="text-align:center;">D</MudTh>
+                <MudTh Style="text-align:center;">L</MudTh>
+                <MudTh Style="text-align:center;">GF</MudTh>
+                <MudTh Style="text-align:center;">GA</MudTh>
+                <MudTh Style="text-align:center;">GD</MudTh>
+                <MudTh Style="text-align:center;font-weight:700;">Pts</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="#">@context.Position</MudTd>
+                <MudTd DataLabel="Team">
+                    <div class="d-flex align-center gap-2">
+                        @if (!string.IsNullOrEmpty(context.TeamLogo))
+                        {
+                            <img src="@context.TeamLogo" alt="" style="width:24px;height:24px;" />
+                        }
+                        <MudText>@context.TeamName</MudText>
+                    </div>
+                </MudTd>
+                <MudTd DataLabel="P" Style="text-align:center;">@context.Played</MudTd>
+                <MudTd DataLabel="W" Style="text-align:center;">@context.Won</MudTd>
+                <MudTd DataLabel="D" Style="text-align:center;">@context.Drawn</MudTd>
+                <MudTd DataLabel="L" Style="text-align:center;">@context.Lost</MudTd>
+                <MudTd DataLabel="GF" Style="text-align:center;">@context.GoalsFor</MudTd>
+                <MudTd DataLabel="GA" Style="text-align:center;">@context.GoalsAgainst</MudTd>
+                <MudTd DataLabel="GD" Style="text-align:center;">@context.GoalDifference</MudTd>
+                <MudTd DataLabel="Pts" Style="text-align:center;font-weight:700;">@context.Points</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else if (_selectedSeason is not null)
+    {
+        <MudAlert Severity="Severity.Info">No match data available for this season. Sync matches first.</MudAlert>
+    }
+</MudContainer>
