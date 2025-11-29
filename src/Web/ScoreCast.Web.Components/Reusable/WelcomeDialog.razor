@@ -1,15 +1,16 @@
 @using ScoreCast.Web.Components.Reusable
 
-<MudDialog>
+<MudDialog ClassActions="pa-4" ClassContent="px-6 pb-4" DisableSidePadding="true">
     <TitleContent>
-        <div class="d-flex align-center gap-2">
-            <MudIcon Icon="@Icons.Material.Filled.Celebration" Color="Color.Tertiary" />
-            <MudText Typo="Typo.h5">Welcome to ScoreCast!</MudText>
+        <div style="background:linear-gradient(135deg, #0A1929 0%, #37003C 100%); margin:-16px -24px 0; padding:2rem; border-radius:4px 4px 0 0; text-align:center;">
+            <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="64" Height="64" Class="mb-2" />
+            <MudText Typo="Typo.h4" Style="color:#FFFFFF;">Welcome, @Username!</MudText>
+            <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.7);">Let's set up your profile</MudText>
         </div>
     </TitleContent>
     <DialogContent>
-        <MudText Typo="Typo.body1" Class="mb-4">
-            You're all set! Choose a display name that other players will see on the leaderboard.
+        <MudText Typo="Typo.body1" Color="Color.Inherit" Class="mb-4 mt-4">
+            Choose a display name and pick your favourite team.
         </MudText>
         <MudTextField @bind-Value="DisplayName"
                       Label="Display Name"
@@ -18,12 +19,25 @@
                       Immediate="true"
                       MaxLength="30"
                       Adornment="Adornment.Start"
-                      AdornmentIcon="@Icons.Material.Filled.Person" />
+                      AdornmentIcon="@Icons.Material.Filled.Person"
+                      Class="mb-4" />
+        <MudSelect @bind-Value="FavoriteTeam"
+                   Label="Favourite Premier League Team"
+                   Placeholder="Select your team"
+                   Variant="Variant.Outlined"
+                   Adornment="Adornment.Start"
+                   AdornmentIcon="@Icons.Material.Filled.Shield"
+                   Clearable="true">
+            @foreach (var team in Teams)
+            {
+                <MudSelectItem Value="@team">@team</MudSelectItem>
+            }
+        </MudSelect>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Skip" Variant="Variant.Text">Skip for now</MudButton>
+        <MudButton OnClick="Skip" Variant="Variant.Text" Color="Color.Default">Skip for now</MudButton>
         <MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Tertiary"
-                   Disabled="@string.IsNullOrWhiteSpace(DisplayName)">
+                   Disabled="@(string.IsNullOrWhiteSpace(DisplayName) && string.IsNullOrWhiteSpace(FavoriteTeam))">
             Let's Go!
         </MudButton>
     </DialogActions>
