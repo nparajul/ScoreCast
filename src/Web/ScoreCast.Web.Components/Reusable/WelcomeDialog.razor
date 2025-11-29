@@ -1,0 +1,30 @@
+@using ScoreCast.Web.Components.Reusable
+
+<MudDialog>
+    <TitleContent>
+        <div class="d-flex align-center gap-2">
+            <MudIcon Icon="@Icons.Material.Filled.Celebration" Color="Color.Tertiary" />
+            <MudText Typo="Typo.h5">Welcome to ScoreCast!</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            You're all set! Choose a display name that other players will see on the leaderboard.
+        </MudText>
+        <MudTextField @bind-Value="DisplayName"
+                      Label="Display Name"
+                      Placeholder="e.g. GoalKing99"
+                      Variant="Variant.Outlined"
+                      Immediate="true"
+                      MaxLength="30"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Person" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Skip" Variant="Variant.Text">Skip for now</MudButton>
+        <MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Tertiary"
+                   Disabled="@string.IsNullOrWhiteSpace(DisplayName)">
+            Let's Go!
+        </MudButton>
+    </DialogActions>
+</MudDialog>
