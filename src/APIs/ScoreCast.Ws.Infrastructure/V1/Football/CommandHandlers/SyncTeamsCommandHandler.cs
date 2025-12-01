@@ -61,7 +61,7 @@ internal sealed record SyncTeamsCommandHandler(
             if (currentSeason is not null)
                 await LinkTeamsToSeasonAsync(currentSeason, upsertedTeams, ct);
 
-            await UnitOfWork.SaveChangesAsync(nameof(SyncTeamsCommand), ct);
+            await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(SyncTeamsCommand), ct);
             await transaction.CommitAsync(ct);
             return ScoreCastResponse.Ok($"Synced {upsertedTeams.Count} teams and {playerCount} players for {competition.Name}");
         }

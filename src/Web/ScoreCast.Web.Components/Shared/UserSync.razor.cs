@@ -11,6 +11,7 @@ public partial class UserSync : IDisposable
 {
     private bool _synced;
     private bool _subscribed;
+    private const string AppName = "SIGN UP";
     [Inject] public required ILoadingService Loading { get; set; }
     [Inject] public required IAlertService Alert { get; set; }
     [Inject] public required IDialogService DialogService { get; set; }
@@ -63,7 +64,8 @@ public partial class UserSync : IDisposable
             await Api.SyncUserAsync(new SyncUserRequest
             {
                 ChosenUsername = user.Identity?.Name ?? "",
-                Email = user.FindFirst("email")?.Value ?? ""
+                Email = user.FindFirst("email")?.Value ?? "",
+                AppName = AppName
             }, CancellationToken.None);
 
             await RoleNav.LoadRolesAsync();
