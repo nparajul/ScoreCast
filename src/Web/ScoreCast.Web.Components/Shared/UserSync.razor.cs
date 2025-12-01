@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components.Authorization;
 using ScoreCast.Models.V1.Requests.UserManagement;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.UserManagement;
@@ -6,28 +7,46 @@ using ScoreCast.Web.Components.Reusable;
 
 namespace ScoreCast.Web.Components.Shared;
 
-public partial class UserSync
+public partial class UserSync : IDisposable
 {
-    private bool _checked;
+    private bool _synced;
+    private bool _subscribed;
     [Inject] public required ILoadingService Loading { get; set; }
     [Inject] public required IAlertService Alert { get; set; }
     [Inject] public required IDialogService DialogService { get; set; }
     [Inject] public required IRoleNavigationService RoleNav { get; set; }
+    [Inject] public required AuthenticationStateProvider AuthStateProvider { get; set; }
     [CascadingParameter] private Task<AuthenticationState>? AuthStateTask { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _checked || AuthStateTask is null) return;
+        if (!_subscribed)
+        {
+            _subscribed = true;
+            AuthStateProvider.AuthenticationStateChanged += OnAuthStateChanged;
+        }
+
+        if (!firstRender || _synced || AuthStateTask is null) return;
 
         var state = await AuthStateTask;
         if (state.User.Identity?.IsAuthenticated == true)
             await EnsureUserSynced(state);
     }
 
+    private async void OnAuthStateChanged(Task<AuthenticationState> task)
+    {
+        var state = await task;
+        if (state.User.Identity?.IsAuthenticated == true)
+        {
+            _synced = false;
+            await InvokeAsync(async () => await EnsureUserSynced(state));
+        }
+    }
+
     private async Task EnsureUserSynced(AuthenticationState state)
     {
-        if (_checked) return;
-        _checked = true;
+        if (_synced) return;
+        _synced = true;
 
         try
         {
@@ -47,6 +66,7 @@ public partial class UserSync
                 Email = user.FindFirst("email")?.Value ?? ""
             }, CancellationToken.None);
 
+            await RoleNav.LoadRolesAsync();
             await ShowWelcomeDialog(user.Identity?.Name ?? "");
         }
         catch (Exception ex)
@@ -70,4 +90,6 @@ public partial class UserSync
                 CancellationToken.None));
         }
     }
+
+    public void Dispose() => AuthStateProvider.AuthenticationStateChanged -= OnAuthStateChanged;
 }

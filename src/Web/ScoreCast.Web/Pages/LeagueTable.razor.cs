@@ -12,9 +12,12 @@ public partial class LeagueTable
     [Inject] private IAlertService Alert { get; set; } = default!;
 
     private List<CompetitionResult> _competitions = [];
+    private List<(string Name, string? FlagUrl)> _countries = [];
+    private List<CompetitionResult> _filteredCompetitions = [];
     private List<SeasonResult> _seasons = [];
     private List<LeagueTableRow> _table = [];
     private List<CompetitionZoneResult> _zones = [];
+    private string? _selectedCountry;
     private CompetitionResult? _selectedCompetition;
     private SeasonResult? _selectedSeason;
     private bool _loaded;
@@ -29,21 +32,71 @@ public partial class LeagueTable
             if (response is { Success: true, Data: not null })
             {
                 _competitions = response.Data;
-                var pl = _competitions.FirstOrDefault(c => c.Code == CompetitionCodes.PremierLeague);
-                if (pl is not null)
-                    await OnCompetitionChanged(pl);
+                _countries = _competitions
+                    .Select(c => (c.CountryName, c.CountryFlagUrl))
+                    .DistinctBy(c => c.CountryName)
+                    .OrderBy(c => c.CountryName)
+                    .ToList();
+
+                _filteredCompetitions = _competitions
+                    .Where(c => c.CountryName == CountryNames.England).ToList();
             }
+
+            // render dropdowns with items first
+            StateHasChanged();
+            await Task.Yield();
+
+            // now set selections so MudSelect can match against rendered items
+            _selectedCountry = CountryNames.England;
+            var pl = _filteredCompetitions.FirstOrDefault(c => c.Code == CompetitionCodes.PremierLeague);
+            if (pl is not null)
+            {
+                _selectedCompetition = pl;
+                StateHasChanged();
+                await Task.Yield();
+                await LoadCompetitionData(pl);
+            }
+
             StateHasChanged();
         });
     }
 
-    private Task<IEnumerable<CompetitionResult>> SearchCompetitions(string? value, CancellationToken ct)
+    private async Task LoadCompetitionData(CompetitionResult competition)
     {
-        var results = string.IsNullOrWhiteSpace(value)
-            ? _competitions
-            : _competitions.Where(c => c.Name.Contains(value, StringComparison.OrdinalIgnoreCase)
-                                    || c.Code.Contains(value, StringComparison.OrdinalIgnoreCase));
-        return Task.FromResult(results);
+        var seasonsTask = Api.GetSeasonsAsync(competition.Code, CancellationToken.None);
+        var zonesTask = Api.GetCompetitionZonesAsync(competition.Code, CancellationToken.None);
+        await Task.WhenAll(seasonsTask, zonesTask);
+
+        var seasonsResponse = await seasonsTask;
+        if (seasonsResponse is { Success: true, Data: not null })
+            _seasons = seasonsResponse.Data;
+
+        var zonesResponse = await zonesTask;
+        if (zonesResponse is { Success: true, Data: not null })
+            _zones = zonesResponse.Data;
+
+        StateHasChanged();
+        await Task.Yield();
+
+        _selectedSeason = _seasons.FirstOrDefault(s => s.IsCurrent) ?? _seasons.FirstOrDefault();
+        if (_selectedSeason is not null)
+            await LoadTableAsync(_selectedSeason.Id);
+    }
+
+    private async Task OnCountryChanged(string? country)
+    {
+        _selectedCountry = country;
+        _selectedCompetition = null;
+        _selectedSeason = null;
+        _seasons = [];
+        _table = [];
+        _zones = [];
+        _filteredCompetitions = country is null
+            ? []
+            : _competitions.Where(c => c.CountryName == country).ToList();
+
+        if (_filteredCompetitions.Count == 1)
+            await OnCompetitionChanged(_filteredCompetitions[0]);
     }
 
     private async Task OnCompetitionChanged(CompetitionResult? competition)
@@ -56,26 +109,7 @@ public partial class LeagueTable
 
         if (competition is null) return;
 
-        await Loading.While(async () =>
-        {
-            var seasonsTask = Api.GetSeasonsAsync(competition.Code, CancellationToken.None);
-            var zonesTask = Api.GetCompetitionZonesAsync(competition.Code, CancellationToken.None);
-            await Task.WhenAll(seasonsTask, zonesTask);
-
-            var seasonsResponse = await seasonsTask;
-            if (seasonsResponse is { Success: true, Data: not null })
-            {
-                _seasons = seasonsResponse.Data;
-                _selectedSeason = _seasons.FirstOrDefault(s => s.IsCurrent) ?? _seasons.FirstOrDefault();
-            }
-
-            var zonesResponse = await zonesTask;
-            if (zonesResponse is { Success: true, Data: not null })
-                _zones = zonesResponse.Data;
-        });
-
-        if (_selectedSeason is not null)
-            await LoadTableAsync(_selectedSeason.Id);
+        await Loading.While(async () => await LoadCompetitionData(competition));
     }
 
     private async Task OnSeasonChanged(SeasonResult? season)
