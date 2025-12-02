@@ -5,7 +5,7 @@ using ScoreCast.Models.V1.Responses.UserManagement;
 
 namespace ScoreCast.ApiClient.V1.Apis;
 
-public partial interface IUserManagementApi
+public partial interface IScoreCastApiClient
 {
     [Post("/api/v1/users/sync")]
     Task<ScoreCastResponse<SyncUserResult>> SyncUserAsync([Body] SyncUserRequest request, CancellationToken ct);
@@ -15,4 +15,10 @@ public partial interface IUserManagementApi
 
     [Put("/api/v1/users/me")]
     Task<ScoreCastResponse<UserProfileResult>> UpdateMyProfileAsync([Body] UpdateUserProfileRequest request, CancellationToken ct);
+
+    [Get("/api/v1/users/me/roles")]
+    Task<ScoreCastResponse<List<RoleResult>>> GetMyRolesAsync(CancellationToken ct);
+
+    [Get("/api/v1/users/roles/{roleId}/pages")]
+    Task<ScoreCastResponse<List<PageResult>>> GetRolePagesAsync(long roleId, CancellationToken ct);
 }

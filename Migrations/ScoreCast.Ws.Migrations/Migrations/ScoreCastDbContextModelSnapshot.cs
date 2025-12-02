@@ -23,6 +23,1480 @@ namespace ScoreCast.Ws.Migrations.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Competition", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("code")
+                        .HasColumnOrder(2);
+
+                    b.Property<long>("CountryId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("country_id")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("external_id")
+                        .HasColumnOrder(5);
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active")
+                        .HasColumnOrder(8);
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("logo_url")
+                        .HasColumnOrder(4);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name")
+                        .HasColumnOrder(1);
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sort_order")
+                        .HasColumnOrder(7);
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("League")
+                        .HasColumnName("type")
+                        .HasColumnOrder(6);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("CountryId");
+
+                    b.HasIndex("ExternalId")
+                        .IsUnique()
+                        .HasFilter("external_id IS NOT NULL");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("competition", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.CompetitionZone", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("color")
+                        .HasColumnOrder(3);
+
+                    b.Property<long>("CompetitionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("competition_id")
+                        .HasColumnOrder(1);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<int>("EndPosition")
+                        .HasColumnType("integer")
+                        .HasColumnName("end_position")
+                        .HasColumnOrder(5);
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name")
+                        .HasColumnOrder(2);
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sort_order")
+                        .HasColumnOrder(6);
+
+                    b.Property<int>("StartPosition")
+                        .HasColumnType("integer")
+                        .HasColumnName("start_position")
+                        .HasColumnOrder(4);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompetitionId", "StartPosition")
+                        .IsUnique();
+
+                    b.ToTable("competition_zone", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Country", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("code")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("external_id")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("FlagUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("flag_url")
+                        .HasColumnOrder(4);
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active")
+                        .HasColumnOrder(5);
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name")
+                        .HasColumnOrder(1);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("ExternalId")
+                        .IsUnique()
+                        .HasFilter("external_id IS NOT NULL");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("country", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Gameweek", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("end_date")
+                        .HasColumnOrder(4);
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number")
+                        .HasColumnOrder(2);
+
+                    b.Property<long>("SeasonId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("season_id")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("start_date")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Upcoming")
+                        .HasColumnName("status")
+                        .HasColumnOrder(5);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeasonId", "Number")
+                        .IsUnique();
+
+                    b.ToTable("gameweek", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Match", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("AwayScore")
+                        .HasColumnType("integer")
+                        .HasColumnName("away_score")
+                        .HasColumnOrder(7);
+
+                    b.Property<long>("AwayTeamId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("away_team_id")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("external_id")
+                        .HasColumnOrder(4);
+
+                    b.Property<long>("GameweekId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("gameweek_id")
+                        .HasColumnOrder(1);
+
+                    b.Property<int?>("HomeScore")
+                        .HasColumnType("integer")
+                        .HasColumnName("home_score")
+                        .HasColumnOrder(6);
+
+                    b.Property<long>("HomeTeamId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("home_team_id")
+                        .HasColumnOrder(2);
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<DateTime?>("KickoffTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("kickoff_time")
+                        .HasColumnOrder(5);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Scheduled")
+                        .HasColumnName("status")
+                        .HasColumnOrder(8);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AwayTeamId");
+
+                    b.HasIndex("ExternalId")
+                        .IsUnique()
+                        .HasFilter("external_id IS NOT NULL");
+
+                    b.HasIndex("HomeTeamId");
+
+                    b.HasIndex("GameweekId", "HomeTeamId", "AwayTeamId")
+                        .IsUnique();
+
+                    b.ToTable("match", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Player", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date")
+                        .HasColumnName("date_of_birth")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("external_id")
+                        .HasColumnOrder(5);
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name")
+                        .HasColumnOrder(1);
+
+                    b.Property<string>("Nationality")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nationality")
+                        .HasColumnOrder(4);
+
+                    b.Property<string>("Position")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("position")
+                        .HasColumnOrder(2);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExternalId")
+                        .IsUnique();
+
+                    b.ToTable("player", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Prediction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<long>("MatchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("match_id")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<int>("PointsAwarded")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("points_awarded")
+                        .HasColumnOrder(5);
+
+                    b.Property<int>("PredictedAwayScore")
+                        .HasColumnType("integer")
+                        .HasColumnName("predicted_away_score")
+                        .HasColumnOrder(4);
+
+                    b.Property<int>("PredictedHomeScore")
+                        .HasColumnType("integer")
+                        .HasColumnName("predicted_home_score")
+                        .HasColumnOrder(3);
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id")
+                        .HasColumnOrder(1);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MatchId");
+
+                    b.HasIndex("UserId", "MatchId")
+                        .IsUnique();
+
+                    b.ToTable("prediction", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Season", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CompetitionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("competition_id")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<int?>("CurrentMatchday")
+                        .HasColumnType("integer")
+                        .HasColumnName("current_matchday")
+                        .HasColumnOrder(6);
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("end_date")
+                        .HasColumnOrder(5);
+
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("external_id")
+                        .HasColumnOrder(3);
+
+                    b.Property<bool>("IsCurrent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_current")
+                        .HasColumnOrder(8);
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("name")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("start_date")
+                        .HasColumnOrder(4);
+
+                    b.Property<long?>("WinnerTeamId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("winner_team_id")
+                        .HasColumnOrder(7);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExternalId")
+                        .IsUnique()
+                        .HasFilter("external_id IS NOT NULL");
+
+                    b.HasIndex("WinnerTeamId");
+
+                    b.HasIndex("CompetitionId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("season", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.SeasonTeam", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<long>("SeasonId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("season_id")
+                        .HasColumnOrder(1);
+
+                    b.Property<long>("TeamId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("team_id")
+                        .HasColumnOrder(2);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("SeasonId", "TeamId")
+                        .IsUnique();
+
+                    b.ToTable("season_team", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Team", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ClubColors")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("club_colors")
+                        .HasColumnOrder(8);
+
+                    b.Property<long>("CountryId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("country_id")
+                        .HasColumnOrder(5);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("external_id")
+                        .HasColumnOrder(4);
+
+                    b.Property<int?>("Founded")
+                        .HasColumnType("integer")
+                        .HasColumnName("founded")
+                        .HasColumnOrder(6);
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active")
+                        .HasColumnOrder(10);
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("logo_url")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name")
+                        .HasColumnOrder(1);
+
+                    b.Property<string>("ShortName")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("short_name")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("Venue")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("venue")
+                        .HasColumnOrder(7);
+
+                    b.Property<string>("Website")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("website")
+                        .HasColumnOrder(9);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CountryId");
+
+                    b.HasIndex("ExternalId")
+                        .IsUnique()
+                        .HasFilter("external_id IS NOT NULL");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("team", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.TeamPlayer", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<long>("PlayerId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("player_id")
+                        .HasColumnOrder(2);
+
+                    b.Property<long>("SeasonId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("season_id")
+                        .HasColumnOrder(3);
+
+                    b.Property<long>("TeamId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("team_id")
+                        .HasColumnOrder(1);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId");
+
+                    b.HasIndex("SeasonId");
+
+                    b.HasIndex("TeamId", "PlayerId", "SeasonId")
+                        .IsUnique();
+
+                    b.ToTable("team_player", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.UserManagement.PageMaster", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("PageCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("page_code")
+                        .HasColumnOrder(1);
+
+                    b.Property<string>("PageName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("page_name")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("PageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("page_url")
+                        .HasColumnOrder(3);
+
+                    b.Property<long?>("ParentPageId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("parent_page_id")
+                        .HasColumnOrder(4);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PageCode")
+                        .IsUnique();
+
+                    b.HasIndex("ParentPageId");
+
+                    b.ToTable("page_master", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.UserManagement.RoleMaster", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("description")
+                        .HasColumnOrder(2);
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active")
+                        .HasColumnOrder(4);
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("name")
+                        .HasColumnOrder(1);
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sort_order")
+                        .HasColumnOrder(3);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("role_master", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.UserManagement.RolePage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<long>("PageId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("page_id")
+                        .HasColumnOrder(2);
+
+                    b.Property<long>("RoleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("role_id")
+                        .HasColumnOrder(1);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PageId");
+
+                    b.HasIndex("RoleId", "PageId")
+                        .IsUnique();
+
+                    b.ToTable("role_page", "scorecast");
+                });
+
             modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.UserManagement.UserMaster", b =>
                 {
                     b.Property<long>("Id")
@@ -164,6 +1638,345 @@ namespace ScoreCast.Ws.Migrations.Migrations
                         .IsUnique();
 
                     b.ToTable("user_master", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.UserManagement.UserRole", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id")
+                        .HasColumnOrder(0);
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_by")
+                        .HasColumnOrder(991)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("CreatedByApp")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("created_by_app")
+                        .HasColumnOrder(993);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date")
+                        .HasColumnOrder(992)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted")
+                        .HasColumnOrder(999);
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("modified_by")
+                        .HasColumnOrder(995)
+                        .HasDefaultValueSql("current_user");
+
+                    b.Property<string>("ModifiedByApp")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("modified_by_app")
+                        .HasColumnOrder(997);
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("modified_date")
+                        .HasColumnOrder(996)
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<long>("RoleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("role_id")
+                        .HasColumnOrder(2);
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id")
+                        .HasColumnOrder(1);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("UserId", "RoleId")
+                        .IsUnique();
+
+                    b.ToTable("user_role", "scorecast");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Competition", b =>
+                {
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Country", "Country")
+                        .WithMany()
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Country");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.CompetitionZone", b =>
+                {
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Competition", "Competition")
+                        .WithMany()
+                        .HasForeignKey("CompetitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Competition");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Gameweek", b =>
+                {
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Season", "Season")
+                        .WithMany("Gameweeks")
+                        .HasForeignKey("SeasonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Season");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Match", b =>
+                {
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Team", "AwayTeam")
+                        .WithMany()
+                        .HasForeignKey("AwayTeamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Gameweek", "Gameweek")
+                        .WithMany("Matches")
+                        .HasForeignKey("GameweekId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Team", "HomeTeam")
+                        .WithMany()
+                        .HasForeignKey("HomeTeamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AwayTeam");
+
+                    b.Navigation("Gameweek");
+
+                    b.Navigation("HomeTeam");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Prediction", b =>
+                {
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Match", "Match")
+                        .WithMany("Predictions")
+                        .HasForeignKey("MatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.UserManagement.UserMaster", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Match");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Season", b =>
+                {
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Competition", "Competition")
+                        .WithMany("Seasons")
+                        .HasForeignKey("CompetitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Team", "WinnerTeam")
+                        .WithMany()
+                        .HasForeignKey("WinnerTeamId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Competition");
+
+                    b.Navigation("WinnerTeam");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.SeasonTeam", b =>
+                {
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Season", "Season")
+                        .WithMany("SeasonTeams")
+                        .HasForeignKey("SeasonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Team", "Team")
+                        .WithMany("SeasonTeams")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Season");
+
+                    b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Team", b =>
+                {
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Country", "Country")
+                        .WithMany()
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Country");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.TeamPlayer", b =>
+                {
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Player", "Player")
+                        .WithMany("TeamPlayers")
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Season", "Season")
+                        .WithMany("TeamPlayers")
+                        .HasForeignKey("SeasonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Team", "Team")
+                        .WithMany("TeamPlayers")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Player");
+
+                    b.Navigation("Season");
+
+                    b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.UserManagement.PageMaster", b =>
+                {
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.UserManagement.PageMaster", "ParentPage")
+                        .WithMany("ChildPages")
+                        .HasForeignKey("ParentPageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ParentPage");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.UserManagement.RolePage", b =>
+                {
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.UserManagement.PageMaster", "Page")
+                        .WithMany("RolePages")
+                        .HasForeignKey("PageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.UserManagement.RoleMaster", "Role")
+                        .WithMany("RolePages")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Page");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.UserManagement.UserRole", b =>
+                {
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.UserManagement.RoleMaster", "Role")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.UserManagement.UserMaster", "User")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Competition", b =>
+                {
+                    b.Navigation("Seasons");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Gameweek", b =>
+                {
+                    b.Navigation("Matches");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Match", b =>
+                {
+                    b.Navigation("Predictions");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Player", b =>
+                {
+                    b.Navigation("TeamPlayers");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Season", b =>
+                {
+                    b.Navigation("Gameweeks");
+
+                    b.Navigation("SeasonTeams");
+
+                    b.Navigation("TeamPlayers");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Team", b =>
+                {
+                    b.Navigation("SeasonTeams");
+
+                    b.Navigation("TeamPlayers");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.UserManagement.PageMaster", b =>
+                {
+                    b.Navigation("ChildPages");
+
+                    b.Navigation("RolePages");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.UserManagement.RoleMaster", b =>
+                {
+                    b.Navigation("RolePages");
+
+                    b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.UserManagement.UserMaster", b =>
+                {
+                    b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618
         }

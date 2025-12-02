@@ -18,20 +18,36 @@
                     <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2" Style="font-weight:600; letter-spacing:0.5px;">
                         DISPLAY NAME
                     </MudText>
-                    <ScannableTextField @bind-Value="DisplayName"
+                    <MudTextField @bind-Value="DisplayName"
                                   Placeholder="What should other players call you?"
                                   Variant="Variant.Outlined"
                                   Immediate="true"
-                                  Handler="HandleDisplayName"
-                                  @ref="_displayNameRef"
                                   MaxLength="30"
                                   Counter="30"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Person"
                                   AutoFocus="true"
                                   Margin="Margin.Dense"
-                                  FullWidth="true"
-                                  OnSuccess="FocusNext"/>
+                                  FullWidth="true" />
+                </MudPaper>
+
+                <MudPaper Elevation="0" Class="pa-4 mb-4 rounded-lg" Style="border:1px solid;">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2" Style="font-weight:600; letter-spacing:0.5px;">
+                        COMPETITION
+                    </MudText>
+                    <MudSelect T="string"
+                               @bind-Value="SelectedCompetition"
+                               Placeholder="Select a competition..."
+                               Variant="Variant.Outlined"
+                               Adornment="Adornment.Start"
+                               AdornmentIcon="@Icons.Material.Filled.EmojiEvents"
+                               Margin="Margin.Dense"
+                               FullWidth="true">
+                        @foreach (var comp in _competitions)
+                        {
+                            <MudSelectItem Value="@comp.Name">@comp.Name</MudSelectItem>
+                        }
+                    </MudSelect>
                 </MudPaper>
 
                 <MudPaper Elevation="0" Class="pa-4 rounded-lg" Style="border:1px solid;">
@@ -40,13 +56,14 @@
                     </MudText>
                     <MudAutocomplete T="string"
                                      @bind-Value="FavoriteTeam"
-                                     Placeholder="Start typing to search..."
+                                     Placeholder="@(_teams.Count == 0 ? "Select a competition first..." : "Start typing to search...")"
                                      Variant="Variant.Outlined"
                                      Adornment="Adornment.Start"
                                      AdornmentIcon="@Icons.Material.Filled.Shield"
                                      SearchFunc="SearchTeams"
                                      Clearable="true"
                                      CoerceValue="true"
+                                     Disabled="@(_teams.Count == 0)"
                                      Margin="Margin.Dense"
                                      FullWidth="true" />
                 </MudPaper>
