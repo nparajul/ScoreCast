@@ -73,10 +73,10 @@
                             </MudButton>
                             @if (competition.ExternalSources.Contains("Fpl"))
                             {
-                            <MudButton Variant="Variant.Outlined"
-                                       Color="Color.Warning"
+                            <MudButton Variant="Variant.Filled"
                                        Size="Size.Small"
                                        StartIcon="@Icons.Material.Filled.Assessment"
+                                       Style="background:#38003c;color:#00ff85;font-weight:700;"
                                        OnClick="@(() => SyncFplDataAsync(competition))">
                                 Sync FPL Events
                             </MudButton>
