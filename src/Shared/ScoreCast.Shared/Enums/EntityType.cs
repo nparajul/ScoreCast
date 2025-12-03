@@ -1,4 +1,4 @@
-namespace ScoreCast.Ws.Domain.V1.Enums;
+namespace ScoreCast.Shared.Enums;
 
 public enum EntityType
 {

@@ -1,14 +1,15 @@
 using System.Net.Http.Json;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Shared.Constants;
-using ScoreCast.Shared.Enums;
-using ScoreCast.Ws.Application.Interfaces;
 using ScoreCast.Ws.Application.V1.Football.Commands;
 using ScoreCast.Ws.Domain.V1.Entities;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
-using ScoreCast.Ws.Domain.V1.Enums;
+using ScoreCast.Shared.Enums;
+using ScoreCast.Ws.Application;
+using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Infrastructure.V1.Football.ExternalModels;
 
 namespace ScoreCast.Ws.Infrastructure.V1.Football.CommandHandlers;
@@ -16,19 +17,9 @@ namespace ScoreCast.Ws.Infrastructure.V1.Football.CommandHandlers;
 internal sealed record SyncFplDataCommandHandler(
     IScoreCastDbContext DbContext,
     IUnitOfWork UnitOfWork,
-    IHttpClientFactory HttpClientFactory) : ICommandHandler<SyncFplDataCommand, ScoreCastResponse>
+    IHttpClientFactory HttpClientFactory,
+    ILogger<SyncFplDataCommandHandler> Logger) : ICommandHandler<SyncFplDataCommand, ScoreCastResponse>
 {
-    private static readonly Dictionary<string, MatchEventType> EventTypeMap = new()
-    {
-        ["goals_scored"] = MatchEventType.Goal,
-        ["assists"] = MatchEventType.Assist,
-        ["own_goals"] = MatchEventType.OwnGoal,
-        ["yellow_cards"] = MatchEventType.YellowCard,
-        ["red_cards"] = MatchEventType.RedCard,
-        ["penalties_saved"] = MatchEventType.PenaltySaved,
-        ["penalties_missed"] = MatchEventType.PenaltyMissed
-    };
-
     public async Task<ScoreCastResponse> ExecuteAsync(SyncFplDataCommand command, CancellationToken ct)
     {
         var competition = await DbContext.Competitions
@@ -47,111 +38,90 @@ internal sealed record SyncFplDataCommandHandler(
 
         // 1. Fetch FPL bootstrap (teams + players)
         FplBootstrapResponse? bootstrap;
-        try
-        {
-            bootstrap = await client.GetFromJsonAsync<FplBootstrapResponse>(FplApi.Routes.BootstrapStatic, ct);
-        }
-        catch (Exception ex)
-        {
-            return ScoreCastResponse.Error($"Failed to fetch FPL bootstrap: {ex.Message}");
-        }
-
-        if (bootstrap is null)
-            return ScoreCastResponse.Error("FPL bootstrap returned null.");
+        try { bootstrap = await client.GetFromJsonAsync<FplBootstrapResponse>(FplApi.Routes.BootstrapStatic, ct); }
+        catch (Exception ex) { return ScoreCastResponse.Error($"Failed to fetch FPL bootstrap: {ex.Message}"); }
+        if (bootstrap is null) return ScoreCastResponse.Error("FPL bootstrap returned null.");
 
         // 2. Fetch all FPL fixtures
         List<FplFixture>? fixtures;
-        try
-        {
-            fixtures = await client.GetFromJsonAsync<List<FplFixture>>(FplApi.Routes.Fixtures, ct);
-        }
-        catch (Exception ex)
-        {
-            return ScoreCastResponse.Error($"Failed to fetch FPL fixtures: {ex.Message}");
-        }
-
-        if (fixtures is null or { Count: 0 })
-            return ScoreCastResponse.Error("No FPL fixtures returned.");
+        try { fixtures = await client.GetFromJsonAsync<List<FplFixture>>(FplApi.Routes.Fixtures, ct); }
+        catch (Exception ex) { return ScoreCastResponse.Error($"Failed to fetch FPL fixtures: {ex.Message}"); }
+        if (fixtures is null or { Count: 0 }) return ScoreCastResponse.Error("No FPL fixtures returned.");
 
         // 3. Build FPL ID → code maps
         var fplTeamIdToCode = bootstrap.Teams.ToDictionary(t => t.Id, t => t.Code);
-        var fplPlayerIdToCode = bootstrap.Elements.ToDictionary(p => p.Id, p => p.Code);
-        var fplPlayerCodeToName = bootstrap.Elements.ToDictionary(p => p.Code, p => $"{p.FirstName} {p.SecondName}");
 
         // 4. Sync team mappings (FPL code → our team)
         var teamCodeToId = await SyncTeamMappingsAsync(bootstrap.Teams, competition, ct);
 
         // 5. Sync player mappings (FPL code → our player)
-        var playerCodeToId = await SyncPlayerMappingsAsync(bootstrap.Elements, fplTeamIdToCode, teamCodeToId, currentSeason, ct);
+        await SyncPlayerMappingsAsync(bootstrap.Elements, fplTeamIdToCode, teamCodeToId, currentSeason, ct);
 
-        // 6. Load our matches for this season (keyed by gameweek + home + away team IDs)
-        var matches = await DbContext.Matches
-            .Where(m => m.Gameweek.SeasonId == currentSeason.Id && m.Status == MatchStatus.Finished)
-            .Select(m => new { m.Id, m.Gameweek.Number, m.HomeTeamId, m.AwayTeamId })
+        // 6. Load our matches for this season (keyed by home + away team IDs — unique per season)
+        var allMatches = await DbContext.Matches
+            .Where(m => m.Gameweek.SeasonId == currentSeason.Id)
+            .Select(m => new { m.Id, GameweekNumber = m.Gameweek.Number, m.GameweekId, m.HomeTeamId, m.AwayTeamId })
             .ToListAsync(ct);
+        var matchLookup = allMatches.ToDictionary(m => (m.HomeTeamId, m.AwayTeamId), m => m);
 
-        var matchLookup = matches.ToDictionary(
-            m => (m.Number, m.HomeTeamId, m.AwayTeamId), m => m.Id);
+        // Load gameweeks for potential reassignment
+        var gameweeks = await DbContext.Gameweeks
+            .Where(g => g.SeasonId == currentSeason.Id)
+            .ToDictionaryAsync(g => g.Number, g => g.Id, ct);
 
-        // 7. Load existing match events to avoid duplicates
-        var existingEvents = await DbContext.MatchEvents
-            .Where(e => matches.Select(m => m.Id).Contains(e.MatchId))
-            .Select(e => new { e.MatchId, e.PlayerId, e.EventType })
-            .ToHashSetAsync(ct);
-
-        // 8. Process fixtures and create match events
-        await using var transaction = await UnitOfWork.BeginTransactionAsync(ct);
-        try
+        // 7. Process fixtures: reassign gameweeks where FPL disagrees
+        var movedCount = 0;
+        foreach (var fixture in fixtures.Where(f => f.Event.HasValue))
         {
-            var eventCount = 0;
-            foreach (var fixture in fixtures.Where(f => f.Finished && f.Event.HasValue && f.Stats.Count > 0))
+            var homeTeamCode = fplTeamIdToCode.GetValueOrDefault(fixture.TeamH);
+            var awayTeamCode = fplTeamIdToCode.GetValueOrDefault(fixture.TeamA);
+
+            if (!teamCodeToId.TryGetValue(homeTeamCode, out var homeTeamId) ||
+                !teamCodeToId.TryGetValue(awayTeamCode, out var awayTeamId))
+                continue;
+
+            if (!matchLookup.TryGetValue((homeTeamId, awayTeamId), out var match))
+                continue;
+
+            if (match.GameweekNumber != fixture.Event!.Value && gameweeks.TryGetValue(fixture.Event.Value, out var correctGwId))
             {
-                var homeTeamCode = fplTeamIdToCode.GetValueOrDefault(fixture.TeamH);
-                var awayTeamCode = fplTeamIdToCode.GetValueOrDefault(fixture.TeamA);
-
-                if (!teamCodeToId.TryGetValue(homeTeamCode, out var homeTeamId) ||
-                    !teamCodeToId.TryGetValue(awayTeamCode, out var awayTeamId))
-                    continue;
-
-                if (!matchLookup.TryGetValue((fixture.Event!.Value, homeTeamId, awayTeamId), out var matchId))
-                    continue;
-
-                foreach (var stat in fixture.Stats)
+                var dbMatch = await DbContext.Matches.FindAsync([match.Id], ct);
+                if (dbMatch is not null && dbMatch.GameweekId != correctGwId)
                 {
-                    if (!EventTypeMap.TryGetValue(stat.Identifier, out var eventType))
-                        continue;
-
-                    foreach (var entry in stat.H.Concat(stat.A))
-                    {
-                        var playerCode = fplPlayerIdToCode.GetValueOrDefault(entry.Element);
-                        if (!playerCodeToId.TryGetValue(playerCode, out var playerId))
-                            continue;
-
-                        var key = new { MatchId = matchId, PlayerId = playerId, EventType = eventType };
-                        if (!existingEvents.Add(key))
-                            continue;
-
-                        DbContext.MatchEvents.Add(new MatchEvent
-                        {
-                            MatchId = matchId,
-                            PlayerId = playerId,
-                            EventType = eventType,
-                            Value = entry.Value
-                        });
-                        eventCount++;
-                    }
+                    dbMatch.GameweekId = correctGwId;
+                    movedCount++;
                 }
             }
+        }
 
-            await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(SyncFplDataCommand), ct);
-            await transaction.CommitAsync(ct);
-            return ScoreCastResponse.Ok($"Synced {eventCount} match events from FPL for {competition.Name}");
-        }
-        catch (Exception ex)
+        // 8. Store pulse_id → match_id mappings for batch Pulse sync
+        var existingPulseRefs = await DbContext.ExternalMappings
+            .Where(m => m.Source == ExternalSource.Fpl && m.EntityType == EntityType.Match)
+            .Select(m => m.EntityId)
+            .ToListAsync(ct);
+        var refMappedIds = existingPulseRefs.ToHashSet();
+
+        foreach (var fixture in fixtures.Where(f => f.Finished && f.PulseId.HasValue))
         {
-            await transaction.RollbackAsync(ct);
-            return ScoreCastResponse.Error($"Failed to sync FPL data: {ex.InnerException?.Message ?? ex.Message}");
+            var homeTeamCode = fplTeamIdToCode.GetValueOrDefault(fixture.TeamH);
+            var awayTeamCode = fplTeamIdToCode.GetValueOrDefault(fixture.TeamA);
+            if (!teamCodeToId.TryGetValue(homeTeamCode, out var hId) ||
+                !teamCodeToId.TryGetValue(awayTeamCode, out var aId))
+                continue;
+            if (!matchLookup.TryGetValue((hId, aId), out var m)) continue;
+            if (!refMappedIds.Add(m.Id)) continue;
+
+            DbContext.ExternalMappings.Add(new ExternalMapping
+            {
+                EntityType = EntityType.Match,
+                EntityId = m.Id,
+                Source = ExternalSource.Fpl,
+                ExternalCode = fixture.PulseId!.Value.ToString()
+            });
         }
+
+        await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(SyncFplDataCommand), ct);
+        return ScoreCastResponse.Ok($"Synced FPL mappings for {competition.Name}{(movedCount > 0 ? $", moved {movedCount} matches to correct gameweeks" : "")}.");
     }
 
     private async Task<Dictionary<int, long>> SyncTeamMappingsAsync(
@@ -203,7 +173,7 @@ internal sealed record SyncFplDataCommandHandler(
         return result;
     }
 
-    private async Task<Dictionary<int, long>> SyncPlayerMappingsAsync(
+    private async Task SyncPlayerMappingsAsync(
         List<FplPlayer> fplPlayers, Dictionary<int, int> fplTeamIdToCode,
         Dictionary<int, long> teamCodeToId, Season season, CancellationToken ct)
     {
@@ -224,23 +194,14 @@ internal sealed record SyncFplDataCommandHandler(
             .GroupBy(p => p.TeamId)
             .ToDictionary(g => g.Key, g => g.ToList());
 
-        var result = new Dictionary<int, long>();
-
         foreach (var fpl in fplPlayers)
         {
             var code = fpl.Code.ToString();
-            if (byCode.TryGetValue(code, out var entityId))
-            {
-                result[fpl.Code] = entityId;
-                continue;
-            }
+            if (byCode.ContainsKey(code)) continue;
 
             var teamCode = fplTeamIdToCode.GetValueOrDefault(fpl.Team);
-            if (!teamCodeToId.TryGetValue(teamCode, out var ourTeamId))
-                continue;
-
-            if (!ourPlayersByTeam.TryGetValue(ourTeamId, out var teamPlayers))
-                continue;
+            if (!teamCodeToId.TryGetValue(teamCode, out var ourTeamId)) continue;
+            if (!ourPlayersByTeam.TryGetValue(ourTeamId, out var teamPlayers)) continue;
 
             var fplFullName = $"{fpl.FirstName} {fpl.SecondName}";
             var match = teamPlayers.FirstOrDefault(p =>
@@ -249,7 +210,6 @@ internal sealed record SyncFplDataCommandHandler(
                 p.Name.Contains(fpl.WebName, StringComparison.OrdinalIgnoreCase) ||
                 fpl.WebName.Contains(p.Name, StringComparison.OrdinalIgnoreCase));
 
-            // Fallback: match by date of birth within same team
             match ??= fpl.BirthDate is not null
                 ? teamPlayers.FirstOrDefault(p =>
                     p.DateOfBirth.HasValue &&
@@ -266,19 +226,14 @@ internal sealed record SyncFplDataCommandHandler(
                 ExternalCode = code
             });
             byCode[code] = match.PlayerId;
-            result[fpl.Code] = match.PlayerId;
         }
-
-        return result;
     }
 
-    /// <summary>Checks if every word in the abbreviation starts a word in the full name (e.g. "Man Utd" matches "Manchester United")</summary>
     private static bool MatchesAbbreviation(string abbreviated, string fullName)
     {
         var abbrWords = abbreviated.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var fullWords = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (abbrWords.Length == 0) return false;
-
         return abbrWords.All(aw =>
             fullWords.Any(fw => fw.StartsWith(aw, StringComparison.OrdinalIgnoreCase)));
     }

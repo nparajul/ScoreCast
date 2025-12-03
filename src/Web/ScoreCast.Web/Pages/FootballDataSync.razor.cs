@@ -127,14 +127,72 @@ public partial class FootballDataSync
             {
                 var result = await Api.SyncFplDataAsync(new SyncCompetitionRequest { CompetitionCode = competition.Code, AppName = AppName }, CancellationToken.None);
                 if (result.Success)
-                    Alert.Add(result.Message ?? $"Synced FPL events for {competition.Name}", Severity.Success);
+                    Alert.Add(result.Message ?? $"Synced FPL mappings for {competition.Name}", Severity.Success);
                 else
                     Alert.Add(result.Message ?? "FPL sync failed", Severity.Error);
             });
+
+            await SyncPulseEventsAsync(competition);
         }
         catch (Exception ex)
         {
             await Alert.ShowDialogForException(ex, Severity.Error);
+        }
+    }
+
+    private bool _pulseSyncing;
+    private int _pulseProcessed;
+    private int _pulseTotal;
+
+    private async Task SyncPulseEventsAsync(CompetitionResult competition)
+    {
+        _pulseSyncing = true;
+        _pulseProcessed = 0;
+        _pulseTotal = 0;
+        StateHasChanged();
+
+        try
+        {
+            var totalEvents = 0;
+            var failed = false;
+            while (true)
+            {
+                ScoreCastResponse<SyncPulseEventsResult>? result = null;
+                await Loading.While(async () =>
+                {
+                    result = await Api.SyncPulseEventsAsync(
+                        new SyncPulseEventsRequest { CompetitionCode = competition.Code, BatchSize = 50, AppName = AppName },
+                        CancellationToken.None);
+                }, $"Syncing Pulse events ({_pulseProcessed}/{_pulseTotal})...");
+
+                if (!result!.Success)
+                {
+                    Alert.Add(result.Message ?? "Pulse sync failed", Severity.Error);
+                    failed = true;
+                    break;
+                }
+
+                var data = result.Data!;
+                if (_pulseTotal == 0) _pulseTotal = data.Total;
+                _pulseProcessed += data.Processed;
+                totalEvents += data.EventsAdded;
+                StateHasChanged();
+                await Task.Delay(50);
+
+                if (data.Complete || data.Processed == 0) break;
+            }
+
+            if (!failed)
+                Alert.Add($"Synced {totalEvents} events from Pulse for {competition.Name}", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            await Alert.ShowDialogForException(ex, Severity.Error);
+        }
+        finally
+        {
+            _pulseSyncing = false;
+            StateHasChanged();
         }
     }
 }

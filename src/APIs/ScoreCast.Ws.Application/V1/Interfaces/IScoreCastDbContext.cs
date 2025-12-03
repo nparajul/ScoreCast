@@ -4,7 +4,7 @@ using ScoreCast.Ws.Domain.V1.Entities;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
 using ScoreCast.Ws.Domain.V1.Entities.UserManagement;
 
-namespace ScoreCast.Ws.Application.Interfaces;
+namespace ScoreCast.Ws.Application.V1.Interfaces;
 
 public interface IScoreCastDbContext
 {

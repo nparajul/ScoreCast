@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace ScoreCast.Ws.Application.Interfaces;
+namespace ScoreCast.Ws.Application;
 
 public interface IUnitOfWork
 {

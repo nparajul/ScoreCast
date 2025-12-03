@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Shared.Constants;
-using ScoreCast.Ws.Application.Interfaces;
+using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Domain.V1.Entities;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
 using ScoreCast.Ws.Domain.V1.Entities.UserManagement;

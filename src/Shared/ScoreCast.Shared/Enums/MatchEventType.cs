@@ -1,12 +1,15 @@
-namespace ScoreCast.Ws.Domain.V1.Enums;
+namespace ScoreCast.Shared.Enums;
 
 public enum MatchEventType
 {
     Goal,
+    PenaltyGoal,
     Assist,
     OwnGoal,
     YellowCard,
     RedCard,
     PenaltySaved,
-    PenaltyMissed
+    PenaltyMissed,
+    SubIn,
+    SubOut
 }
