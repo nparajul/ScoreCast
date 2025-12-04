@@ -18,6 +18,7 @@ internal sealed class PlayerEntityConfiguration : BaseEntityConfiguration<Player
         builder.Property(p => p.Position).HasColumnName("position").HasColumnOrder(order++).HasMaxLength(50);
         builder.Property(p => p.DateOfBirth).HasColumnName("date_of_birth").HasColumnOrder(order++);
         builder.Property(p => p.Nationality).HasColumnName("nationality").HasColumnOrder(order++).HasMaxLength(100);
+        builder.Property(p => p.PhotoUrl).HasColumnName("photo_url").HasColumnOrder(order++).HasMaxLength(500);
         builder.Property(p => p.ExternalId).HasColumnName("external_id").HasColumnOrder(order++).HasMaxLength(50);
 
         builder.HasIndex(p => p.ExternalId).IsUnique();

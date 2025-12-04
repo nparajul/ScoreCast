@@ -39,4 +39,7 @@ public partial interface IScoreCastApiClient
 
     [Get("/api/v1/football/seasons/{seasonId}/gameweek/{gameweekNumber}")]
     Task<ScoreCastResponse<GameweekMatchesResult>> GetGameweekMatchesAsync(long seasonId, int gameweekNumber, CancellationToken ct);
+
+    [Get("/api/v1/football/seasons/{seasonId}/player-stats")]
+    Task<ScoreCastResponse<PlayerStatsResult>> GetPlayerStatsAsync(long seasonId, CancellationToken ct);
 }
