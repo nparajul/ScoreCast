@@ -1,0 +1,13 @@
+using System.Text.Json.Serialization;
+
+namespace ScoreCast.Ws.Infrastructure.V1.MasterData.ExternalModels;
+
+internal sealed record FplPlayer(
+    int Id,
+    int Code,
+    [property: JsonPropertyName("first_name")] string FirstName,
+    [property: JsonPropertyName("second_name")] string SecondName,
+    [property: JsonPropertyName("web_name")] string WebName,
+    [property: JsonPropertyName("birth_date")] string? BirthDate,
+    int Team,
+    [property: JsonPropertyName("team_code")] int TeamCode);

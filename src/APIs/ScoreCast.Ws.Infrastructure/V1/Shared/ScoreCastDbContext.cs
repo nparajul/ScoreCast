@@ -22,6 +22,9 @@ public sealed class ScoreCastDbContext(DbContextOptions<ScoreCastDbContext> opti
     public DbSet<SeasonTeam> SeasonTeams => Set<SeasonTeam>();
     public DbSet<Gameweek> Gameweeks => Set<Gameweek>();
     public DbSet<Match> Matches => Set<Match>();
+    public DbSet<PredictionScoringRule> PredictionScoringRules => Set<PredictionScoringRule>();
+    public DbSet<PredictionLeague> PredictionLeagues => Set<PredictionLeague>();
+    public DbSet<PredictionLeagueMember> PredictionLeagueMembers => Set<PredictionLeagueMember>();
     public DbSet<Prediction> Predictions => Set<Prediction>();
     public DbSet<Player> Players => Set<Player>();
     public DbSet<TeamPlayer> TeamPlayers => Set<TeamPlayer>();
