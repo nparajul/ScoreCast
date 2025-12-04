@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ScoreCast.Models.V1.Requests;
 using ScoreCast.Models.V1.Requests.UserManagement;
-using ScoreCast.Ws.Application.Interfaces;
+using ScoreCast.Ws.Application.V1.Interfaces;
 
 namespace ScoreCast.Ws.Endpoints.Preprocessors;
 

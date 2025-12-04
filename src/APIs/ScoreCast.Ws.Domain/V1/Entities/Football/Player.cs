@@ -8,6 +8,7 @@ public sealed record Player : ScoreCastEntity
     public string? Position { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public string? Nationality { get; set; }
+    public string? PhotoUrl { get; set; }
     public string? ExternalId { get; set; }
 
     public ICollection<TeamPlayer> TeamPlayers { get; init; } = [];
