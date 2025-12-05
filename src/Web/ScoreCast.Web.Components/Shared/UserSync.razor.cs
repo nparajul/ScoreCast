@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components.Authorization;
 using ScoreCast.Models.V1.Requests.UserManagement;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.UserManagement;
