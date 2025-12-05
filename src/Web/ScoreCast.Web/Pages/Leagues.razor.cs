@@ -20,6 +20,7 @@ public partial class Leagues
 
     private List<PredictionLeagueResult> _leagues = [];
     private long _currentSeasonId;
+    private int _currentGameweek;
     private bool _initialized;
     private bool _showCreateDialog;
     private bool _showJoinDialog;
@@ -29,22 +30,27 @@ public partial class Leagues
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        await InvokeAsync(async () =>
+        await Loading.While(async () =>
         {
-            await Loading.While(async () =>
+            var leaguesResponse = await Api.GetMyLeaguesAsync(CancellationToken.None);
+            if (leaguesResponse is { Success: true, Data: not null })
+                _leagues = leaguesResponse.Data;
+
+            var seasonsResponse = await Api.GetSeasonsAsync(CompetitionCodes.PremierLeague, CancellationToken.None);
+            if (seasonsResponse is { Success: true, Data: not null })
             {
-                var leaguesResponse = await Api.GetMyLeaguesAsync(CancellationToken.None);
-                if (leaguesResponse is { Success: true, Data: not null })
-                    _leagues = leaguesResponse.Data;
+                _currentSeasonId = seasonsResponse.Data.FirstOrDefault(s => s.IsCurrent)?.Id ?? 0;
+                if (_currentSeasonId > 0)
+                {
+                    var gwResponse = await Api.GetGameweekMatchesAsync(_currentSeasonId, SharedConstants.CurrentGameweek, CancellationToken.None);
+                    if (gwResponse is { Success: true, Data: not null })
+                        _currentGameweek = gwResponse.Data.CurrentGameweek;
+                }
+            }
 
-                var seasonsResponse = await Api.GetSeasonsAsync(CompetitionCodes.PremierLeague, CancellationToken.None);
-                if (seasonsResponse is { Success: true, Data: not null })
-                    _currentSeasonId = seasonsResponse.Data.FirstOrDefault(s => s.IsCurrent)?.Id ?? 0;
-
-                _initialized = true;
-            });
-            StateHasChanged();
+            _initialized = true;
         });
+        StateHasChanged();
     }
 
     private async Task CreateLeagueAsync()

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using ScoreCast.ApiClient.V1.Apis;
 using ScoreCast.Models.V1.Requests.Prediction;
 using ScoreCast.Models.V1.Responses.Football;
+using ScoreCast.Models.V1.Responses.Prediction;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Web.Components.Helpers;
 using ScoreCast.Web.ViewModels;
@@ -11,7 +12,6 @@ namespace ScoreCast.Web.Pages;
 public partial class PredictGameweek
 {
     private const string AppName = "PREDICT GAMEWEEK";
-    [Parameter] public long LeagueId { get; set; }
     [Inject] private IScoreCastApiClient Api { get; set; } = default!;
     [Inject] private ILoadingService Loading { get; set; } = default!;
     [Inject] private IAlertService Alert { get; set; } = default!;
@@ -19,28 +19,30 @@ public partial class PredictGameweek
 
     private GameweekMatchesResult? _gameweek;
     private List<PredictionMatchViewModel> _matches = [];
+    private List<ScoringRuleResult> _scoringRules = [];
     private long _seasonId;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        await InvokeAsync(async () =>
+        await Loading.While(async () =>
         {
-            await Loading.While(async () =>
+            var seasonsResponse = await Api.GetSeasonsAsync(CompetitionCodes.PremierLeague, CancellationToken.None);
+            var season = seasonsResponse?.Data?.FirstOrDefault(s => s.IsCurrent);
+            if (season is null)
             {
-                var leaguesResponse = await Api.GetMyLeaguesAsync(CancellationToken.None);
-                var league = leaguesResponse?.Data?.FirstOrDefault(l => l.Id == LeagueId);
-                if (league is null)
-                {
-                    Alert.Add("You are not a member of this league", Severity.Error);
-                    return;
-                }
-                _seasonId = league.SeasonId;
+                Alert.Add("No active season found", Severity.Error);
+                return;
+            }
+            _seasonId = season.Id;
 
-                await LoadGameweek(SharedConstants.CurrentGameweek);
-            });
-            StateHasChanged();
+            var rulesResponse = await Api.GetScoringRulesAsync(CancellationToken.None);
+            if (rulesResponse is { Success: true, Data: not null })
+                _scoringRules = rulesResponse.Data;
+
+            await LoadGameweek(SharedConstants.CurrentGameweek);
         });
+        StateHasChanged();
     }
 
     private async Task LoadGameweek(int gameweekNumber)
@@ -51,7 +53,7 @@ public partial class PredictGameweek
             _gameweek = response.Data;
             _matches = _gameweek.Matches.Select(PredictionMatchViewModel.FromMatch).ToList();
 
-            var predictionsResponse = await Api.GetMyPredictionsAsync(LeagueId, _gameweek.GameweekId, CancellationToken.None);
+            var predictionsResponse = await Api.GetMyPredictionsAsync(_seasonId, _gameweek.GameweekId, CancellationToken.None);
             if (predictionsResponse is { Success: true, Data: not null })
             {
                 foreach (var prediction in predictionsResponse.Data)
@@ -61,6 +63,7 @@ public partial class PredictGameweek
                     {
                         match.PredictedHomeScore = prediction.PredictedHomeScore;
                         match.PredictedAwayScore = prediction.PredictedAwayScore;
+                        match.Outcome = prediction.Outcome?.ToString();
                     }
                 }
             }
@@ -103,7 +106,7 @@ public partial class PredictGameweek
         await Loading.While(async () =>
         {
             var response = await Api.SubmitPredictionsAsync(
-                new SubmitPredictionsRequest { PredictionLeagueId = LeagueId, Predictions = entries },
+                new SubmitPredictionsRequest { SeasonId = _seasonId, Predictions = entries },
                 CancellationToken.None);
 
             if (response is { Success: true })

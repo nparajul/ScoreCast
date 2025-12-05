@@ -4,5 +4,4 @@ using ScoreCast.Models.V1.Responses.Prediction;
 
 namespace ScoreCast.Ws.Application.V1.PredictionGame.Queries;
 
-public record GetMyPredictionsQuery(long SeasonId, long GameweekId, string UserId)
-    : ICommand<ScoreCastResponse<List<MyPredictionResult>>>;
+public record GetScoringRulesQuery : ICommand<ScoreCastResponse<List<ScoringRuleResult>>>;

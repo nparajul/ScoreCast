@@ -24,28 +24,31 @@ internal sealed record GetLeagueStandingsQueryHandler(
             .AsNoTracking()
             .ToDictionaryAsync(r => r.Outcome, r => r.Points, ct);
 
-        var exactPoints = scoringRules.GetValueOrDefault(PredictionOutcome.ExactScore, 10);
-        var correctResultPoints = scoringRules.GetValueOrDefault(PredictionOutcome.CorrectResult, 5);
-
         var members = await DbContext.PredictionLeagueMembers
             .AsNoTracking()
             .Where(m => m.PredictionLeagueId == query.PredictionLeagueId)
             .Select(m => new { m.UserId, m.User.DisplayName, m.User.AvatarUrl, UserIdString = m.User.UserId })
             .ToListAsync(ct);
 
-        var predictionStats = await DbContext.Predictions
+        var memberUserIds = members.Select(m => m.UserId).ToList();
+
+        var predictions = await DbContext.Predictions
             .AsNoTracking()
-            .Where(p => p.PredictionLeagueId == query.PredictionLeagueId)
+            .Where(p => p.SeasonId == league.SeasonId
+                        && memberUserIds.Contains(p.UserId)
+                        && p.Outcome != null)
+            .Select(p => new { p.UserId, p.Outcome })
+            .ToListAsync(ct);
+
+        var predictionStats = predictions
             .GroupBy(p => p.UserId)
-            .Select(g => new
+            .ToDictionary(g => g.Key, g => new
             {
-                UserId = g.Key,
-                TotalPoints = g.Sum(p => p.PointsAwarded),
-                ExactScores = g.Count(p => p.PointsAwarded == exactPoints),
-                CorrectResults = g.Count(p => p.PointsAwarded == correctResultPoints),
+                TotalPoints = g.Sum(p => scoringRules.GetValueOrDefault(p.Outcome!.Value, 0)),
+                ExactScores = g.Count(p => p.Outcome == PredictionOutcome.ExactScore),
+                CorrectResults = g.Count(p => p.Outcome == PredictionOutcome.CorrectResult),
                 Count = g.Count()
-            })
-            .ToDictionaryAsync(s => s.UserId, ct);
+            });
 
         var standings = members
             .Select(m =>

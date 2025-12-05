@@ -1,6 +1,7 @@
 using ScoreCast.ApiClient.V1.Apis;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Constants;
+using ScoreCast.Shared.Enums;
 using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
@@ -27,31 +28,28 @@ public partial class Scores : IDisposable
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        await InvokeAsync(async () =>
+        var response = await Api.GetCompetitionsAsync(CancellationToken.None);
+        if (response is { Success: true, Data: not null })
         {
-            var response = await Api.GetCompetitionsAsync(CancellationToken.None);
-            if (response is { Success: true, Data: not null })
-            {
-                _competitions = response.Data;
-                _countries = _competitions.Select(c => c.CountryName).Distinct().OrderBy(c => c).ToList();
-                _filteredCompetitions = _competitions.Where(c => c.CountryName == CountryNames.England).ToList();
-            }
+            _competitions = response.Data;
+            _countries = _competitions.Select(c => c.CountryName).Distinct().OrderBy(c => c).ToList();
+            _filteredCompetitions = _competitions.Where(c => c.CountryName == CountryNames.England).ToList();
+        }
 
+        StateHasChanged();
+        await Task.Yield();
+
+        _selectedCountry = CountryNames.England;
+        var pl = _filteredCompetitions.FirstOrDefault(c => c.Code == CompetitionCodes.PremierLeague);
+        if (pl is not null)
+        {
+            _selectedCompetition = pl;
             StateHasChanged();
             await Task.Yield();
+            await LoadSeasonsAsync(pl);
+        }
 
-            _selectedCountry = CountryNames.England;
-            var pl = _filteredCompetitions.FirstOrDefault(c => c.Code == CompetitionCodes.PremierLeague);
-            if (pl is not null)
-            {
-                _selectedCompetition = pl;
-                StateHasChanged();
-                await Task.Yield();
-                await LoadSeasonsAsync(pl);
-            }
-
-            StateHasChanged();
-        });
+        StateHasChanged();
     }
 
     private async Task LoadSeasonsAsync(CompetitionResult competition)
@@ -118,7 +116,7 @@ public partial class Scores : IDisposable
         _pollCts?.Dispose();
         _pollCts = null;
 
-        if (_gameweek?.Matches.Any(m => m.Status == "Live") is not true || _selectedSeason is null) return;
+        if (_gameweek?.Matches.Any(m => m.Status == nameof(MatchStatus.Live)) is not true || _selectedSeason is null) return;
 
         _pollCts = new CancellationTokenSource();
         var token = _pollCts.Token;
@@ -135,7 +133,7 @@ public partial class Scores : IDisposable
                 {
                     _gameweek = response.Data;
                     await InvokeAsync(StateHasChanged);
-                    if (!_gameweek.Matches.Any(m => m.Status == "Live"))
+                    if (!_gameweek.Matches.Any(m => m.Status == nameof(MatchStatus.Live)))
                         break;
                 }
             }
