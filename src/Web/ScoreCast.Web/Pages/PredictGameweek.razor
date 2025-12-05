@@ -29,6 +29,25 @@
 
     @if (_gameweek is not null)
     {
+        @if (_matches.All(m => m.IsLocked) && !_matches.Any(m => m.HasPrediction))
+        {
+            <MudAlert Severity="Severity.Error" Variant="Variant.Text" Dense="true" Class="mb-2">
+                You missed this gameweek! No predictions were submitted before the deadline.
+            </MudAlert>
+        }
+        else if (!_matches.All(m => m.IsLocked) && _matches.Any(m => m.HasPrediction))
+        {
+            <MudAlert Severity="Severity.Info" Variant="Variant.Text" Dense="true" Class="mb-2">
+                You've already submitted predictions for this gameweek. You can still edit them before kickoff.
+            </MudAlert>
+        }
+        else if (!_matches.All(m => m.IsLocked) && !_matches.Any(m => m.HasPrediction))
+        {
+            <MudAlert Severity="Severity.Warning" Variant="Variant.Text" Dense="true" Class="mb-2">
+                No predictions made yet for this gameweek. Enter your scores below!
+            </MudAlert>
+        }
+
         <div class="d-flex align-center justify-center gap-3 mb-4">
             <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Size="Size.Small"
                            Disabled="@(_gameweek.GameweekNumber <= 1)"
