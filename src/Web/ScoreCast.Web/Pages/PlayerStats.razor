@@ -17,13 +17,16 @@
                 <MudSelectItem Value="@season">@season.StartDate.Year/@season.EndDate.Year</MudSelectItem>
             }
         </MudSelect>
+        <MudSpacer />
         <MudTextField @bind-Value="_search" Placeholder="Search player or team..." Variant="Variant.Outlined"
-                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Style="max-width:250px;" Immediate="true" />
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                      Style="max-width:300px;" Margin="Margin.Dense" Immediate="true" DebounceInterval="300" />
     </div>
 
     @if (_rows.Count > 0)
     {
-        <MudTable Items="@SortedRows" Dense="true" Hover="true" Striped="true" Elevation="1" Style="border-radius:8px;">
+        <MudTable Items="@SortedRows" Dense="true" Hover="true" Striped="true" Elevation="1" Style="border-radius:8px;"
+                  RowsPerPage="25">
             <HeaderContent>
                 <MudTh Style="width:50px;">#</MudTh>
                 <MudTh>Player</MudTh>
@@ -94,6 +97,9 @@
                 <MudTd>@context.YellowCards</MudTd>
                 <MudTd>@context.RedCards</MudTd>
             </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new[] { 25, 50, 100 }" />
+            </PagerContent>
         </MudTable>
     }
     else if (_selectedSeason is not null)

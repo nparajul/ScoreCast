@@ -19,20 +19,21 @@ internal sealed record GetGameweekMatchesQueryHandler(
         if (totalGameweeks == 0)
             return ScoreCastResponse<GameweekMatchesResult>.Error("No gameweeks found for this season.");
 
-        // If no gameweek specified, find the current one (latest with at least one finished match, or first upcoming)
+        var currentGameweek = await DbContext.Gameweeks
+            .Where(g => g.SeasonId == query.SeasonId && g.Matches.Any(m => m.Status == MatchStatus.Live))
+            .Select(g => (int?)g.Number)
+            .FirstOrDefaultAsync(ct)
+          ?? await DbContext.Gameweeks
+            .Where(g => g.SeasonId == query.SeasonId && g.Matches.Any(m => m.Status != MatchStatus.Finished))
+            .OrderBy(g => g.Number)
+            .Select(g => (int?)g.Number)
+            .FirstOrDefaultAsync(ct)
+          ?? totalGameweeks;
+
+        // If no gameweek specified, use the current one
         var gameweek = query.GameweekNumber.HasValue
             ? await DbContext.Gameweeks.FirstOrDefaultAsync(g => g.SeasonId == query.SeasonId && g.Number == query.GameweekNumber, ct)
-            : await DbContext.Gameweeks
-                .Where(g => g.SeasonId == query.SeasonId && g.Matches.Any(m => m.Status == MatchStatus.Live))
-                .FirstOrDefaultAsync(ct)
-              ?? await DbContext.Gameweeks
-                .Where(g => g.SeasonId == query.SeasonId && g.Matches.Any(m => m.Status != MatchStatus.Finished))
-                .OrderBy(g => g.Number)
-                .FirstOrDefaultAsync(ct)
-              ?? await DbContext.Gameweeks
-                .Where(g => g.SeasonId == query.SeasonId)
-                .OrderByDescending(g => g.Number)
-                .FirstOrDefaultAsync(ct);
+            : await DbContext.Gameweeks.FirstOrDefaultAsync(g => g.SeasonId == query.SeasonId && g.Number == currentGameweek, ct);
 
         if (gameweek is null)
             return ScoreCastResponse<GameweekMatchesResult>.Error("Gameweek not found.");
@@ -83,7 +84,7 @@ internal sealed record GetGameweekMatchesQueryHandler(
         )).ToList();
 
         return ScoreCastResponse<GameweekMatchesResult>.Ok(
-            new GameweekMatchesResult(gameweek.Id, gameweek.Number, gameweek.StartDate, gameweek.EndDate, totalGameweeks, result));
+            new GameweekMatchesResult(gameweek.Id, gameweek.Number, gameweek.StartDate, gameweek.EndDate, totalGameweeks, currentGameweek, result));
     }
 
     private static double ParseMinute(string? minute)

@@ -1,0 +1,78 @@
+@page "/leagues"
+
+<PageGuard>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudText Typo="Typo.h5" Style="font-weight:700;">My Leagues</MudText>
+        <div class="d-flex gap-2">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                       StartIcon="@Icons.Material.Filled.Login" OnClick="@(() => _showJoinDialog = true)">
+                Join League
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Size="Size.Small"
+                       StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => _showCreateDialog = true)">
+                Create League
+            </MudButton>
+        </div>
+    </div>
+
+    @if (_initialized && _leagues.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+            You haven't joined any prediction leagues yet. Create one or join with an invite code!
+        </MudAlert>
+    }
+    else
+    {
+        <MudStack Spacing="3">
+            @foreach (var league in _leagues)
+            {
+                <MudPaper Elevation="1" Class="pa-4 rounded-lg">
+                    <div class="d-flex justify-space-between align-center" style="cursor:pointer;" @onclick="@(() => NavigateToLeague(league.Id))">
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:600;">@league.Name</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @league.SeasonName · @league.MemberCount member@(league.MemberCount != 1 ? "s" : "") · Created by @league.OwnerDisplayName
+                            </MudText>
+                        </div>
+                        <div class="d-flex align-center gap-2" @onclick:stopPropagation="true">
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary">@league.InviteCode</MudChip>
+                            <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Size="Size.Small"
+                                           OnClick="@(() => CopyInviteCode(league.InviteCode))" />
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.ChevronRight" />
+                    </div>
+                </MudPaper>
+            }
+        </MudStack>
+    }
+</MudContainer>
+</PageGuard>
+
+<MudDialog @bind-Visible="_showCreateDialog" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent>Create Prediction League</TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="_newLeagueName" Label="League Name" Variant="Variant.Outlined"
+                      Placeholder="e.g. The Lads" Immediate="true" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _showCreateDialog = false)">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Tertiary"
+                   Disabled="@(string.IsNullOrWhiteSpace(_newLeagueName) || _currentSeasonId == 0)"
+                   OnClick="CreateLeagueAsync">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<MudDialog @bind-Visible="_showJoinDialog" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent>Join a League</TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="_inviteCode" Label="Invite Code" Variant="Variant.Outlined"
+                      Placeholder="e.g. ABC123" Immediate="true" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _showJoinDialog = false)">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   Disabled="@(string.IsNullOrWhiteSpace(_inviteCode))"
+                   OnClick="JoinLeagueAsync">Join</MudButton>
+    </DialogActions>
+</MudDialog>
