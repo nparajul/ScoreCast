@@ -14,6 +14,7 @@ public sealed record UserMaster : ScoreCastEntity
     public int CurrentStreak { get; set; }
     public int LongestStreak { get; set; }
     public bool IsActive { get; set; } = true;
+    public DateTime? LastLoginDate { get; set; }
 
     public ICollection<UserRole> UserRoles { get; init; } = [];
 }
