@@ -70,6 +70,10 @@ internal sealed class UserEntityConfiguration : BaseEntityConfiguration<UserMast
             .HasColumnOrder(order++)
             .HasDefaultValue(true);
 
+        builder.Property(u => u.LastLoginDate)
+            .HasColumnName("last_login_date")
+            .HasColumnOrder(order++);
+
         builder.HasIndex(u => u.KeycloakUserId).IsUnique();
         builder.HasIndex(u => u.UserId).IsUnique();
         builder.HasIndex(u => u.Email).IsUnique();

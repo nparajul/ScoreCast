@@ -2,6 +2,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
+using ScoreCast.Shared.Constants;
 using ScoreCast.Ws.Application.V1.Football.Queries;
 using ScoreCast.Shared.Enums;
 using ScoreCast.Ws.Application.V1.Interfaces;
@@ -69,20 +70,20 @@ internal sealed record GetLeagueTableQueryHandler(
             if (m.HomeScore > m.AwayScore)
             {
                 home.Won++; away.Lost++;
-                AddResult(teamResults, m.HomeTeamId, m.KickoffTime, "W", m.AwayTeamShortName, m.HomeScore, m.AwayScore, true, m.Id);
-                AddResult(teamResults, m.AwayTeamId, m.KickoffTime, "L", m.HomeTeamShortName, m.HomeScore, m.AwayScore, false, m.Id);
+                AddResult(teamResults, m.HomeTeamId, m.KickoffTime, MatchResultCodes.Win, m.AwayTeamShortName, m.HomeScore, m.AwayScore, true, m.Id);
+                AddResult(teamResults, m.AwayTeamId, m.KickoffTime, MatchResultCodes.Loss, m.HomeTeamShortName, m.HomeScore, m.AwayScore, false, m.Id);
             }
             else if (m.HomeScore < m.AwayScore)
             {
                 away.Won++; home.Lost++;
-                AddResult(teamResults, m.HomeTeamId, m.KickoffTime, "L", m.AwayTeamShortName, m.HomeScore, m.AwayScore, true, m.Id);
-                AddResult(teamResults, m.AwayTeamId, m.KickoffTime, "W", m.HomeTeamShortName, m.HomeScore, m.AwayScore, false, m.Id);
+                AddResult(teamResults, m.HomeTeamId, m.KickoffTime, MatchResultCodes.Loss, m.AwayTeamShortName, m.HomeScore, m.AwayScore, true, m.Id);
+                AddResult(teamResults, m.AwayTeamId, m.KickoffTime, MatchResultCodes.Win, m.HomeTeamShortName, m.HomeScore, m.AwayScore, false, m.Id);
             }
             else
             {
                 home.Drawn++; away.Drawn++;
-                AddResult(teamResults, m.HomeTeamId, m.KickoffTime, "D", m.AwayTeamShortName, m.HomeScore, m.AwayScore, true, m.Id);
-                AddResult(teamResults, m.AwayTeamId, m.KickoffTime, "D", m.HomeTeamShortName, m.HomeScore, m.AwayScore, false, m.Id);
+                AddResult(teamResults, m.HomeTeamId, m.KickoffTime, MatchResultCodes.Draw, m.AwayTeamShortName, m.HomeScore, m.AwayScore, true, m.Id);
+                AddResult(teamResults, m.AwayTeamId, m.KickoffTime, MatchResultCodes.Draw, m.HomeTeamShortName, m.HomeScore, m.AwayScore, false, m.Id);
             }
         }
 

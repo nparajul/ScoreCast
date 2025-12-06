@@ -21,4 +21,7 @@ public partial interface IScoreCastApiClient
 
     [Post("/api/v1/master-data/sync/pulse-events")]
     Task<ScoreCastResponse<SyncPulseEventsResult>> SyncPulseEventsAsync([Body] SyncPulseEventsRequest request, CancellationToken ct);
+
+    [Post("/api/v1/master-data/enhance-live")]
+    Task<ScoreCastResponse> EnhanceLiveMatchesAsync([Body] EnhanceLiveMatchesRequest request, CancellationToken ct);
 }
