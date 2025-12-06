@@ -5,5 +5,6 @@ public enum EntityType
     Team,
     Player,
     Competition,
-    Match
+    Match,
+    Season
 }

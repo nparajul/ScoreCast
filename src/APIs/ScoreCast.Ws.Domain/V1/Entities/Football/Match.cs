@@ -15,6 +15,7 @@ public sealed record Match : ScoreCastEntity
     public MatchStatus Status { get; set; } = MatchStatus.Scheduled;
     public string? Venue { get; set; }
     public string? Referee { get; set; }
+    public string? Minute { get; set; }
 
     public Gameweek Gameweek { get; init; } = default!;
     public Team HomeTeam { get; init; } = default!;

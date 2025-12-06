@@ -3,6 +3,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ScoreCast.Models.V1.Responses;
+using ScoreCast.Shared.Constants;
 using ScoreCast.Models.V1.Responses.MasterData;
 using ScoreCast.Ws.Application.V1.MasterData.Commands;
 using ScoreCast.Ws.Domain.V1.Entities;
@@ -113,7 +114,7 @@ internal sealed record SyncPulseEventsCommandHandler(
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 cts.CancelAfter(TimeSpan.FromSeconds(15));
-                var data = await pulseClient.GetFromJsonAsync<PulseFixtureResponse>($"football/fixtures/{item.PulseId}", cts.Token);
+                var data = await pulseClient.GetFromJsonAsync<PulseFixtureResponse>(string.Format(PulseApi.Routes.Fixture, item.PulseId), cts.Token);
                 return (item, Data: data);
             }
             catch (Exception ex)
