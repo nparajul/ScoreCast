@@ -6,5 +6,7 @@ public enum PredictionOutcome
     CorrectResultAndGoalDifference,
     CorrectResult,
     CorrectGoalDifference,
-    Incorrect
+    Incorrect,
+    BonusCorrect,
+    BonusIncorrect
 }

@@ -29,8 +29,9 @@ internal sealed record GetMyPredictionsQueryHandler(
             .AsNoTracking()
             .Where(p => p.SeasonId == query.SeasonId
                         && p.UserId == user.Id
-                        && matchIds.Contains(p.MatchId))
-            .Select(p => new MyPredictionResult(p.MatchId, p.PredictedHomeScore, p.PredictedAwayScore, p.Outcome))
+                        && p.MatchId != null
+                        && matchIds.Contains(p.MatchId.Value))
+            .Select(p => new MyPredictionResult(p.MatchId!.Value, p.PredictedHomeScore!.Value, p.PredictedAwayScore!.Value, p.Outcome))
             .ToListAsync(ct);
 
         return ScoreCastResponse<List<MyPredictionResult>>.Ok(predictions);

@@ -20,7 +20,7 @@ internal sealed class CompetitionEntityConfiguration : BaseEntityConfiguration<C
         builder.Property(c => c.CountryId).HasColumnName("country_id").HasColumnOrder(order++).IsRequired();
         builder.Property(c => c.LogoUrl).HasColumnName("logo_url").HasColumnOrder(order++).HasMaxLength(500);
         builder.Property(c => c.ExternalId).HasColumnName("external_id").HasColumnOrder(order++).HasMaxLength(50);
-        builder.Property(c => c.Type).HasColumnName("type").HasColumnOrder(order++).HasConversion<string>().HasMaxLength(20).HasDefaultValue(LeagueType.League);
+        builder.Property(c => c.Format).HasColumnName("format").HasColumnOrder(order++).HasConversion<string>().HasMaxLength(20).HasDefaultValue(CompetitionFormat.League);
         builder.Property(c => c.SortOrder).HasColumnName("sort_order").HasColumnOrder(order++).HasDefaultValue(0);
         builder.Property(c => c.IsActive).HasColumnName("is_active").HasColumnOrder(order++).HasDefaultValue(true);
 
