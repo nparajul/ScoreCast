@@ -12,5 +12,6 @@ internal sealed record FplFixture(
     [property: JsonPropertyName("team_a_score")] int? TeamAScore,
     [property: JsonPropertyName("kickoff_time")] string? KickoffTime,
     bool Finished,
+    bool Started,
     [property: JsonPropertyName("pulse_id")] int? PulseId,
     List<FplFixtureStat> Stats);
