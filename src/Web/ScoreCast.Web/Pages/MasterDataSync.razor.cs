@@ -1,7 +1,9 @@
 using ScoreCast.Models.V1.Requests.MasterData;
+using ScoreCast.Models.V1.Requests.Prediction;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Models.V1.Responses.MasterData;
+using ScoreCast.Shared.Constants;
 using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
@@ -191,5 +193,30 @@ public partial class MasterDataSync
             _pulseSyncing = false;
             StateHasChanged();
         }
+    }
+
+    private async Task CalculatePointsAsync()
+    {
+        await Loading.While(async () =>
+        {
+            var seasonsResponse = await Api.GetSeasonsAsync(CompetitionCodes.PremierLeague, CancellationToken.None);
+            var season = seasonsResponse?.Data?.FirstOrDefault(s => s.IsCurrent);
+            if (season is null)
+            {
+                Alert.Add("No current season found", Severity.Error);
+                return;
+            }
+
+            var result = await Api.CalculateOutcomesAsync(
+                new CalculateOutcomesRequest { SeasonId = season.Id },
+                CancellationToken.None);
+
+            if (result.Success)
+                Alert.Add(result.Message ?? "Points calculated", Severity.Success);
+            else
+                Alert.Add(result.Message ?? "Failed to calculate points", Severity.Error);
+        }, "Calculating points...");
+
+        StateHasChanged();
     }
 }

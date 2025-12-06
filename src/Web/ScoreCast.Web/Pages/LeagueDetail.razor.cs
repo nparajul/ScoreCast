@@ -1,4 +1,3 @@
-using ScoreCast.Models.V1.Requests.Prediction;
 using ScoreCast.Models.V1.Responses.Prediction;
 using ScoreCast.Web.Components.Helpers;
 
@@ -18,23 +17,6 @@ public partial class LeagueDetail
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-
-        await Loading.While(async () =>
-        {
-            var leaguesResponse = await Api.GetMyLeaguesAsync(CancellationToken.None);
-            var league = leaguesResponse?.Data?.FirstOrDefault(l => l.Id == LeagueId);
-            if (league is null)
-            {
-                Alert.Add("League not found", Severity.Error);
-                return;
-            }
-
-            var result = await Api.CalculateOutcomesAsync(
-                new CalculateOutcomesRequest { SeasonId = league.SeasonId },
-                CancellationToken.None);
-            if (!result.Success)
-                Alert.Add(result.Message ?? "Failed to calculate points", Severity.Error);
-        }, "Calculating total points...");
 
         await Loading.While(async () =>
         {
