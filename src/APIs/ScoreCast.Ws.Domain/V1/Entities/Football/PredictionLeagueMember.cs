@@ -10,6 +10,6 @@ public sealed record PredictionLeagueMember : ScoreCastEntity
     public long UserId { get; set; }
     public PredictionLeagueMemberRole Role { get; set; } = PredictionLeagueMemberRole.Member;
 
-    public PredictionLeague PredictionLeague { get; init; } = default!;
-    public UserMaster User { get; init; } = default!;
+    public PredictionLeague PredictionLeague { get; init; } = null!;
+    public UserMaster User { get; init; } = null!;
 }

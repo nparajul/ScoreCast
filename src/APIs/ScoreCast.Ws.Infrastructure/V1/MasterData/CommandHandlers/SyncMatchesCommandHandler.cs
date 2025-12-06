@@ -47,7 +47,7 @@ internal sealed record SyncMatchesCommandHandler(
             var totalMatches = 0;
 
             if (isPremierLeague)
-                totalMatches = await SyncFromPulseAsync(seasons, competition.Country, teamCache, ct);
+                totalMatches = await SyncFromPulseAsync(command.Request.AppName ?? nameof(SyncMatchesCommand), seasons, competition.Country, teamCache, ct);
 
             // Fallback to football-data.org if Pulse returned nothing, or for non-PL
             if (totalMatches == 0)
@@ -65,7 +65,7 @@ internal sealed record SyncMatchesCommandHandler(
     }
 
     private async Task<int> SyncFromPulseAsync(
-        List<Season> seasons, Country country, Dictionary<string, Team> teamCache, CancellationToken ct)
+        string appName, List<Season> seasons, Country country, Dictionary<string, Team> teamCache, CancellationToken ct)
     {
         var pulseClient = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.PulseClient));
 
@@ -74,7 +74,10 @@ internal sealed record SyncMatchesCommandHandler(
             .Where(m => m.Source == ExternalSource.Pulse && m.EntityType == EntityType.Team)
             .ToDictionaryAsync(m => m.ExternalCode, m => m.EntityId, ct);
 
-        var teamById = await DbContext.Teams.ToDictionaryAsync(t => t.Id, ct);
+        var pulseTeamIds = pulseTeamMap.Values.ToHashSet();
+        var teamById = await DbContext.Teams
+            .Where(t => pulseTeamIds.Contains(t.Id))
+            .ToDictionaryAsync(t => t.Id, ct);
 
         var totalMatches = 0;
 
@@ -102,13 +105,30 @@ internal sealed record SyncMatchesCommandHandler(
 
             if (response?.Content is not { Count: > 0 }) continue;
 
-            totalMatches += await UpsertPulseMatchesAsync(season, country, response.Content, pulseTeamMap, teamById, teamCache, ct);
+            var (matchCount, pendingMappings) = await UpsertPulseMatchesAsync(season, country, response.Content, pulseTeamMap, teamById, teamCache, ct);
+            totalMatches += matchCount;
+
+            // Flush to assign match IDs, then create mappings with real IDs
+            if (pendingMappings.Count > 0)
+            {
+                await UnitOfWork.SaveChangesAsync(appName, ct);
+                foreach (var (match, pulseFixtureId) in pendingMappings)
+                {
+                    DbContext.ExternalMappings.Add(new ExternalMapping
+                    {
+                        EntityType = EntityType.Match,
+                        EntityId = match.Id,
+                        Source = ExternalSource.Pulse,
+                        ExternalCode = pulseFixtureId
+                    });
+                }
+            }
         }
 
         return totalMatches;
     }
 
-    private async Task<int> UpsertPulseMatchesAsync(
+    private async Task<(int Count, List<(Match Match, string PulseFixtureId)> PendingMappings)> UpsertPulseMatchesAsync(
         Season season, Country country, List<PulseFixtureListItem> fixtures,
         Dictionary<string, long> pulseTeamMap, Dictionary<long, Team> teamById,
         Dictionary<string, Team> teamCache, CancellationToken ct)
@@ -127,6 +147,7 @@ internal sealed record SyncMatchesCommandHandler(
             .ToDictionaryAsync(m => m.Id, ct);
 
         var count = 0;
+        var pendingMappings = new List<(Match Match, string PulseFixtureId)>();
         foreach (var pf in fixtures)
         {
             var pulseFixtureId = ((int)pf.Id).ToString();
@@ -159,7 +180,7 @@ internal sealed record SyncMatchesCommandHandler(
 
             var status = MapPulseStatus(pf.Status);
             var minute = FormatPulseMinute(pf);
-            var referee = pf.MatchOfficials?.FirstOrDefault(o => o.Role == "REFEREE")?.Name?.Display;
+            var referee = pf.MatchOfficials?.FirstOrDefault(o => o.Role == SharedConstants.RefereeRole)?.Name?.Display;
 
             // Check if match already exists via Pulse mapping
             Match? match = null;
@@ -199,18 +220,9 @@ internal sealed record SyncMatchesCommandHandler(
                 match.Minute = minute;
             }
 
-            // Ensure Pulse external mapping exists
+            // Track Pulse mapping for new matches (deferred until IDs are assigned)
             if (!existingPulseMappings.ContainsKey(pulseFixtureId))
-            {
-                DbContext.ExternalMappings.Add(new ExternalMapping
-                {
-                    EntityType = EntityType.Match,
-                    EntityId = match.Id,
-                    Source = ExternalSource.Pulse,
-                    ExternalCode = pulseFixtureId
-                });
-                existingPulseMappings[pulseFixtureId] = match.Id;
-            }
+                pendingMappings.Add((match, pulseFixtureId));
 
             // Update gameweek dates
             if (kickoff.HasValue)
@@ -238,7 +250,7 @@ internal sealed record SyncMatchesCommandHandler(
                 : GameweekStatus.Upcoming;
         }
 
-        return count;
+        return (count, pendingMappings);
     }
 
     private async Task<int> SyncFromFootballDataAsync(
@@ -284,6 +296,10 @@ internal sealed record SyncMatchesCommandHandler(
         foreach (var kvp in existingGameweeks)
             gameweekCache[kvp.Key] = kvp.Value;
 
+        var existingMatches = await DbContext.Matches
+            .Where(m => m.Gameweek.SeasonId == season.Id && m.ExternalId != null)
+            .ToDictionaryAsync(m => m.ExternalId!, ct);
+
         var count = 0;
         foreach (var apiMatch in apiMatches)
         {
@@ -299,8 +315,7 @@ internal sealed record SyncMatchesCommandHandler(
             var awayTeam = EnsureTeam(teamCache, apiMatch.AwayTeam, country);
 
             var externalId = apiMatch.Id.ToString();
-            var match = await DbContext.Matches
-                .FirstOrDefaultAsync(m => m.ExternalId == externalId, ct);
+            existingMatches.TryGetValue(externalId, out var match);
 
             var kickoff = DateTimeOffset.TryParse(apiMatch.UtcDate, out var dto)
                 ? dto.UtcDateTime
@@ -308,7 +323,7 @@ internal sealed record SyncMatchesCommandHandler(
 
             var status = MapFdStatus(apiMatch.Status);
             var minute = FormatFdMinute(apiMatch);
-            var referee = apiMatch.Referees?.FirstOrDefault(r => r.Type == "REFEREE")?.Name;
+            var referee = apiMatch.Referees?.FirstOrDefault(r => r.Type == SharedConstants.RefereeRole)?.Name;
 
             if (match is null)
             {

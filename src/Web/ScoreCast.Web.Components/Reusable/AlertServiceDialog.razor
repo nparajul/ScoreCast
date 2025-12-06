@@ -16,35 +16,3 @@
         <MudButton OnClick="CloseDialog" Variant="Variant.Filled" Size="Size.Large" Color="GetColor()">OK</MudButton>
     </DialogActions>
 </MudDialog>
-
-@code {
-    [Parameter] public required ScoreCastAlert Alert { get; set; }
-    [Parameter] public string? Title { get; set; }
-
-    [CascadingParameter] public IMudDialogInstance? Dialog { get; set; }
-
-    public Color GetColor()
-    {
-        switch (Alert.Severity)
-        {
-            case Severity.Error:
-                return Color.Error;
-            case Severity.Warning:
-                return Color.Warning;
-            default:
-                return Color.Primary;
-        }
-    }
-
-    public void CloseDialog()
-    {
-        Dialog?.Close(DialogResult.Ok(true));
-    }
-
-    public void CloseIfEnter(KeyboardEventArgs e)
-    {
-        if (e.Key is "Tab" or "Enter")
-            CloseDialog();
-    }
-
-}
