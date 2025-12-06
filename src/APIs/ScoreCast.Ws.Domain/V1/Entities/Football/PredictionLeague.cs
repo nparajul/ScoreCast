@@ -10,7 +10,7 @@ public sealed record PredictionLeague : ScoreCastEntity
     public long SeasonId { get; set; }
     public long CreatedByUserId { get; set; }
 
-    public Season Season { get; init; } = default!;
-    public UserMaster CreatedByUser { get; init; } = default!;
+    public Season Season { get; init; } = null!;
+    public UserMaster CreatedByUser { get; init; } = null!;
     public ICollection<PredictionLeagueMember> Members { get; init; } = [];
 }

@@ -7,6 +7,6 @@ public sealed record SeasonTeam : ScoreCastEntity
     public long SeasonId { get; set; }
     public long TeamId { get; set; }
 
-    public Season Season { get; init; } = default!;
-    public Team Team { get; init; } = default!;
+    public Season Season { get; init; } = null!;
+    public Team Team { get; init; } = null!;
 }
