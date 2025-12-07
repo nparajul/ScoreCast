@@ -135,7 +135,55 @@ internal sealed record GetPointsTableQueryHandler(
             groups.Add(new PointsTableGroup(groupName, rows));
         }
 
-        return ScoreCastResponse<PointsTableResult>.Ok(new PointsTableResult(format, groups));
+        // Best 3rd placed teams (only for GroupAndKnockout)
+        var bestThirdPlaced = new List<PointsTableRow>();
+        if (format == CompetitionFormat.GroupAndKnockout)
+        {
+            bestThirdPlaced = groups
+                .Where(g => g.Rows.Count >= 3)
+                .Select(g => g.Rows[2]) // 3rd placed team from each group
+                .OrderByDescending(r => r.Points)
+                .ThenByDescending(r => r.GoalDifference)
+                .ThenByDescending(r => r.GoalsFor)
+                .ToList();
+        }
+
+        // Knockout rounds (only for GroupAndKnockout)
+        var knockoutRounds = new List<KnockoutRound>();
+        if (format == CompetitionFormat.GroupAndKnockout)
+        {
+            var knockoutMatches = await DbContext.Matches
+                .AsNoTracking()
+                .Where(m => m.Gameweek.SeasonId == query.SeasonId
+                    && m.Gameweek.Stage != null
+                    && m.Gameweek.Stage.StageType == StageType.Knockout)
+                .Select(m => new
+                {
+                    m.Id, m.HomeScore, m.AwayScore, m.Status, m.KickoffTime,
+                    HomeTeam = m.HomeTeam.ShortName ?? m.HomeTeam.Name,
+                    HomeTeamLogo = m.HomeTeam.LogoUrl,
+                    AwayTeam = m.AwayTeam.ShortName ?? m.AwayTeam.Name,
+                    AwayTeamLogo = m.AwayTeam.LogoUrl,
+                    StageName = m.Gameweek.Stage!.Name,
+                    StageSortOrder = m.Gameweek.Stage!.SortOrder
+                })
+                .OrderBy(m => m.StageSortOrder)
+                .ThenBy(m => m.KickoffTime)
+                .ToListAsync(ct);
+
+            knockoutRounds = knockoutMatches
+                .GroupBy(m => (m.StageName, m.StageSortOrder))
+                .OrderBy(g => g.Key.StageSortOrder)
+                .Select(g => new KnockoutRound(
+                    g.Key.StageName,
+                    g.Key.StageSortOrder,
+                    g.Select(m => new KnockoutMatch(
+                        m.Id, m.HomeTeam, m.HomeTeamLogo, m.AwayTeam, m.AwayTeamLogo,
+                        m.HomeScore, m.AwayScore, m.Status.ToString(), m.KickoffTime)).ToList()))
+                .ToList();
+        }
+
+        return ScoreCastResponse<PointsTableResult>.Ok(new PointsTableResult(format, groups, bestThirdPlaced, knockoutRounds));
     }
 
     private static TableEntry GetOrAdd(Dictionary<long, TableEntry> teams, long id, string name, string? logo)

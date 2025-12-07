@@ -16,6 +16,7 @@ public partial class PointsTable
     private List<CompetitionResult> _filteredCompetitions = [];
     private List<SeasonResult> _seasons = [];
     private PointsTableResult? _result;
+    private BracketResult? _bracket;
     private List<CompetitionZoneResult> _zones = [];
     private string? _selectedCountry;
     private CompetitionResult? _selectedCompetition;
@@ -88,6 +89,7 @@ public partial class PointsTable
         _selectedSeason = null;
         _seasons = [];
         _result = null;
+        _bracket = null;
         _zones = [];
         _filteredCompetitions = country is null
             ? []
@@ -103,6 +105,7 @@ public partial class PointsTable
         _seasons = [];
         _selectedSeason = null;
         _result = null;
+        _bracket = null;
         _zones = [];
 
         if (competition is null) return;
@@ -114,6 +117,7 @@ public partial class PointsTable
     {
         _selectedSeason = season;
         _result = null;
+        _bracket = null;
         if (season is not null)
             await LoadTableAsync(season.Id);
     }
@@ -122,21 +126,21 @@ public partial class PointsTable
     {
         await Loading.While(async () =>
         {
-            var response = await Api.GetPointsTableAsync(seasonId, CancellationToken.None);
+            var tableTask = Api.GetPointsTableAsync(seasonId, CancellationToken.None);
+            var bracketTask = Api.GetBracketAsync(seasonId, CancellationToken.None);
+            await Task.WhenAll(tableTask, bracketTask);
+
+            var response = await tableTask;
             if (response is { Success: true, Data: not null })
                 _result = response.Data;
             else
                 Alert.Add("Failed to load points table", Severity.Error);
+
+            var bracketResponse = await bracketTask;
+            if (bracketResponse is { Success: true, Data: not null })
+                _bracket = bracketResponse.Data;
         });
     }
 
     private bool IsGroupFormat => _result?.Format is CompetitionFormat.GroupAndKnockout;
-
-    private string RowStyleFunc(PointsTableRow row, int _)
-    {
-        if (IsGroupFormat) return string.Empty;
-        var zone = _zones.FirstOrDefault(z => row.Position >= z.StartPosition && row.Position <= z.EndPosition);
-        if (zone is null) return string.Empty;
-        return $"background:{zone.Color}15;border-left:3px solid {zone.Color};";
-    }
 }

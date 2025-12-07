@@ -1,0 +1,25 @@
+@if (Slots is not null && Slots.Count > 0)
+{
+    <div style="display:flex;flex-direction:column;justify-content:space-around;min-width:150px;padding:0 4px;">
+        @if (PairSize > 1)
+        {
+            var pairs = Slots.Chunk(PairSize).ToList();
+            @for (var i = 0; i < pairs.Count; i++)
+            {
+                <div style="display:flex;flex-direction:column;gap:2px;">
+                    @foreach (var slot in pairs[i])
+                    {
+                        <MatchCard Slot="slot" />
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            @foreach (var slot in Slots)
+            {
+                <MatchCard Slot="slot" />
+            }
+        }
+    </div>
+}

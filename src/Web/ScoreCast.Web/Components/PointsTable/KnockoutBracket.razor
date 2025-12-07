@@ -1,0 +1,67 @@
+@if (Bracket is not null && Bracket.Rounds.Count > 0)
+{
+    var roundMap = Bracket.Rounds.ToDictionary(r => r.Name);
+    var r32 = roundMap.GetValueOrDefault("Round of 32");
+    var r16 = roundMap.GetValueOrDefault("Round of 16");
+    var qf = roundMap.GetValueOrDefault("Quarter-Finals");
+    var sf = roundMap.GetValueOrDefault("Semi-Finals");
+    var third = roundMap.GetValueOrDefault("Third Place");
+    var final_ = roundMap.GetValueOrDefault("Final");
+
+    <div id="bracket-container" style="position:relative;overflow-x:auto;padding:16px 0;">
+        @* Header row *@
+        <div style="display:flex;gap:24px;justify-content:center;padding-bottom:6px;">
+            <div style="min-width:150px;text-align:center;font-weight:700;font-size:0.75rem;">Round of 32</div>
+            <div style="min-width:150px;text-align:center;font-weight:700;font-size:0.75rem;">Round of 16</div>
+            <div style="min-width:150px;text-align:center;font-weight:700;font-size:0.75rem;">Quarter-Finals</div>
+            <div style="min-width:150px;text-align:center;font-weight:700;font-size:0.75rem;">Semi-Finals</div>
+            <div style="min-width:150px;text-align:center;font-weight:700;font-size:0.75rem;"></div>
+            <div style="min-width:150px;text-align:center;font-weight:700;font-size:0.75rem;">Semi-Finals</div>
+            <div style="min-width:150px;text-align:center;font-weight:700;font-size:0.75rem;">Quarter-Finals</div>
+            <div style="min-width:150px;text-align:center;font-weight:700;font-size:0.75rem;">Round of 16</div>
+            <div style="min-width:150px;text-align:center;font-weight:700;font-size:0.75rem;">Round of 32</div>
+        </div>
+
+        @* Bracket body *@
+        <div style="display:flex;align-items:stretch;gap:24px;justify-content:center;padding-bottom:16px;">
+            <BracketCol Index="0" Slots="r32?.Slots.Take(8).ToList()" RowSpan="3" />
+            <BracketCol Index="1" Slots="r16?.Slots.Take(4).ToList()" RowSpan="6" />
+            <BracketCol Index="2" Slots="qf?.Slots.Take(2).ToList()" RowSpan="12" />
+            <BracketCol Index="3" Slots="sf?.Slots.Take(1).ToList()" RowSpan="24" />
+
+            @* CENTER *@
+            <div style="position:relative;min-width:150px;padding:0 4px;">
+                <div data-bracket-col="4" style="display:grid;grid-template-rows:repeat(24, 1fr);height:100%;">
+                    <div data-bracket-card style="grid-row:1 / span 24;display:flex;align-items:center;">
+                        <div style="width:100%;position:relative;">
+                            <div style="position:absolute;bottom:100%;left:0;right:0;text-align:center;padding-bottom:4px;">
+                                <div style="font-size:4rem;">🏆</div>
+                                <div style="font-weight:700;font-size:1rem;">Final</div>
+                            </div>
+                            @if (final_?.Slots.Count > 0)
+                            {
+                                <MatchCard Slot="final_.Slots[0]" />
+                            }
+                        </div>
+                    </div>
+                </div>
+                @if (third?.Slots.Count > 0)
+                {
+                    <div style="position:absolute;top:60%;left:0;right:0;padding:0 4px;">
+                        <div style="font-weight:700;font-size:0.75rem;color:var(--mud-palette-text-primary);text-align:center;margin-bottom:4px;">3rd Place</div>
+                        <MatchCard Slot="third.Slots[0]" />
+                    </div>
+                }
+            </div>
+
+            <BracketCol Index="5" Slots="sf?.Slots.Skip(1).Take(1).ToList()" RowSpan="24" />
+            <BracketCol Index="6" Slots="qf?.Slots.Skip(2).Take(2).ToList()" RowSpan="12" />
+            <BracketCol Index="7" Slots="r16?.Slots.Skip(4).Take(4).ToList()" RowSpan="6" />
+            <BracketCol Index="8" Slots="r32?.Slots.Skip(8).Take(8).ToList()" RowSpan="3" />
+        </div>
+    </div>
+}
+else
+{
+    <MudAlert Severity="Severity.Info" Class="mt-2">No knockout bracket configured for this competition.</MudAlert>
+}
