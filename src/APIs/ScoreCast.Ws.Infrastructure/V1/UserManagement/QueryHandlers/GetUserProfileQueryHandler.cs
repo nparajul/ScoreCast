@@ -8,7 +8,7 @@ using ScoreCast.Ws.Application.V1.UserManagement.Queries;
 namespace ScoreCast.Ws.Infrastructure.V1.UserManagement.QueryHandlers;
 
 internal sealed record GetUserProfileQueryHandler(
-    IScoreCastDbContext DbContext) : ICommandHandler<GetUserProfileQuery, ScoreCastResponse<UserProfileResult>>
+    IScoreCastDbContext DbContext) : IQueryHandler<GetUserProfileQuery, ScoreCastResponse<UserProfileResult>>
 {
     public async Task<ScoreCastResponse<UserProfileResult>> ExecuteAsync(GetUserProfileQuery query, CancellationToken ct)
     {

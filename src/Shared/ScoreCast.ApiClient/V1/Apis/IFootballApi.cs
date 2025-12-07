@@ -9,6 +9,9 @@ public partial interface IScoreCastApiClient
     [Get("/api/v1/football/competitions")]
     Task<ScoreCastResponse<List<CompetitionResult>>> GetCompetitionsAsync(CancellationToken ct);
 
+    [Get("/api/v1/football/competitions/default")]
+    Task<ScoreCastResponse<CompetitionResult>> GetDefaultCompetitionAsync(CancellationToken ct);
+
     [Get("/api/v1/football/competitions/{competitionName}/teams")]
     Task<ScoreCastResponse<List<TeamResult>>> GetTeamsAsync(string competitionName, CancellationToken ct);
 
@@ -16,7 +19,7 @@ public partial interface IScoreCastApiClient
     Task<ScoreCastResponse<List<SeasonResult>>> GetSeasonsAsync(string competitionCode, CancellationToken ct);
 
     [Get("/api/v1/football/seasons/{seasonId}/table")]
-    Task<ScoreCastResponse<List<LeagueTableRow>>> GetLeagueTableAsync(long seasonId, CancellationToken ct);
+    Task<ScoreCastResponse<PointsTableResult>> GetPointsTableAsync(long seasonId, CancellationToken ct);
 
     [Get("/api/v1/football/competitions/{competitionCode}/zones")]
     Task<ScoreCastResponse<List<CompetitionZoneResult>>> GetCompetitionZonesAsync(string competitionCode, CancellationToken ct);

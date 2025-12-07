@@ -33,6 +33,7 @@ public sealed class ScoreCastDbContext(DbContextOptions<ScoreCastDbContext> opti
     public DbSet<CompetitionZone> CompetitionZones => Set<CompetitionZone>();
     public DbSet<MatchEvent> MatchEvents => Set<MatchEvent>();
     public DbSet<ExternalMapping> ExternalMappings => Set<ExternalMapping>();
+    public DbSet<AppConfig> AppConfigs => Set<AppConfig>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

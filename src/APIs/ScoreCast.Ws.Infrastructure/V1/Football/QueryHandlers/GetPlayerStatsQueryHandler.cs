@@ -10,7 +10,7 @@ using ScoreCast.Ws.Application.V1.Interfaces;
 namespace ScoreCast.Ws.Infrastructure.V1.Football.QueryHandlers;
 
 internal sealed record GetPlayerStatsQueryHandler(
-    IScoreCastDbContext DbContext) : ICommandHandler<GetPlayerStatsQuery, ScoreCastResponse<PlayerStatsResult>>
+    IScoreCastDbContext DbContext) : IQueryHandler<GetPlayerStatsQuery, ScoreCastResponse<PlayerStatsResult>>
 {
     public async Task<ScoreCastResponse<PlayerStatsResult>> ExecuteAsync(GetPlayerStatsQuery query, CancellationToken ct)
     {
