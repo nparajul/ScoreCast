@@ -2,11 +2,12 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 namespace ScoreCast.Web.Layout;
 
-public partial class MainLayout
+public partial class MainLayout : IDisposable
 {
     private MudThemeProvider _themeProvider = default!;
     private bool _isDarkMode = false;
     private bool _drawerOpen = false;
+    private bool _isMobile = false;
     private long _selectedRoleId;
 
     private string? WrapperClass { get; set; }
@@ -63,4 +64,6 @@ public partial class MainLayout
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
 
     public void AlertChanged() => StateHasChanged();
+
+    public void Dispose() => RoleNav.OnChanged -= StateHasChanged;
 }

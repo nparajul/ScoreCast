@@ -1,15 +1,17 @@
 @* ── DESKTOP: 3-column grid ── *@
-<div class="d-none d-md-block">
+@if (!IsMobile)
+{
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
         @foreach (var group in Groups)
         {
             <GroupCard Group="group" Zones="Zones" />
         }
     </div>
-</div>
+}
 
 @* ── MOBILE: single column, compact ── *@
-<div class="d-block d-md-none">
+@if (IsMobile)
+{
     @foreach (var group in Groups)
     {
         <MudSimpleTable Dense="true" Hover="true" Elevation="1" Style="white-space:nowrap;margin-bottom:12px;">
@@ -53,7 +55,7 @@
             </tbody>
         </MudSimpleTable>
     }
-</div>
+}
 
 <div class="d-flex gap-4 mt-3 ms-2 flex-wrap">
     @foreach (var zone in Zones)

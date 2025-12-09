@@ -11,7 +11,8 @@
     var final_ = roundMap.GetValueOrDefault("Final");
 
     @* ── MOBILE: round-by-round view ── *@
-    <div class="d-block d-md-none">
+    @if (IsMobile)
+    {
         <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:3px;margin-bottom:12px;">
             @foreach (var tab in _mobileRounds)
             {
@@ -25,9 +26,7 @@
             }
         </div>
 
-        @{
-            var activeRound = roundMap.Values.FirstOrDefault(r => GetRoundLabel(r.Name) == _mobileRound);
-        }
+        var activeRound = roundMap.Values.FirstOrDefault(r => GetRoundLabel(r.Name) == _mobileRound);
         @if (_mobileRound == "Final")
         {
             @if (final_?.Slots.Count > 0)
@@ -50,10 +49,11 @@
         {
             <MobileRoundView Slots="activeRound.Slots" />
         }
-    </div>
+    }
 
     @* ── DESKTOP: full bracket ── *@
-    <div class="d-none d-md-block">
+    else
+    {
         <div id="bracket-container" style="position:relative;padding:16px 0;overflow-x:auto;">
             <div id="bracket-inner" style="width:max-content;margin:0 auto;">
                 @* Header row *@
@@ -108,7 +108,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    }
 }
 else
 {

@@ -15,7 +15,7 @@
 <MudPopoverProvider />
 <MudSnackbarProvider />
 
-<MudBreakpointProvider>
+<MudBreakpointProvider OnBreakpointChanged="@(bp => { _isMobile = bp <= Breakpoint.Sm; StateHasChanged(); })">
 <MudLayout Style="min-height:100vh; display:flex; flex-direction:column;">
     <MudAppBar Elevation="2" Color="Color.Primary">
         <MudIconButton Icon="@Icons.Material.Filled.Menu"
@@ -83,6 +83,7 @@
 
     <MudContainer Class="main-container" MaxWidth="MaxWidth.ExtraExtraLarge" Style="flex:1;">
         <CascadingValue Value="_isDarkMode" Name="IsDarkMode">
+        <CascadingValue Value="_isMobile" Name="IsMobile">
             <UserSync />
             <MudContainer MaxWidth="Alert.Width" Class="d-flex flex-column gap-4">
                 @foreach (var alert in Alert.Alerts.ToList())
@@ -102,6 +103,7 @@
                 }
             </MudContainer>
             @Body
+        </CascadingValue>
         </CascadingValue>
     </MudContainer>
 
