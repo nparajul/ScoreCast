@@ -1,7 +1,43 @@
-@* Vertical list of match cards for mobile bracket view *@
-<div style="display:flex;flex-direction:column;gap:8px;padding:12px 0;max-width:320px;margin:0 auto;">
-    @foreach (var slot in Slots)
+@* Mobile bracket: current round cards on left, next round preview on right, connected by lines *@
+<div style="display:flex;flex-direction:column;gap:24px;padding:12px 0;">
+    @for (var i = 0; i < Slots.Count; i += 2)
     {
-        <MatchCard Slot="slot" />
+        var hasPair = i + 1 < Slots.Count;
+        var nextSlotIdx = i / 2;
+        var nextSlot = NextRoundSlots is not null && nextSlotIdx < NextRoundSlots.Count ? NextRoundSlots[nextSlotIdx] : null;
+
+        <div style="display:flex;align-items:center;gap:0;">
+            @* Current round cards *@
+            <div style="flex:0 0 65%;min-width:0;display:flex;flex-direction:column;gap:6px;">
+                <MatchCard Slot="Slots[i]" />
+                @if (hasPair)
+                {
+                    <MatchCard Slot="Slots[i + 1]" />
+                }
+            </div>
+
+            @* Connector lines *@
+            @if (nextSlot is not null && hasPair)
+            {
+                <div style="flex:0 0 24px;position:relative;align-self:stretch;">
+                    @* arm from top card *@
+                    <div style="position:absolute;top:25%;left:0;width:50%;border-top:1.5px solid rgba(153,153,153,0.5);"></div>
+                    @* arm from bottom card *@
+                    <div style="position:absolute;bottom:25%;left:0;width:50%;border-top:1.5px solid rgba(153,153,153,0.5);"></div>
+                    @* vertical bar connecting arms *@
+                    <div style="position:absolute;top:25%;left:50%;height:50%;border-left:1.5px solid rgba(153,153,153,0.5);"></div>
+                    @* single line out to next round *@
+                    <div style="position:absolute;top:50%;left:50%;width:50%;border-top:1.5px solid rgba(153,153,153,0.5);"></div>
+                </div>
+            }
+
+            @* Next round preview card *@
+            @if (nextSlot is not null)
+            {
+                <div style="flex:1;min-width:0;opacity:0.5;font-size:0.75rem;">
+                    <MatchCard Slot="nextSlot" />
+                </div>
+            }
+        </div>
     }
 </div>
