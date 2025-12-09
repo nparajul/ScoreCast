@@ -1,0 +1,63 @@
+<div class="d-flex flex-column flex-md-row gap-2 mb-3 filter-bar">
+    <MudSelect T="string"
+               Label="Country"
+               Value="_selectedCountry"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               Style="min-width:0;max-width:300px;"
+               ValueChanged="OnCountryChanged">
+        @foreach (var country in _countries)
+        {
+            <MudSelectItem T="string" Value="@country.Name">
+                <div class="d-flex align-center gap-2">
+                    @if (!string.IsNullOrEmpty(country.FlagUrl))
+                    {
+                        <img src="@country.FlagUrl" alt="" style="width:20px;height:14px;" />
+                    }
+                    @country.Name
+                </div>
+            </MudSelectItem>
+        }
+    </MudSelect>
+
+    <MudSelect T="CompetitionResult"
+               Label="Competition"
+               Value="_selectedCompetition"
+               ToStringFunc="@(c => c?.Name ?? string.Empty)"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               Style="min-width:0;max-width:350px;"
+               Disabled="@(_filteredCompetitions.Count == 0)"
+               ValueChanged="OnCompetitionChanged">
+        @foreach (var comp in _filteredCompetitions)
+        {
+            <MudSelectItem T="CompetitionResult" Value="comp">
+                <div class="d-flex align-center gap-2">
+                    @if (!string.IsNullOrEmpty(comp.LogoUrl))
+                    {
+                        <img src="@comp.LogoUrl" alt="" style="width:20px;height:20px;" />
+                    }
+                    @comp.Name
+                </div>
+            </MudSelectItem>
+        }
+    </MudSelect>
+
+    <MudSelect T="SeasonResult"
+               Label="Season"
+               Value="_selectedSeason"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               Style="min-width:0;max-width:250px;"
+               Disabled="@(_seasons.Count == 0)"
+               ValueChanged="OnSeasonChanged"
+               ToStringFunc="@(s => s?.Name ?? string.Empty)">
+        @foreach (var season in _seasons)
+        {
+            <MudSelectItem T="SeasonResult" Value="season">@season.Name</MudSelectItem>
+        }
+    </MudSelect>
+</div>

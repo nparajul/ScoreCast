@@ -24,6 +24,30 @@
     .mud-input-control {
         min-width: 0 !important;
     }
+    .mud-typography-h5 {
+        font-size: 1.125rem !important;
+        margin-bottom: 8px !important;
+    }
+    .mud-main-content {
+        padding-top: 0px !important;
+    }
+    .mud-main-content .mt-4 {
+        margin-top: 8px !important;
+    }
+    .main-container {
+        padding-top: 8px !important;
+    }
+    .filter-bar {
+        gap: 4px !important;
+        margin-bottom: 8px !important;
+    }
+    .filter-bar .mud-input-control {
+        font-size: 0.8125rem !important;
+        max-width: none !important;
+    }
+    .filter-bar .mud-input-label {
+        font-size: 0.75rem !important;
+    }
 }
 
 /* Compact table on mobile */

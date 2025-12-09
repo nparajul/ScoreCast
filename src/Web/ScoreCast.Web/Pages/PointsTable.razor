@@ -4,72 +4,13 @@
 
 <PageGuard>
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
-    <MudText Typo="Typo.h4" Class="mb-4">Points Table</MudText>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudText Typo="Typo.h5" Class="mb-3" Style="font-weight:700;">Points Table</MudText>
 
-    <div class="d-flex flex-column flex-md-row gap-2 mb-4 flex-wrap align-end">
-        <MudSelect T="string"
-                   Label="Country"
-                   Value="_selectedCountry"
-                   Variant="Variant.Outlined"
-                   Dense="true"
-                   Margin="Margin.Dense"
-                   Style="min-width:0;max-width:300px;"
-                   ValueChanged="OnCountryChanged">
-            @foreach (var country in _countries)
-            {
-                <MudSelectItem T="string" Value="@country.Name">
-                    <div class="d-flex align-center gap-2">
-                        @if (!string.IsNullOrEmpty(country.FlagUrl))
-                        {
-                            <img src="@country.FlagUrl" alt="" style="width:20px;height:14px;" />
-                        }
-                        @country.Name
-                    </div>
-                </MudSelectItem>
-            }
-        </MudSelect>
+    <CompetitionFilter OnStateChanged="OnFilterChanged" />
+</MudContainer>
 
-        <MudSelect T="CompetitionResult"
-                   Label="Competition"
-                   Value="_selectedCompetition"
-                   ToStringFunc="@(c => c?.Name ?? string.Empty)"
-                   Variant="Variant.Outlined"
-                   Dense="true"
-                   Margin="Margin.Dense"
-                   Style="min-width:0;max-width:350px;"
-                   Disabled="@(_filteredCompetitions.Count == 0)"
-                   ValueChanged="OnCompetitionChanged">
-            @foreach (var comp in _filteredCompetitions)
-            {
-                <MudSelectItem T="CompetitionResult" Value="comp">
-                    <div class="d-flex align-center gap-2">
-                        @if (!string.IsNullOrEmpty(comp.LogoUrl))
-                        {
-                            <img src="@comp.LogoUrl" alt="" style="width:20px;height:20px;" />
-                        }
-                        @comp.Name
-                    </div>
-                </MudSelectItem>
-            }
-        </MudSelect>
-
-        <MudSelect T="SeasonResult"
-                   Label="Season"
-                   Value="_selectedSeason"
-                   Variant="Variant.Outlined"
-                   Dense="true"
-                   Margin="Margin.Dense"
-                   Style="min-width:0;max-width:250px;"
-                   Disabled="@(_seasons.Count == 0)"
-                   ValueChanged="OnSeasonChanged"
-                   ToStringFunc="@(s => s?.Name ?? string.Empty)">
-            @foreach (var season in _seasons)
-            {
-                <MudSelectItem T="SeasonResult" Value="season">@season.Name</MudSelectItem>
-            }
-        </MudSelect>
-    </div>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge">
 
     @if (_result is not null && _result.Groups.Count > 0)
     {
@@ -79,20 +20,52 @@
         }
         else
         {
-            <MudTabs Elevation="1" Rounded="true" ApplyEffectsToContainer="true" Class="mt-0">
-                <MudTabPanel Text="Group Stage" Icon="@Icons.Material.Filled.Groups">
+            @* ── MOBILE: pill tabs ── *@
+            <div class="d-block d-md-none">
+                <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:4px;margin-bottom:12px;">
+                    @foreach (var tab in new[] { "Groups", "Best 3rd", "Knockout" })
+                    {
+                        var isActive = _groupTab == tab;
+                        <div @onclick="@(() => _groupTab = tab)"
+                             style="flex:1;text-align:center;padding:8px 0;border-radius:24px;font-size:0.875rem;font-weight:700;cursor:pointer;
+                                    background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
+                                    color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
+                            @tab
+                        </div>
+                    }
+                </div>
+
+                @if (_groupTab == "Groups")
+                {
                     <GroupStageView Groups="_result.Groups" Zones="_zones" />
-                </MudTabPanel>
-                <MudTabPanel Text="Best 3rd Placed" Icon="@Icons.Material.Filled.EmojiEvents">
+                }
+                else if (_groupTab == "Best 3rd")
+                {
                     <BestThirdPlacedTable Rows="_result.BestThirdPlaced" />
-                </MudTabPanel>
-                <MudTabPanel Text="Knockout" Icon="@Icons.Material.Filled.AccountTree">
+                }
+                else
+                {
                     <KnockoutBracket Bracket="_bracket" />
-                </MudTabPanel>
-            </MudTabs>
+                }
+            </div>
+
+            @* ── DESKTOP: MudTabs ── *@
+            <div class="d-none d-md-block">
+                <MudTabs Elevation="1" Rounded="true" ApplyEffectsToContainer="true" Class="mt-0">
+                    <MudTabPanel Text="Group Stage" Icon="@Icons.Material.Filled.Groups">
+                        <GroupStageView Groups="_result.Groups" Zones="_zones" />
+                    </MudTabPanel>
+                    <MudTabPanel Text="Best 3rd Placed" Icon="@Icons.Material.Filled.EmojiEvents">
+                        <BestThirdPlacedTable Rows="_result.BestThirdPlaced" />
+                    </MudTabPanel>
+                    <MudTabPanel Text="Knockout" Icon="@Icons.Material.Filled.AccountTree">
+                        <KnockoutBracket Bracket="_bracket" />
+                    </MudTabPanel>
+                </MudTabs>
+            </div>
         }
     }
-    else if (_selectedSeason is not null)
+    else if (_selectedSeason is not null && !Loading.IsLoading)
     {
         <MudAlert Severity="Severity.Info">No match data available for this season. Sync matches first.</MudAlert>
     }

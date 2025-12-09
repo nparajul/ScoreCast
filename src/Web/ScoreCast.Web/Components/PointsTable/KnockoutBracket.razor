@@ -12,52 +12,44 @@
 
     @* ── MOBILE: round-by-round view ── *@
     <div class="d-block d-md-none">
-        <MudTabs @bind-ActivePanelIndex="MobileRoundIndex" Elevation="0" ApplyEffectsToContainer="true" Class="mt-2">
-            @if (r32?.Slots.Count > 0)
+        <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:3px;margin-bottom:12px;">
+            @foreach (var tab in _mobileRounds)
             {
-                <MudTabPanel Text="R32">
-                    <MobileRoundView Slots="r32.Slots" />
-                </MudTabPanel>
+                var isActive = _mobileRound == tab;
+                <div @onclick="@(() => _mobileRound = tab)"
+                     style="flex:1;text-align:center;padding:6px 0;border-radius:24px;font-size:0.75rem;font-weight:700;cursor:pointer;
+                            background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
+                            color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
+                    @tab
+                </div>
             }
-            @if (r16?.Slots.Count > 0)
+        </div>
+
+        @{
+            var activeRound = roundMap.Values.FirstOrDefault(r => GetRoundLabel(r.Name) == _mobileRound);
+        }
+        @if (_mobileRound == "Final")
+        {
+            @if (final_?.Slots.Count > 0)
             {
-                <MudTabPanel Text="R16">
-                    <MobileRoundView Slots="r16.Slots" />
-                </MudTabPanel>
+                <div style="max-width:320px;margin:12px auto;">
+                    <div style="text-align:center;font-size:2.5rem;">🏆</div>
+                    <div style="font-weight:700;text-align:center;margin-bottom:8px;">Final</div>
+                    <MatchCard Slot="final_.Slots[0]" />
+                </div>
             }
-            @if (qf?.Slots.Count > 0)
+            @if (third?.Slots.Count > 0)
             {
-                <MudTabPanel Text="QF">
-                    <MobileRoundView Slots="qf.Slots" />
-                </MudTabPanel>
+                <div style="max-width:320px;margin:16px auto 0;">
+                    <div style="font-weight:700;font-size:0.75rem;text-align:center;margin-bottom:4px;">3rd Place</div>
+                    <MatchCard Slot="third.Slots[0]" />
+                </div>
             }
-            @if (sf?.Slots.Count > 0)
-            {
-                <MudTabPanel Text="SF">
-                    <MobileRoundView Slots="sf.Slots" />
-                </MudTabPanel>
-            }
-            @if (third?.Slots.Count > 0 || final_?.Slots.Count > 0)
-            {
-                <MudTabPanel Text="Final">
-                    @if (final_?.Slots.Count > 0)
-                    {
-                        <div style="max-width:320px;margin:12px auto;">
-                            <div style="text-align:center;font-size:2.5rem;">🏆</div>
-                            <div style="font-weight:700;text-align:center;margin-bottom:8px;">Final</div>
-                            <MatchCard Slot="final_.Slots[0]" />
-                        </div>
-                    }
-                    @if (third?.Slots.Count > 0)
-                    {
-                        <div style="max-width:320px;margin:16px auto 0;">
-                            <div style="font-weight:700;font-size:0.75rem;text-align:center;margin-bottom:4px;">3rd Place</div>
-                            <MatchCard Slot="third.Slots[0]" />
-                        </div>
-                    }
-                </MudTabPanel>
-            }
-        </MudTabs>
+        }
+        else if (activeRound?.Slots.Count > 0)
+        {
+            <MobileRoundView Slots="activeRound.Slots" />
+        }
     </div>
 
     @* ── DESKTOP: full bracket ── *@
