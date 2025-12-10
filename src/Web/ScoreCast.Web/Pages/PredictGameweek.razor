@@ -1,7 +1,8 @@
 @page "/predict"
+@page "/predict/{CompetitionCode}"
 
 <style>
-    .predict-table { width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse; border: 1px solid var(--mud-palette-lines-default); }
+    .predict-table { width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse; border: 1px solid var(--mud-palette-lines-default); table-layout: auto; }
     .predict-table td { padding: 6px 4px; border: 1px solid var(--mud-palette-lines-default); }
     .predict-input {
         width: 40px; height: 28px; text-align: center; font-size: 14px; font-weight: 600;
@@ -62,7 +63,7 @@
 
         var showPoints = _matches.All(m => m.IsLocked) && _matches.Any(m => m.HasPrediction);
 
-        <div class="d-flex gap-4 @(showPoints ? "" : "justify-center")">
+        <div class="d-flex flex-column flex-md-row gap-4 @(showPoints ? "" : "justify-center")">
             <table class="predict-table">
                 <tbody>
                 @foreach (var match in _matches)
@@ -109,7 +110,7 @@
                 var breakdown = ScoringBreakdown.Calculate(_matches, _scoringRules);
                 var total = breakdown.Sum(b => b.Total);
                 var totalPossible = _matches.Count(m => m.Status == nameof(MatchStatus.Finished) && m.HasPrediction) * _scoringRules.Max(r => r.Points);
-                <MudPaper Elevation="1" Class="pa-3 rounded-lg" Style="min-width:450px;align-self:flex-start;">
+                <MudPaper Elevation="1" Class="pa-3 rounded-lg" Style="min-width:0;align-self:flex-start;width:100%;max-width:450px;">
                     <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mb-2">Points Breakdown</MudText>
                     <MudSimpleTable Dense="true" Elevation="0" Style="background:transparent;">
                         <thead>

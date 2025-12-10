@@ -27,8 +27,9 @@ internal sealed record SubmitPredictionsCommandHandler(
         var existing = await DbContext.Predictions
             .Where(p => p.SeasonId == request.SeasonId
                         && p.UserId == user.Id
-                        && matchIds.Contains(p.MatchId))
-            .ToDictionaryAsync(p => p.MatchId, ct);
+                        && p.MatchId != null
+                        && matchIds.Contains(p.MatchId.Value))
+            .ToDictionaryAsync(p => p.MatchId!.Value, ct);
 
         foreach (var entry in request.Predictions)
         {

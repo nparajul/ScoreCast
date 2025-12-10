@@ -15,20 +15,6 @@ public static class AppTheme
             Surface = "#FFFFFF",
             DrawerBackground = "#0A1929",
             DrawerText = "#FFFFFF"
-        },
-        PaletteDark = new PaletteDark
-        {
-            Primary = "#8B1A9E",
-            Secondary = "#FF6B35",
-            Tertiary = "#8B1A9E",
-            Surface = "#132F4C",
-            Background = "#0A1929",
-            AppbarBackground = "#0A1929",
-            AppbarText = "#FFFFFF",
-            DrawerBackground = "#071318",
-            DrawerText = "#FFFFFF",
-            TextPrimary = "#E0E0E0",
-            TextSecondary = "#B0BEC5"
         }
     };
 

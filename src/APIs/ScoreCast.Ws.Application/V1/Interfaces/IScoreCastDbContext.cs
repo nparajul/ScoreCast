@@ -20,6 +20,8 @@ public interface IScoreCastDbContext
     DbSet<Season> Seasons { get; }
     DbSet<SeasonTeam> SeasonTeams { get; }
     DbSet<Gameweek> Gameweeks { get; }
+    DbSet<Stage> Stages { get; }
+    DbSet<MatchGroup> MatchGroups { get; }
     DbSet<Match> Matches { get; }
     DbSet<PredictionScoringRule> PredictionScoringRules { get; }
     DbSet<PredictionLeague> PredictionLeagues { get; }
@@ -29,5 +31,7 @@ public interface IScoreCastDbContext
     DbSet<TeamPlayer> TeamPlayers { get; }
     DbSet<CompetitionZone> CompetitionZones { get; }
     DbSet<MatchEvent> MatchEvents { get; }
+    DbSet<MatchLineup> MatchLineups { get; }
     DbSet<ExternalMapping> ExternalMappings { get; }
+    DbSet<AppConfig> AppConfigs { get; }
 }

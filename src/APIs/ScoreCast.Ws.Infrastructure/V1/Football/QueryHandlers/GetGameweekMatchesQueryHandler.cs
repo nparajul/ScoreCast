@@ -9,7 +9,7 @@ using ScoreCast.Ws.Application.V1.Interfaces;
 namespace ScoreCast.Ws.Infrastructure.V1.Football.QueryHandlers;
 
 internal sealed record GetGameweekMatchesQueryHandler(
-    IScoreCastDbContext DbContext) : ICommandHandler<GetGameweekMatchesQuery, ScoreCastResponse<GameweekMatchesResult>>
+    IScoreCastDbContext DbContext) : IQueryHandler<GetGameweekMatchesQuery, ScoreCastResponse<GameweekMatchesResult>>
 {
     public async Task<ScoreCastResponse<GameweekMatchesResult>> ExecuteAsync(GetGameweekMatchesQuery query, CancellationToken ct)
     {
