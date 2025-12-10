@@ -9,12 +9,13 @@ namespace ScoreCast.Web.Pages;
 
 public partial class MasterDataSync
 {
-    [Inject] private IScoreCastApiClient Api { get; set; } = default!;
-    [Inject] private ILoadingService Loading { get; set; } = default!;
-    [Inject] private IAlertService Alert { get; set; } = default!;
+    [Inject] private IScoreCastApiClient Api { get; set; } = null!;
+    [Inject] private ILoadingService Loading { get; set; } = null!;
+    [Inject] private IAlertService Alert { get; set; } = null!;
 
     private List<CompetitionResult> _competitions = [];
     private string? _newCompetitionCode;
+    private bool _syncAllSeasons;
     private const string AppName = "DATA SYNC";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -98,13 +99,13 @@ public partial class MasterDataSync
         }
     }
 
-    private async Task SyncMatchesAsync(CompetitionResult competition)
+    private async Task SyncMatchesAsync(CompetitionResult competition, bool syncAll)
     {
         try
         {
             await Loading.While(async () =>
             {
-                var result = await Api.SyncMatchesAsync(new SyncCompetitionRequest { CompetitionCode = competition.Code, AppName = AppName }, CancellationToken.None);
+                var result = await Api.SyncMatchesAsync(new SyncCompetitionRequest { CompetitionCode = competition.Code, SyncAll = syncAll, AppName = AppName }, CancellationToken.None);
                 if (result.Success)
                     Alert.Add(result.Message ?? $"Synced matches for {competition.Name}", Severity.Success);
                 else

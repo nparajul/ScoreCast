@@ -7,9 +7,9 @@ using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
 
-public partial class Leagues
+public partial class Dashboard
 {
-    private const string AppName = "LEAGUES";
+    private const string AppName = "DASHBOARD";
     [Inject] private IScoreCastApiClient Api { get; set; } = default!;
     [Inject] private ILoadingService Loading { get; set; } = default!;
     [Inject] private IAlertService Alert { get; set; } = default!;
@@ -122,7 +122,7 @@ public partial class Leagues
         Snackbar.Add("Invite code copied!", Severity.Success);
     }
 
-    private void NavigateToLeague(long leagueId) => Nav.NavigateTo($"/leagues/{leagueId}");
+    private void NavigateToLeague(long leagueId) => Nav.NavigateTo($"/dashboard/{leagueId}");
 
     private void NavigateToPredict(string competitionCode, long seasonId) =>
         Nav.NavigateTo($"/predict?competition={competitionCode}&seasonId={seasonId}");
