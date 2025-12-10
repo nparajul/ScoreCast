@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
+using ScoreCast.Shared.Exceptions;
 using ScoreCast.Ws.Application;
 using ScoreCast.Ws.Application.V1.MasterData.Commands;
 using ScoreCast.Ws.Application.V1.Interfaces;
@@ -54,10 +55,10 @@ internal sealed record SyncTeamsCommandHandler(
             await transaction.CommitAsync(ct);
             return ScoreCastResponse.Ok($"Synced {upsertedTeams.Count} teams and {playerCount} players for {competition.Name}");
         }
-        catch (Exception ex)
+        catch (ScoreCastException ex)
         {
             await transaction.RollbackAsync(ct);
-            return ScoreCastResponse.Error($"Failed to sync teams for {command.Request.CompetitionCode}: {ex.Message}");
+            return ScoreCastResponse.Error(ex.Message);
         }
     }
 
@@ -81,9 +82,9 @@ internal sealed record SyncTeamsCommandHandler(
             pulseTeams = await pulseClient.GetFromJsonAsync<List<PulseTeamResponse>>(
                 string.Format(PulseApi.Routes.TeamsByCompSeason, pulseCompSeasonId), ct);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return [];
+            throw new ScoreCastException($"Pulse teams API failed for compSeason {pulseCompSeasonId}", ex);
         }
 
         if (pulseTeams is not { Count: > 0 }) return [];
@@ -163,9 +164,9 @@ internal sealed record SyncTeamsCommandHandler(
             apiResponse = await client.GetFromJsonAsync<FootballDataTeamsResponse>(
                 string.Format(FootballDataApi.Routes.Teams, competitionCode), ct);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return ([], 0);
+            throw new ScoreCastException($"Football-data.org teams API failed for {competitionCode}", ex);
         }
 
         if (apiResponse?.Teams is null or { Count: 0 })

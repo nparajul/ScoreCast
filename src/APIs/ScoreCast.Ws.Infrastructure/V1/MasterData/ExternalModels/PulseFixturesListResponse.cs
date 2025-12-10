@@ -7,7 +7,7 @@ internal sealed record PulseFixturesListResponse(
     [property: JsonPropertyName("pageInfo")] PulsePageInfo? PageInfo);
 
 internal sealed record PulsePageInfo(
-    [property: JsonPropertyName("numEntries")] int NumEntries);
+    [property: JsonPropertyName("numEntries")] double NumEntries);
 
 internal sealed record PulseFixtureListItem(
     [property: JsonPropertyName("id")] double Id,
@@ -22,26 +22,26 @@ internal sealed record PulseFixtureListItem(
     [property: JsonPropertyName("matchOfficials")] List<PulseMatchOfficial>? MatchOfficials);
 
 internal sealed record PulseFixtureGoal(
-    [property: JsonPropertyName("personId")] int? PersonId,
-    [property: JsonPropertyName("assistId")] int? AssistId,
+    [property: JsonPropertyName("personId")] double? PersonId,
+    [property: JsonPropertyName("assistId")] double? AssistId,
     [property: JsonPropertyName("clock")] PulseClock? Clock,
     [property: JsonPropertyName("type")] string Type,
     [property: JsonPropertyName("description")] string? Description);
 
 internal sealed record PulseKickoff(
-    [property: JsonPropertyName("millis")] long? Millis,
+    [property: JsonPropertyName("millis")] double? Millis,
     [property: JsonPropertyName("label")] string? Label);
 
 internal sealed record PulseGameweekRef(
-    [property: JsonPropertyName("gameweek")] int Gameweek,
+    [property: JsonPropertyName("gameweek")] double Gameweek,
     [property: JsonPropertyName("compSeason")] PulseCompSeasonRef? CompSeason);
 
 internal sealed record PulseCompSeasonRef(
-    [property: JsonPropertyName("id")] int Id,
+    [property: JsonPropertyName("id")] double Id,
     [property: JsonPropertyName("label")] string? Label);
 
 internal sealed record PulseMatchOfficial(
-    [property: JsonPropertyName("matchOfficialId")] int? MatchOfficialId,
+    [property: JsonPropertyName("matchOfficialId")] double? MatchOfficialId,
     [property: JsonPropertyName("birth")] PulseDate? Birth,
     [property: JsonPropertyName("name")] PulsePlayerName? Name,
     [property: JsonPropertyName("role")] string? Role);
