@@ -15,6 +15,7 @@ public partial class PlayerStats
     private string _sortColumn = "Goals";
     private bool _sortDescending = true;
     private string _search = "";
+    private string _mobileTab = "Overall";
 
     private async Task OnFilterChanged(CompetitionFilterState state)
     {
@@ -59,15 +60,47 @@ public partial class PlayerStats
 
             return _sortColumn switch
             {
-                "Goals" => _sortDescending ? filtered.OrderByDescending(r => r.Goals + r.PenaltyGoals) : filtered.OrderBy(r => r.Goals + r.PenaltyGoals),
-                "Assists" => _sortDescending ? filtered.OrderByDescending(r => r.Assists) : filtered.OrderBy(r => r.Assists),
-                "YellowCards" => _sortDescending ? filtered.OrderByDescending(r => r.YellowCards) : filtered.OrderBy(r => r.YellowCards),
-                "RedCards" => _sortDescending ? filtered.OrderByDescending(r => r.RedCards) : filtered.OrderBy(r => r.RedCards),
-                _ => filtered.OrderByDescending(r => r.Goals + r.PenaltyGoals)
+                "Goals" => _sortDescending
+                    ? filtered.OrderByDescending(r => r.Goals + r.PenaltyGoals).ThenByDescending(r => r.Assists)
+                    : filtered.OrderBy(r => r.Goals + r.PenaltyGoals).ThenBy(r => r.Assists),
+                "Assists" => _sortDescending
+                    ? filtered.OrderByDescending(r => r.Assists).ThenByDescending(r => r.Goals + r.PenaltyGoals)
+                    : filtered.OrderBy(r => r.Assists).ThenBy(r => r.Goals + r.PenaltyGoals),
+                "YellowCards" => _sortDescending
+                    ? filtered.OrderByDescending(r => r.YellowCards).ThenByDescending(r => r.RedCards)
+                    : filtered.OrderBy(r => r.YellowCards).ThenBy(r => r.RedCards),
+                "RedCards" => _sortDescending
+                    ? filtered.OrderByDescending(r => r.RedCards).ThenByDescending(r => r.YellowCards)
+                    : filtered.OrderBy(r => r.RedCards).ThenBy(r => r.YellowCards),
+                _ => filtered.OrderByDescending(r => r.Goals + r.PenaltyGoals).ThenByDescending(r => r.Assists)
             };
         }
     }
 
     private string SortIcon(string column) =>
         _sortColumn != column ? "" : _sortDescending ? Icons.Material.Filled.ArrowDownward : Icons.Material.Filled.ArrowUpward;
+
+    private List<PlayerStatRow> CleanSheetRows =>
+        _rows.Where(r => r.CleanSheets > 0).OrderByDescending(r => r.CleanSheets).ToList();
+
+    private IEnumerable<PlayerStatRow> MobileTabRows
+    {
+        get
+        {
+            var filtered = string.IsNullOrWhiteSpace(_search)
+                ? _rows
+                : _rows.Where(r => r.PlayerName.Contains(_search, StringComparison.OrdinalIgnoreCase)
+                    || (r.TeamName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)).ToList();
+
+            return _mobileTab switch
+            {
+                "Goals" => filtered.OrderByDescending(r => r.Goals + r.PenaltyGoals).ThenByDescending(r => r.Assists),
+                "Assists" => filtered.OrderByDescending(r => r.Assists).ThenByDescending(r => r.Goals + r.PenaltyGoals),
+                "Clean Sheets" => filtered.Where(r => r.Position == ScoreCast.Shared.Constants.PlayerPositions.Goalkeeper)
+                    .OrderByDescending(r => r.CleanSheets),
+                "Discipline" => filtered.OrderByDescending(r => r.YellowCards + r.RedCards).ThenByDescending(r => r.RedCards),
+                _ => filtered.OrderByDescending(r => r.Goals + r.PenaltyGoals).ThenByDescending(r => r.Assists)
+            };
+        }
+    }
 }
