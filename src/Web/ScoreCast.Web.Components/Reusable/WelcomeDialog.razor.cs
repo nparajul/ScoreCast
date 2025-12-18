@@ -4,9 +4,9 @@ namespace ScoreCast.Web.Components.Reusable;
 
 public partial class WelcomeDialog
 {
-    [CascadingParameter] public IMudDialogInstance Dialog { get; set; } = default!;
+    [CascadingParameter] public IMudDialogInstance Dialog { get; set; } = null!;
     [Parameter] public string? Username { get; set; }
-    [Inject] private IScoreCastApiClient Api { get; set; } = default!;
+    [Inject] private IScoreCastApiClient Api { get; set; } = null!;
 
     private string? DisplayName { get; set; }
     private string? FavoriteTeam { get; set; }

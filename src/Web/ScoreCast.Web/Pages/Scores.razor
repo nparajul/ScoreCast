@@ -1,20 +1,5 @@
 @page "/scores"
 
-<style>
-    .live-pulse {
-        width: 8px;
-        height: 8px;
-        background: #f44336;
-        border-radius: 50%;
-        animation: pulse 1.2s ease-in-out infinite;
-    }
-
-    @@keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.3; }
-    }
-</style>
-
 <PageGuard>
 <div style="display:flex;flex-direction:column;height:calc(100vh - var(--mud-appbar-height));margin-bottom:-48px;overflow:hidden;">
     <div style="flex-shrink:0;">
@@ -45,134 +30,21 @@
             {
                 @foreach (var group in GetMatchesByDate())
                 {
-            <MudPaper Class="mb-3" Elevation="1" Style="border-radius:10px;overflow:hidden;">
-                <div id="@group.AnchorId" style="padding:@(IsMobile ? "8px 10px 4px" : "12px 14px 6px");font-weight:700;font-size:@(IsMobile ? "13" : "15")px;text-align:center;">
-                    @group.Label
-                </div>
-                <MudDivider />
-
-                @foreach (var match in group.Matches)
-                {
-                    <div style="@($"{(match.Status == nameof(MatchStatus.Live) ? "border-left:3px solid #4caf50;background:linear-gradient(90deg, rgba(76,175,80,0.06) 0%, transparent 30%);" : "")}")">
-                        <div @onclick="() => ToggleMatch(match.MatchId)" style="cursor:pointer;padding:@(IsMobile ? "5px 8px" : "8px 10px");position:relative;">
-                            @if (match.Minute is not null)
-                            {
-                                <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:@(match.Status == nameof(MatchStatus.Live) ? "var(--mud-palette-text-primary)" : "var(--mud-palette-text-secondary)");">
-                                    @match.Minute
-                                </span>
-                            }
-                            <div class="d-flex align-center justify-space-between">
-                                @{
-                                    var homeReds = match.Events.Count(e => e.EventType == EventTypes.RedCard && e.IsHome);
-                                    var awayReds = match.Events.Count(e => e.EventType == EventTypes.RedCard && !e.IsHome);
-                                }
-                                <div class="d-flex align-center gap-1" style="flex:1;justify-content:flex-end;overflow:hidden;">
-                                    @if (homeReds > 0)
-                                    {
-                                        <span style="display:inline-flex;gap:2px;align-items:center;">@for (var i = 0; i < homeReds; i++){<span style="display:inline-block;width:8px;height:11px;background:#d32f2f;border-radius:1px;"></span>}</span>
-                                    }
-                                    <span style="font-weight:600;font-size:@(IsMobile ? "13" : "15")px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@match.HomeTeamShortName</span>
-                                    @if (match.HomeTeamLogo is not null)
-                                    {
-                                        <img src="@match.HomeTeamLogo" alt="" style="width:@(IsMobile ? "20" : "26")px;height:@(IsMobile ? "20" : "26")px;flex-shrink:0;" />
-                                    }
-                                </div>
-                                <div style="min-width:60px;text-align:center;flex-shrink:0;">
-                                    @if (match.Status == nameof(MatchStatus.Finished))
-                                    {
-                                        <span style="font-weight:700;font-size:@(IsMobile ? "14" : "17")px;">@match.HomeScore - @match.AwayScore</span>
-                                    }
-                                    else if (match.Status == nameof(MatchStatus.Live))
-                                    {
-                                        <span style="font-weight:700;font-size:@(IsMobile ? "14" : "17")px;color:#4caf50;">@(match.HomeScore ?? 0) - @(match.AwayScore ?? 0)</span>
-                                        <div style="display:flex;align-items:center;justify-content:center;gap:3px;margin-top:1px;">
-                                            <span class="live-pulse"></span>
-                                            <span style="font-size:9px;font-weight:700;color:#f44336;letter-spacing:1px;">LIVE</span>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <span style="font-size:12px;color:var(--mud-palette-text-secondary);">
-                                            @(match.KickoffTime?.ToLocalTime().ToString("HH:mm") ?? "TBD")
-                                        </span>
-                                    }
-                                </div>
-                                <div class="d-flex align-center gap-1" style="flex:1;overflow:hidden;">
-                                    @if (match.AwayTeamLogo is not null)
-                                    {
-                                        <img src="@match.AwayTeamLogo" alt="" style="width:@(IsMobile ? "20" : "26")px;height:@(IsMobile ? "20" : "26")px;flex-shrink:0;" />
-                                    }
-                                    <span style="font-weight:600;font-size:@(IsMobile ? "13" : "15")px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@match.AwayTeamShortName</span>
-                                    @if (awayReds > 0)
-                                    {
-                                        <span style="display:inline-flex;gap:2px;align-items:center;">@for (var i = 0; i < awayReds; i++){<span style="display:inline-block;width:8px;height:11px;background:#d32f2f;border-radius:1px;"></span>}</span>
-                                    }
-                                </div>
-                            </div>
-                            <div class="d-flex align-center justify-center" style="margin-top:2px;">
-                                <MudIcon Icon="@(_expandedMatches.Contains(match.MatchId) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Size="Size.Small" Style="color:var(--mud-palette-text-secondary);" />
-                            </div>
+                    <MudPaper Class="mb-3" Elevation="1" Style="border-radius:10px;overflow:hidden;">
+                        <div id="@group.AnchorId" style="padding:@(IsMobile ? "8px 10px 4px" : "12px 14px 6px");font-weight:700;font-size:@(IsMobile ? "13" : "15")px;text-align:center;">
+                            @group.Label
                         </div>
-
-                        @if (_expandedMatches.Contains(match.MatchId))
-                        {
-                            <MudDivider />
-                            <div style="padding:8px 10px;background:var(--mud-palette-background-grey);">
-                                @if (match.Venue is not null || match.Referee is not null || match.KickoffTime.HasValue)
-                                {
-                                    <div style="text-align:center;margin-bottom:10px;font-size:13px;color:var(--mud-palette-text-primary);opacity:0.85;">
-                                        @if (match.Venue is not null)
-                                        {
-                                            <div>🏟️ @match.Venue</div>
-                                        }
-                                        @if (match.KickoffTime.HasValue)
-                                        {
-                                            <div>🕐 @match.KickoffTime.Value.ToLocalTime().ToString("ddd dd MMM yyyy, HH:mm")</div>
-                                        }
-                                        @if (match.Referee is not null)
-                                        {
-                                            <div><MudIcon Icon="@Icons.Material.Filled.Sports" Size="Size.Small" Style="vertical-align:middle;" /> @match.Referee</div>
-                                        }
-                                    </div>
-                                }
-
-                                @if (match.Events.Count > 0)
-                                {
-                                    <div class="d-flex" style="gap:@(IsMobile ? "12" : "16")px;">
-                                        <div style="flex:1;text-align:right;">
-                                            @foreach (var line in GetDisplayLines(match.Events, true, !IsMobile))
-                                            {
-                                                <div style="font-size:@(IsMobile ? "12" : "13")px;margin-bottom:2px;@(line.Bold ? "font-weight:700;" : "")">
-                                                    @line.Markup @(line.Minute is not null ? $" {line.Minute}" : "")
-                                                </div>
-                                            }
-                                        </div>
-                                        <div style="width:1px;background:var(--mud-palette-divider);"></div>
-                                        <div style="flex:1;text-align:left;">
-                                            @foreach (var line in GetDisplayLines(match.Events, false, !IsMobile))
-                                            {
-                                                <div style="font-size:@(IsMobile ? "12" : "13")px;margin-bottom:2px;@(line.Bold ? "font-weight:700;" : "")">
-                                                    @(line.Minute is not null ? $"{line.Minute} " : "")@line.Markup
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-                                }
-                                else if (match.Status == nameof(MatchStatus.Finished))
-                                {
-                                    <MudText Typo="Typo.body2" Align="Align.Center" Style="color:var(--mud-palette-text-secondary);">
-                                        No event data available
-                                    </MudText>
-                                }
-                            </div>
-                        }
-                    </div>
-                    @if (match != group.Matches.Last())
-                    {
                         <MudDivider />
-                    }
-                }
-            </MudPaper>
+
+                        @foreach (var match in group.Matches)
+                        {
+                            <MatchTile Match="MatchTileModel.From(match)" IsExpanded="_expandedMatches.Contains(match.MatchId)" OnToggle="() => ToggleMatch(match.MatchId)" />
+                            @if (match != group.Matches.Last())
+                            {
+                                <MudDivider />
+                            }
+                        }
+                    </MudPaper>
                 }
             }
             else if (_selectedSeason is not null && !Loading.IsLoading)

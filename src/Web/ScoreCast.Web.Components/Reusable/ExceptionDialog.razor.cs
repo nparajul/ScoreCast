@@ -4,10 +4,10 @@ namespace ScoreCast.Web.Components.Reusable;
 
 public partial class ExceptionDialog
 {
-    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = default!;
+    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = null!;
     [Parameter] public required Exception Exception { get; set; }
     [Parameter] public Severity Severity { get; set; }
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
     private bool ShowDetails { get; set; }
 

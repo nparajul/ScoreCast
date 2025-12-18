@@ -32,4 +32,19 @@ public partial interface IScoreCastApiClient
 
     [Get("/api/v1/football/seasons/{seasonId}/player-stats")]
     Task<ScoreCastResponse<PlayerStatsResult>> GetPlayerStatsAsync(long seasonId, CancellationToken ct);
+
+    [Get("/api/v1/football/teams/{teamId}")]
+    Task<ScoreCastResponse<TeamDetailResult>> GetTeamDetailAsync(long teamId, CancellationToken ct);
+
+    [Get("/api/v1/football/teams/{teamId}/matches")]
+    Task<ScoreCastResponse<TeamMatchesResult>> GetTeamMatchesAsync(long teamId, long? seasonId, CancellationToken ct);
+
+    [Get("/api/v1/football/teams/{teamId}/squad")]
+    Task<ScoreCastResponse<TeamSquadResult>> GetTeamSquadAsync(long teamId, long? seasonId, CancellationToken ct);
+
+    [Get("/api/v1/football/teams/{teamId}/player-stats")]
+    Task<ScoreCastResponse<PlayerStatsResult>> GetTeamPlayerStatsAsync(long teamId, long? seasonId, CancellationToken ct);
+
+    [Get("/api/v1/football/teams/search")]
+    Task<ScoreCastResponse<TeamSearchResult>> SearchTeamsAsync(string? q, CancellationToken ct);
 }
