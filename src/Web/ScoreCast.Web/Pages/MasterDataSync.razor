@@ -37,11 +37,12 @@
         </MudPaper>
     </div>
 
-    @* ── Competition Data ── *@
-    <MudText Typo="Typo.overline" Class="mb-2" Style="font-weight:700;letter-spacing:2px;color:var(--mud-palette-text-secondary);">COMPETITION DATA</MudText>
-
-    <MudPaper Elevation="1" Class="pa-4 mb-4 rounded-lg">
-        <MudText Typo="Typo.subtitle2" Style="font-weight:600;" Class="mb-2">Add New Competition</MudText>
+    @* ── Add New Competition ── *@
+    <MudText Typo="Typo.overline" Class="mb-2" Style="font-weight:700;letter-spacing:2px;color:var(--mud-palette-text-secondary);">ADD COMPETITION</MudText>
+    <MudPaper Elevation="1" Class="pa-4 mb-6 rounded-lg">
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2">
+            Enter a football-data.org competition code to import. This runs Step 1 (Competition), Step 2 (Teams), and Step 3 (Matches) automatically.
+        </MudText>
         <div class="d-flex align-center gap-3 flex-wrap">
             <MudTextField @bind-Value="_newCompetitionCode"
                           Placeholder="e.g. PL, BL1, SA, PD..."
@@ -59,82 +60,148 @@
         </div>
     </MudPaper>
 
+    @* ── Competition Sync Steppers ── *@
     @if (_competitions.Count == 0)
     {
         <MudAlert Severity="Severity.Info" Class="mb-4">No competitions synced yet. Add one above to get started.</MudAlert>
     }
     else
     {
+        <MudText Typo="Typo.overline" Class="mb-2" Style="font-weight:700;letter-spacing:2px;color:var(--mud-palette-text-secondary);">COMPETITION DATA</MudText>
+
         <MudExpansionPanels MultiExpansion="true" Elevation="1" Class="rounded-lg">
             @foreach (var competition in _competitions)
             {
+                var state = GetState(competition.Code);
+                var isPl = competition.ExternalSources.Contains("Fpl");
+                var totalSteps = isPl ? 4 : 3;
+
                 <MudExpansionPanel Style="border-bottom:1px solid var(--mud-palette-divider);">
                     <TitleContent>
                         <div class="d-flex align-center gap-2">
                             <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Size="Size.Small" Color="Color.Primary" />
                             <MudText Typo="Typo.subtitle1" Style="font-weight:600;">@competition.Name</MudText>
                             <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">@competition.Code</MudChip>
-                            @if (competition.ExternalSources.Contains("Fpl"))
+                            @if (isPl)
                             {
                                 <MudChip T="string" Size="Size.Small" Style="background:#38003c;color:#00ff85;font-size:10px;">PL</MudChip>
+                            }
+                            @if (state.CompletedSteps > 0)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Filled"
+                                         Style="font-size:10px;">@state.CompletedSteps / @totalSteps done</MudChip>
                             }
                         </div>
                     </TitleContent>
                     <ChildContent>
-                        <div class="d-flex gap-3 flex-wrap pa-2">
-                            <div style="flex:1;min-width:180px;">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1">Competition & Seasons</MudText>
-                                <MudButton Variant="Variant.Outlined" Color="Color.Tertiary" Size="Size.Small" FullWidth="true"
-                                           StartIcon="@Icons.Material.Filled.Sync"
-                                           OnClick="@(() => SyncCompetitionAsync(competition))">
-                                    Sync Competition
+                        <div class="pa-2">
+                            @* ── Step 1: Competition ── *@
+                            <div class="d-flex align-center gap-3 mb-3">
+                                <MudAvatar Size="Size.Small" Style="@StepAvatarStyle(state.CompletedSteps >= 1)">1</MudAvatar>
+                                <div style="flex:1;">
+                                    <MudText Typo="Typo.subtitle2" Style="font-weight:600;">Sync Competition</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Creates/updates competition, country, and seasons</MudText>
+                                </div>
+                                <MudButton Variant="@(state.CompletedSteps >= 1 ? Variant.Outlined : Variant.Filled)"
+                                           Color="Color.Tertiary" Size="Size.Small"
+                                           StartIcon="@(state.CompletedSteps >= 1 ? Icons.Material.Filled.Check : Icons.Material.Filled.Sync)"
+                                           OnClick="@(() => RunStepAsync(competition, 1))">
+                                    @(state.CompletedSteps >= 1 ? "Re-sync" : "Run")
                                 </MudButton>
                             </div>
-                            <div style="flex:1;min-width:180px;">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1">Squads & Players</MudText>
-                                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" FullWidth="true"
-                                           StartIcon="@Icons.Material.Filled.Groups"
-                                           OnClick="@(() => SyncTeamsAsync(competition))">
-                                    Sync Teams
+
+                            @* ── Step 2: Teams ── *@
+                            <div class="d-flex align-center gap-3 mb-3" style="@StepOpacity(state.CompletedSteps, 1)">
+                                <MudAvatar Size="Size.Small" Style="@StepAvatarStyle(state.CompletedSteps >= 2)">2</MudAvatar>
+                                <div style="flex:1;">
+                                    <MudText Typo="Typo.subtitle2" Style="font-weight:600;">Sync Teams</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Imports squads, players, and external IDs for current season</MudText>
+                                </div>
+                                <MudButton Variant="@(state.CompletedSteps >= 2 ? Variant.Outlined : Variant.Filled)"
+                                           Color="Color.Primary" Size="Size.Small"
+                                           Disabled="@(state.CompletedSteps < 1)"
+                                           StartIcon="@(state.CompletedSteps >= 2 ? Icons.Material.Filled.Check : Icons.Material.Filled.Groups)"
+                                           OnClick="@(() => RunStepAsync(competition, 2))">
+                                    @(state.CompletedSteps >= 2 ? "Re-sync" : "Run")
                                 </MudButton>
                             </div>
-                            <div style="flex:1;min-width:180px;">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1">Fixtures & Results</MudText>
-                                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Size="Size.Small" FullWidth="true"
-                                           StartIcon="@Icons.Material.Filled.SportsSoccer"
-                                           OnClick="@(() => SyncMatchesAsync(competition, _syncAllSeasons))">
-                                    Sync Matches
+
+                            @* ── Step 3: Matches ── *@
+                            <div class="d-flex align-center gap-3 mb-3" style="@StepOpacity(state.CompletedSteps, 2)">
+                                <MudAvatar Size="Size.Small" Style="@StepAvatarStyle(state.CompletedSteps >= 3)">3</MudAvatar>
+                                <div style="flex:1;">
+                                    <MudText Typo="Typo.subtitle2" Style="font-weight:600;">Sync Matches</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        Fixtures, results, and scores.
+                                        @if (!isPl)
+                                        {
+                                            <span> Also syncs match events (goals, cards, subs) — up to 9 per run, re-run to catch up.</span>
+                                        }
+                                    </MudText>
+                                    <MudCheckBox @bind-Value="_syncAllSeasons" Dense="true" Size="Size.Small" Color="Color.Secondary"
+                                                 Label="All seasons" Class="mt-1" Style="font-size:11px;" />
+                                </div>
+                                <MudButton Variant="@(state.CompletedSteps >= 3 ? Variant.Outlined : Variant.Filled)"
+                                           Color="Color.Secondary" Size="Size.Small"
+                                           Disabled="@(state.CompletedSteps < 2)"
+                                           StartIcon="@(state.CompletedSteps >= 3 ? Icons.Material.Filled.Check : Icons.Material.Filled.SportsSoccer)"
+                                           OnClick="@(() => RunStepAsync(competition, 3))">
+                                    @(state.CompletedSteps >= 3 ? "Re-sync" : "Run")
                                 </MudButton>
-                                <MudCheckBox @bind-Value="_syncAllSeasons" Dense="true" Size="Size.Small" Color="Color.Secondary"
-                                             Label="All seasons" Class="mt-1" Style="font-size:11px;" />
                             </div>
-                            @if (competition.ExternalSources.Contains("Fpl"))
+
+                            @* ── Step 4: PL Events (PL only) ── *@
+                            @if (isPl)
                             {
-                                <div style="flex:1;min-width:180px;">
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1">Goals, Cards & Subs</MudText>
-                                    <MudButton Variant="Variant.Filled" Size="Size.Small" FullWidth="true"
-                                               StartIcon="@Icons.Material.Filled.Assessment"
-                                               Style="background:#38003c;color:#00ff85;font-weight:700;"
-                                               Disabled="_pulseSyncing"
-                                               OnClick="@(() => SyncFplDataAsync(competition))">
-                                        Sync PL Events
+                                <div class="d-flex align-center gap-3 mb-3" style="@StepOpacity(state.CompletedSteps, 3)">
+                                    <MudAvatar Size="Size.Small" Style="@StepAvatarStyle(state.CompletedSteps >= 4)">4</MudAvatar>
+                                    <div style="flex:1;">
+                                        <MudText Typo="Typo.subtitle2" Style="font-weight:600;">Sync PL Events</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Goals, assists, cards, subs, and lineups from Pulse API</MudText>
+                                    </div>
+                                    <MudButton Variant="@(state.CompletedSteps >= 4 ? Variant.Outlined : Variant.Filled)"
+                                               Size="Size.Small"
+                                               Disabled="@(state.CompletedSteps < 3 || _pulseSyncing)"
+                                               StartIcon="@(state.CompletedSteps >= 4 ? Icons.Material.Filled.Check : Icons.Material.Filled.Assessment)"
+                                               Style="@(state.CompletedSteps >= 4 ? "border-color:#38003c;color:#38003c;" : "background:#38003c;color:#00ff85;font-weight:700;")"
+                                               OnClick="@(() => RunStepAsync(competition, 4))">
+                                        @(state.CompletedSteps >= 4 ? "Re-sync" : "Run")
                                     </MudButton>
                                 </div>
+
+                                @if (_pulseSyncing)
+                                {
+                                    <div class="pa-2">
+                                        <MudProgressLinear Color="Color.Success" Rounded="true" Size="Size.Medium"
+                                                           Value="@(_pulseTotal > 0 ? (double)_pulseProcessed / _pulseTotal * 100 : 0)">
+                                            <MudText Typo="Typo.caption">@_pulseProcessed / @_pulseTotal matches</MudText>
+                                        </MudProgressLinear>
+                                    </div>
+                                }
+                            }
+
+                            @* ── Last result message ── *@
+                            @if (!string.IsNullOrEmpty(state.LastMessage))
+                            {
+                                <MudAlert Severity="@(state.LastSuccess == true ? Severity.Success : Severity.Error)"
+                                          Dense="true" Class="mt-2" Style="font-size:12px;">
+                                    @state.LastMessage
+                                </MudAlert>
                             }
                         </div>
-                        @if (_pulseSyncing && competition.ExternalSources.Contains("Fpl"))
-                        {
-                            <div class="pa-2">
-                                <MudProgressLinear Color="Color.Success" Rounded="true" Size="Size.Medium"
-                                                   Value="@(_pulseTotal > 0 ? (double)_pulseProcessed / _pulseTotal * 100 : 0)">
-                                    <MudText Typo="Typo.caption">@_pulseProcessed / @_pulseTotal matches</MudText>
-                                </MudProgressLinear>
-                            </div>
-                        }
                     </ChildContent>
                 </MudExpansionPanel>
             }
         </MudExpansionPanels>
+
+        @* ── Sync All Competitions ── *@
+        <div class="d-flex justify-end mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                       StartIcon="@Icons.Material.Filled.SyncAlt"
+                       OnClick="SyncAllCompetitionsAsync">
+                Sync All (Steps 1–3)
+            </MudButton>
+        </div>
     }
 </MudContainer>
 </PageGuard>

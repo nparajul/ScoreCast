@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using Microsoft.Extensions.Http.Resilience;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
 
@@ -18,7 +19,8 @@ public static class ExternalHttpClientExtensions
             client.BaseAddress = new Uri(baseUrl, UriKind.RelativeOrAbsolute);
             client.DefaultRequestHeaders.Add(FootballDataApi.AuthHeader, apiKey);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        });
+        })
+        .AddStandardResilienceHandler();
 
         builder.Services.AddHttpClient(nameof(ScoreCastHttpClient.FplClient), (sp, client) =>
         {
@@ -28,7 +30,8 @@ public static class ExternalHttpClientExtensions
             client.BaseAddress = new Uri(baseUrl);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             client.DefaultRequestHeaders.UserAgent.ParseAdd("ScoreCast/1.0");
-        });
+        })
+        .AddStandardResilienceHandler();
 
         builder.Services.AddHttpClient(nameof(ScoreCastHttpClient.PulseClient), (sp, client) =>
         {
@@ -38,6 +41,7 @@ public static class ExternalHttpClientExtensions
             client.BaseAddress = new Uri(baseUrl);
             client.DefaultRequestHeaders.Add("Origin", "https://www.premierleague.com");
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        });
+        })
+        .AddStandardResilienceHandler();
     }
 }
