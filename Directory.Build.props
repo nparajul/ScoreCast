@@ -45,7 +45,6 @@
     <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Web.Components'">ScoreCast.ApiClient</_AllowedRefs>
     <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Web'">ScoreCast.ApiClient;ScoreCast.Web.Components</_AllowedRefs>
     <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Web.Server'">ScoreCast.Web</_AllowedRefs>
-    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Jobs'">ScoreCast.ApiClient;ScoreCast.Shared</_AllowedRefs>
     <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.ArchTests'">ScoreCast.Ws.Application;ScoreCast.Ws.Endpoints;ScoreCast.Ws.Infrastructure</_AllowedRefs>
   </PropertyGroup>
 
