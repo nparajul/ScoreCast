@@ -16,6 +16,7 @@ internal sealed class RolePageEntityConfiguration : BaseEntityConfiguration<Role
         var order = 1;
         builder.Property(rp => rp.RoleId).HasColumnName("role_id").HasColumnOrder(order++).IsRequired();
         builder.Property(rp => rp.PageId).HasColumnName("page_id").HasColumnOrder(order++).IsRequired();
+        builder.Property(rp => rp.DisplayOrder).HasColumnName("display_order").HasColumnOrder(order++).HasDefaultValue(0);
 
         builder.HasOne(rp => rp.Role).WithMany(r => r.RolePages).HasForeignKey(rp => rp.RoleId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(rp => rp.Page).WithMany(p => p.RolePages).HasForeignKey(rp => rp.PageId).OnDelete(DeleteBehavior.Cascade);

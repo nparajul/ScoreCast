@@ -5,12 +5,12 @@ namespace ScoreCast.Web.Pages;
 
 public partial class LeagueDetail
 {
-    private const string AppName = "LEAGUE DETAIL";
+    private const string _appName = "LEAGUE DETAIL";
     [Parameter] public long LeagueId { get; set; }
-    [Inject] private IScoreCastApiClient Api { get; set; } = default!;
-    [Inject] private ILoadingService Loading { get; set; } = default!;
-    [Inject] private IAlertService Alert { get; set; } = default!;
-    [Inject] private NavigationManager Nav { get; set; } = default!;
+    [Inject] private IScoreCastApiClient Api { get; set; } = null!;
+    [Inject] private ILoadingService Loading { get; set; } = null!;
+    [Inject] private IAlertService Alert { get; set; } = null!;
+    [Inject] private NavigationManager Nav { get; set; } = null!;
 
     private LeagueStandingsResult? _standings;
 

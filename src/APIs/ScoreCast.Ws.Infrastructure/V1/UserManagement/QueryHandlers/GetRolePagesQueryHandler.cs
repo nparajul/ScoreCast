@@ -15,7 +15,8 @@ internal sealed record GetRolePagesQueryHandler(
         var pages = await DbContext.RolePages
             .AsNoTracking()
             .Where(rp => rp.RoleId == query.RoleId)
-            .Select(rp => new PageResult(rp.Page.Id, rp.Page.PageCode, rp.Page.PageName, rp.Page.PageUrl, rp.Page.ParentPageId))
+            .OrderBy(rp => rp.DisplayOrder)
+            .Select(rp => new PageResult(rp.Page.Id, rp.Page.PageCode, rp.Page.PageName, rp.Page.PageUrl, rp.Page.ParentPageId, rp.DisplayOrder))
             .ToListAsync(ct);
 
         return ScoreCastResponse<List<PageResult>>.Ok(pages);

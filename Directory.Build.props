@@ -5,4 +5,56 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+
+  <!--
+    ╔══════════════════════════════════════════════════════════════╗
+    ║  PROJECT REFERENCE BOUNDARY RULES                          ║
+    ║  Each project declares its allowed references.             ║
+    ║  Build fails if any project adds an unlisted reference.    ║
+    ╚══════════════════════════════════════════════════════════════╝
+
+    Dependency graph:
+
+    Shared (leaf — no references)
+    Models → Shared
+    ApiClient → Models
+    Domain → Shared
+    Application → Domain, Models
+    Endpoints → Application, Shared
+    Infrastructure → Application
+    Services → Application
+    Ws → Endpoints, Infrastructure, Services, Shared, Ws.Migrations
+    Ws.Migrations → Infrastructure
+    Web.Components → ApiClient
+    Web → ApiClient, Web.Components
+    Web.Server → Web
+    Jobs → ApiClient, Shared
+  -->
+
+  <PropertyGroup>
+    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Shared'"></_AllowedRefs>
+    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Models'">ScoreCast.Shared</_AllowedRefs>
+    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.ApiClient'">ScoreCast.Models</_AllowedRefs>
+    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Ws.Domain'">ScoreCast.Shared</_AllowedRefs>
+    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Ws.Application'">ScoreCast.Ws.Domain;ScoreCast.Models</_AllowedRefs>
+    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Ws.Endpoints'">ScoreCast.Ws.Application;ScoreCast.Shared</_AllowedRefs>
+    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Ws.Infrastructure'">ScoreCast.Ws.Application</_AllowedRefs>
+    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Ws.Services'">ScoreCast.Ws.Application</_AllowedRefs>
+    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Ws'">ScoreCast.Ws.Endpoints;ScoreCast.Ws.Infrastructure;ScoreCast.Ws.Services;ScoreCast.Shared;ScoreCast.Ws.Migrations</_AllowedRefs>
+    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Ws.Migrations'">ScoreCast.Ws.Infrastructure</_AllowedRefs>
+    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Web.Components'">ScoreCast.ApiClient</_AllowedRefs>
+    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Web'">ScoreCast.ApiClient;ScoreCast.Web.Components</_AllowedRefs>
+    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.Web.Server'">ScoreCast.Web</_AllowedRefs>
+    <_AllowedRefs Condition="'$(MSBuildProjectName)' == 'ScoreCast.ArchTests'">ScoreCast.Ws.Application;ScoreCast.Ws.Endpoints;ScoreCast.Ws.Infrastructure</_AllowedRefs>
+  </PropertyGroup>
+
+  <Target Name="EnforceProjectReferenceBoundary" BeforeTargets="BeforeBuild"
+          Condition="'$(_AllowedRefs)' != '' OR '@(ProjectReference)' != ''">
+    <ItemGroup>
+      <_ReferencedProjectName Include="@(ProjectReference->'%(Filename)')" />
+      <_ViolatingReference Include="@(_ReferencedProjectName)" Exclude="$(_AllowedRefs)" />
+    </ItemGroup>
+    <Error Condition="'@(_ViolatingReference)' != ''"
+           Text="$(MSBuildProjectName) may only reference: $(_AllowedRefs). Violation: @(_ViolatingReference)" />
+  </Target>
 </Project>

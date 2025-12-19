@@ -11,6 +11,8 @@ public static class FootballDataApi
         public const string Competition = "competitions/{0}";
         public const string Teams = "competitions/{0}/teams";
         public const string Matches = "competitions/{0}/matches?season={1}";
+        public const string MatchesByDate = "matches?dateFrom={0}&dateTo={1}";
+        public const string MatchDetail = "matches/{0}";
     }
 
     public static class Status
@@ -22,5 +24,10 @@ public static class FootballDataApi
         public const string Postponed = "POSTPONED";
         public const string Suspended = "SUSPENDED";
         public const string Cancelled = "CANCELLED";
+    }
+
+    public static class Duration
+    {
+        public const string Regular = "REGULAR";
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using ScoreCast.Shared.Constants;
 
 namespace ScoreCast.Ws.Extensions;
 
@@ -30,7 +31,9 @@ public static class AuthenticationExtensions
                     NameClaimType = "preferred_username",
                     RoleClaimType = "roles"
                 };
-            });
+            })
+            .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthHandler>(
+                ApiKeyAuth.SchemeName, null);
 
         builder.Services.AddTransient<IClaimsTransformation, KeycloakRoleClaimTransformation>();
         builder.Services.AddAuthorization();

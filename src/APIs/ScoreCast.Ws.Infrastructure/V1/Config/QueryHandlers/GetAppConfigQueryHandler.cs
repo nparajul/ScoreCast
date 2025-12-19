@@ -6,7 +6,7 @@ using ScoreCast.Ws.Application.V1.Interfaces;
 namespace ScoreCast.Ws.Infrastructure.V1.Config.QueryHandlers;
 
 internal sealed record GetAppConfigQueryHandler(
-    IScoreCastDbContext DbContext) : ICommandHandler<GetAppConfigQuery, JsonDocument?>
+    IScoreCastDbContext DbContext) : IQueryHandler<GetAppConfigQuery, JsonDocument?>
 {
     public async Task<JsonDocument?> ExecuteAsync(GetAppConfigQuery query, CancellationToken ct)
     {

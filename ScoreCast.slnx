@@ -33,4 +33,7 @@
     <Project Path="src/Web/ScoreCast.Web.Components/ScoreCast.Web.Components.csproj" />
     <Project Path="src/Web/ScoreCast.Web.Server/ScoreCast.Web.Server.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ScoreCast.ArchTests/ScoreCast.ArchTests.csproj" />
+  </Folder>
 </Solution>

@@ -4,10 +4,10 @@ namespace ScoreCast.Web.Components.Reusable;
 
 public partial class ExceptionDialog
 {
-    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = default!;
+    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = null!;
     [Parameter] public required Exception Exception { get; set; }
     [Parameter] public Severity Severity { get; set; }
-    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
     private bool ShowDetails { get; set; }
 
@@ -64,7 +64,7 @@ public partial class ExceptionDialog
 
     private async Task CopyToClipboard(string text)
     {
-        try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", text); }
+        try { await Js.InvokeVoidAsync("navigator.clipboard.writeText", text); }
         catch { Snackbar.Add("Could not copy to clipboard", Severity.Warning); }
     }
 }

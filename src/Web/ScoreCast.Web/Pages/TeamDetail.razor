@@ -1,0 +1,261 @@
+@page "/teams/{TeamId:long}"
+@using ScoreCast.Shared.Constants
+@using ScoreCast.Shared.Enums
+
+<PageGuard>
+@if (_team is not null)
+{
+<div style="display:flex;flex-direction:column;height:calc(100vh - var(--mud-appbar-height));margin-bottom:-48px;overflow:hidden;">
+    <div style="flex-shrink:0;">
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-1">
+            <div class="d-flex align-center gap-3 mb-2">
+                @if (_team.LogoUrl is not null)
+                {
+                    <img src="@_team.LogoUrl" alt="" style="width:@(IsMobile ? "48" : "64")px;height:@(IsMobile ? "48" : "64")px;" />
+                }
+                <div>
+                    <MudText Typo="Typo.h5" Style="font-weight:700;">@_team.Name</MudText>
+                    @if (_team.Venue is not null)
+                    {
+                        <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">🏟️ @_team.Venue</MudText>
+                    }
+                </div>
+            </div>
+
+            @if (IsMobile)
+            {
+                <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:3px;margin-bottom:10px;overflow-x:auto;">
+                    @foreach (var tab in _tabs)
+                    {
+                        var isActive = _activeTab == tab;
+                        <div @onclick="@(() => OnTabChanged(tab))"
+                             style="flex:1;text-align:center;padding:7px 0;border-radius:24px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;min-width:60px;
+                                    background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
+                                    color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
+                            @tab
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <MudTabs ActivePanelIndex="_tabIndex" ActivePanelIndexChanged="i => { TabIndex = i; }" Elevation="0" Rounded="true" ApplyEffectsToContainer="true" Class="mb-3">
+                    @foreach (var tab in _tabs)
+                    {
+                        <MudTabPanel Text="@tab" />
+                    }
+                </MudTabs>
+            }
+        </MudContainer>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding:4px 0 8px;">
+        <MudContainer MaxWidth="MaxWidth.Medium">
+        @if (_activeTab == "Overview")
+        {
+            @* Club Info *@
+            <MudPaper Class="pa-3 mb-3" Elevation="1" Style="border-radius:10px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:@(IsMobile ? "12" : "14")px;">
+                    @if (_team.Founded.HasValue)
+                    {
+                        <div><strong>Founded:</strong> @_team.Founded</div>
+                    }
+                    @if (_team.ClubColors is not null)
+                    {
+                        <div><strong>Colors:</strong> @_team.ClubColors</div>
+                    }
+                    @if (_team.Website is not null)
+                    {
+                        <div style="grid-column:span 2;"><strong>Website:</strong> <a href="@_team.Website" target="_blank" style="color:var(--mud-palette-primary);">@_team.Website</a></div>
+                    }
+                </div>
+            </MudPaper>
+
+            @* Next Match *@
+            @if (_team.NextMatch is not null)
+            {
+                var nm = _team.NextMatch;
+                <MudPaper Class="pa-3 mb-3" Elevation="1" Style="border-radius:10px;">
+                    <div style="font-weight:700;font-size:13px;margin-bottom:6px;">Next Match</div>
+                    <div class="d-flex align-center justify-space-between">
+                        <div>
+                            <div style="font-weight:600;font-size:@(IsMobile ? "13" : "15")px;">
+                                @(nm.IsHome ? _team.ShortName ?? _team.Name : nm.OpponentName) vs @(nm.IsHome ? nm.OpponentName : _team.ShortName ?? _team.Name)
+                            </div>
+                            <div style="font-size:12px;color:var(--mud-palette-text-secondary);">
+                                @nm.DayOfWeek, @nm.DateLabel · @nm.KickoffTime.ToString("HH:mm")
+                            </div>
+                        </div>
+                        <div class="d-flex align-center gap-1">
+                            @if (nm.CompetitionLogo is not null)
+                            {
+                                <img src="@nm.CompetitionLogo" alt="" style="width:20px;height:20px;" />
+                            }
+                            <span style="font-size:11px;color:var(--mud-palette-text-secondary);">@nm.CompetitionName</span>
+                        </div>
+                    </div>
+                </MudPaper>
+            }
+
+            @* Recent Form *@
+            @if (_team.RecentForm.Count > 0)
+            {
+                <MudPaper Class="pa-3 mb-3" Elevation="1" Style="border-radius:10px;">
+                    <div style="font-weight:700;font-size:13px;margin-bottom:6px;">Recent Form</div>
+                    @foreach (var m in _team.RecentForm)
+                    {
+                        var color = m.Result switch { "W" => "#4caf50", "L" => "#f44336", _ => "var(--mud-palette-text-secondary)" };
+                        <div class="d-flex align-center justify-space-between" style="padding:4px 0;border-bottom:1px solid var(--mud-palette-lines-default);">
+                            <div class="d-flex align-center gap-2">
+                                @if (m.OpponentLogo is not null)
+                                {
+                                    <img src="@m.OpponentLogo" alt="" style="width:20px;height:20px;" />
+                                }
+                                <span style="font-size:@(IsMobile ? "12" : "14")px;">
+                                    @(m.IsHome ? "vs" : "at") @m.OpponentName
+                                </span>
+                            </div>
+                            <div class="d-flex align-center gap-2">
+                                <span style="font-weight:700;color:@color;font-size:@(IsMobile ? "12" : "14")px;">@m.HomeScore - @m.AwayScore</span>
+                                @if (m.CompetitionLogo is not null)
+                                {
+                                    <img src="@m.CompetitionLogo" alt="" style="width:16px;height:16px;" />
+                                }
+                            </div>
+                        </div>
+                    }
+                </MudPaper>
+            }
+        }
+        else if (_activeTab == "Fixtures")
+        {
+            @if (_matches is not null)
+            {
+                @foreach (var group in GetMatchesByDate())
+                {
+                    <MudPaper Class="mb-3" Elevation="1" Style="border-radius:10px;overflow:hidden;">
+                        <div id="@group.AnchorId" style="padding:@(IsMobile ? "8px 10px 4px" : "12px 14px 6px");font-weight:700;font-size:@(IsMobile ? "13" : "15")px;text-align:center;">
+                            @group.Label
+                        </div>
+                        <MudDivider />
+                        @foreach (var match in group.Matches)
+                        {
+                            <MatchTile Match="MatchTileModel.From(match)" IsExpanded="_expandedMatches.Contains(match.MatchId)" OnToggle="() => ToggleMatch(match.MatchId)" ExcludeTeamId="TeamId" />
+                            @if (match != group.Matches.Last())
+                            {
+                                <MudDivider />
+                            }
+                        }
+                    </MudPaper>
+                }
+            }
+        }
+        else if (_activeTab == "Table")
+        {
+            <div class="d-flex gap-2 mb-3" style="flex-wrap:wrap;">
+                <MudSelect T="long?" @bind-Value="_tableSeasonId" Label="Competition" Variant="Variant.Outlined" Dense="true" Style="max-width:220px;">
+                    @foreach (var c in _team.Competitions)
+                    {
+                        <MudSelectItem T="long?" Value="@c.SeasonId">@c.CompetitionName</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            @if (_tableResult is not null)
+            {
+                @foreach (var group in _tableResult.Groups)
+                {
+                    @if (group.GroupName is not null)
+                    {
+                        <MudText Typo="Typo.subtitle2" Class="mb-1" Style="font-weight:700;">@group.GroupName</MudText>
+                    }
+                    <LeagueTableView Rows="group.Rows" HighlightTeamName="@_team.Name" />
+                }
+            }
+        }
+        else if (_activeTab == "Stats")
+        {
+            <div class="d-flex gap-2 mb-3" style="flex-wrap:wrap;">
+                <MudSelect T="long?" @bind-Value="_statsSeasonId" Label="Competition" Variant="Variant.Outlined" Dense="true" Style="max-width:220px;">
+                    <MudSelectItem T="long?" Value="@((long?)null)">All Competitions</MudSelectItem>
+                    @foreach (var c in _team.Competitions)
+                    {
+                        <MudSelectItem T="long?" Value="@c.SeasonId">@c.CompetitionName</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            @if (_statsRows.Count > 0)
+            {
+                <MudSimpleTable Dense="true" Hover="true" Style="border-radius:8px;overflow:hidden;">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Player</th>
+                            <th style="text-align:center;">⚽</th>
+                            <th style="text-align:center;">👟</th>
+                            <th style="text-align:center;"><span style="display:inline-block;width:8px;height:11px;background:#fdd835;border-radius:1px;"></span></th>
+                            <th style="text-align:center;"><span style="display:inline-block;width:8px;height:11px;background:#d32f2f;border-radius:1px;"></span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ var statsIdx = 0; }
+                        @foreach (var row in _statsRows.OrderByDescending(r => r.Goals + r.PenaltyGoals).ThenByDescending(r => r.Assists).Take(50))
+                        {
+                            statsIdx++;
+                            <tr>
+                                <td>@statsIdx</td>
+                                <td>
+                                    <div class="d-flex align-center gap-1">
+                                        @if (row.PlayerImageUrl is not null)
+                                        {
+                                            <img src="@row.PlayerImageUrl" alt="" style="width:22px;height:22px;border-radius:50%;" />
+                                        }
+                                        <span style="font-weight:600;font-size:@(IsMobile ? "12" : "14")px;">@row.PlayerName</span>
+                                    </div>
+                                </td>
+                                <td style="text-align:center;">@(row.Goals + row.PenaltyGoals)</td>
+                                <td style="text-align:center;">@row.Assists</td>
+                                <td style="text-align:center;">@row.YellowCards</td>
+                                <td style="text-align:center;">@row.RedCards</td>
+                            </tr>
+                        }
+                    </tbody>
+                </MudSimpleTable>
+            }
+        }
+        else if (_activeTab == "Squad")
+        {
+            @if (_squad is not null)
+            {
+                @foreach (var posGroup in _squad.Players.GroupBy(p => GetPositionGroup(p.Position)).OrderBy(g => GetPositionOrder(g.Key)))
+                {
+                    <MudText Typo="Typo.subtitle2" Class="mb-1 mt-2" Style="font-weight:700;">@posGroup.Key</MudText>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(@(IsMobile ? "100px" : "120px"),1fr));gap:8px;margin-bottom:8px;">
+                        @foreach (var p in posGroup)
+                        {
+                            <MudPaper Class="pa-2" Elevation="1" Style="border-radius:8px;text-align:center;">
+                                @if (p.PhotoUrl is not null)
+                                {
+                                    <img src="@p.PhotoUrl" alt="" style="width:48px;height:48px;border-radius:50%;margin-bottom:4px;" />
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.Person" Style="font-size:48px;color:var(--mud-palette-text-secondary);margin-bottom:4px;" />
+                                }
+                                <div style="font-weight:600;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@p.Name</div>
+                            </MudPaper>
+                        }
+                    </div>
+                }
+            }
+        }
+        </MudContainer>
+    </div>
+</div>
+}
+else if (!Loading.IsLoading)
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+        <MudAlert Severity="Severity.Info">Team not found.</MudAlert>
+    </MudContainer>
+}
+</PageGuard>

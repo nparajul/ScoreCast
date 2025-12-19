@@ -1,10 +1,10 @@
-@page "/leagues/{LeagueId:long}"
+@page "/dashboard/{LeagueId:long}"
 
 <PageGuard>
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
     <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack"
-               OnClick="@(() => Nav.NavigateTo("/leagues"))" Class="mb-2">
-        Back to My Leagues
+               OnClick="@(() => Nav.NavigateTo("/dashboard"))" Class="mb-2">
+        Back to Dashboard
     </MudButton>
 
     @if (_standings is not null)

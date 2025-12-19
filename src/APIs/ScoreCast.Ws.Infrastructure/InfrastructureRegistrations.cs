@@ -12,7 +12,7 @@ namespace ScoreCast.Ws.Infrastructure;
 
 public static class InfrastructureRegistrations
 {
-    private const string ConnectionName = "ScoreCastDb";
+    private const string _connectionName = "ScoreCastDb";
 
     public static void AddScoreCastInfrastructure(this IServiceCollection services, string environmentName)
     {
@@ -22,7 +22,7 @@ public static class InfrastructureRegistrations
         services.AddDbContext<IScoreCastDbContext, ScoreCastDbContext>((sp, opt) =>
         {
             var configuration = sp.GetRequiredService<IConfiguration>();
-            var connectionString = configuration.GetConnectionString(ConnectionName);
+            var connectionString = configuration.GetConnectionString(_connectionName);
             ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
 
             opt.UseNpgsql(connectionString, npgsql =>

@@ -12,7 +12,6 @@ public sealed class GetGameweekMatchesEndpoint : Endpoint<GetGameweekMatchesRequ
     {
         Get("/seasons/{SeasonId}/gameweek/{GameweekNumber}");
         Group<FootballGroup>();
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(GetGameweekMatchesRequest request, CancellationToken ct)
