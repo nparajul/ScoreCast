@@ -1,6 +1,6 @@
 namespace ScoreCast.Web.Components.Helpers;
 
-public class LoadingService(INotifyService Notify) : ILoadingService
+public class LoadingService(INotifyService notify) : ILoadingService
 {
     private bool _isLoading;
     private string? _loadingMessage;
@@ -11,7 +11,7 @@ public class LoadingService(INotifyService Notify) : ILoadingService
         set
         {
             _isLoading = value;
-            Notify.Notify();
+            notify.Notify();
         }
     }
 
@@ -21,7 +21,7 @@ public class LoadingService(INotifyService Notify) : ILoadingService
         set
         {
             _loadingMessage = value;
-            Notify.Notify();
+            notify.Notify();
         }
     }
 

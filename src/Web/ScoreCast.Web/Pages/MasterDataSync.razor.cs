@@ -19,7 +19,7 @@ public partial class MasterDataSync
     private bool _pulseSyncing;
     private int _pulseProcessed;
     private int _pulseTotal;
-    private const string AppName = "DATA SYNC";
+    private const string _appName = "DATA SYNC";
 
     private readonly Dictionary<string, CompetitionSyncState> _syncStates = [];
 
@@ -99,7 +99,7 @@ public partial class MasterDataSync
         await Loading.While(async () =>
         {
             var result = await Api.SyncCompetitionAsync(
-                new SyncCompetitionRequest { CompetitionCode = competition.Code, AppName = AppName },
+                new SyncCompetitionRequest { CompetitionCode = competition.Code, AppName = _appName },
                 CancellationToken.None);
 
             state.LastSuccess = result.Success;
@@ -115,7 +115,7 @@ public partial class MasterDataSync
         await Loading.While(async () =>
         {
             var result = await Api.SyncTeamsAsync(
-                new SyncCompetitionRequest { CompetitionCode = competition.Code, AppName = AppName },
+                new SyncCompetitionRequest { CompetitionCode = competition.Code, AppName = _appName },
                 CancellationToken.None);
 
             state.LastSuccess = result.Success;
@@ -129,7 +129,7 @@ public partial class MasterDataSync
         await Loading.While(async () =>
         {
             var result = await Api.SyncMatchesAsync(
-                new SyncCompetitionRequest { CompetitionCode = competition.Code, SyncAll = _syncAllSeasons, AppName = AppName },
+                new SyncCompetitionRequest { CompetitionCode = competition.Code, SyncAll = _syncAllSeasons, AppName = _appName },
                 CancellationToken.None);
 
             state.LastSuccess = result.Success;
@@ -143,7 +143,7 @@ public partial class MasterDataSync
         await Loading.While(async () =>
         {
             var result = await Api.SyncFplDataAsync(
-                new SyncCompetitionRequest { CompetitionCode = competition.Code, AppName = AppName },
+                new SyncCompetitionRequest { CompetitionCode = competition.Code, AppName = _appName },
                 CancellationToken.None);
 
             if (!result.Success)
@@ -176,7 +176,7 @@ public partial class MasterDataSync
                 await Loading.While(async () =>
                 {
                     result = await Api.SyncPulseEventsAsync(
-                        new SyncPulseEventsRequest { CompetitionCode = competition.Code, BatchSize = 50, AppName = AppName },
+                        new SyncPulseEventsRequest { CompetitionCode = competition.Code, BatchSize = 50, AppName = _appName },
                         CancellationToken.None);
                 }, $"Step 4b: Syncing Pulse events ({_pulseProcessed}/{_pulseTotal})...");
 
