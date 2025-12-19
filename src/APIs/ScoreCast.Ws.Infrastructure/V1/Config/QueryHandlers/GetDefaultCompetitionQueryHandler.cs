@@ -9,7 +9,7 @@ using ScoreCast.Ws.Application.V1.Interfaces;
 namespace ScoreCast.Ws.Infrastructure.V1.Config.QueryHandlers;
 
 internal sealed record GetDefaultCompetitionQueryHandler(
-    IScoreCastDbContext DbContext) : ICommandHandler<GetDefaultCompetitionQuery, ScoreCastResponse<CompetitionResult>>
+    IScoreCastDbContext DbContext) : IQueryHandler<GetDefaultCompetitionQuery, ScoreCastResponse<CompetitionResult>>
 {
     public async Task<ScoreCastResponse<CompetitionResult>> ExecuteAsync(GetDefaultCompetitionQuery query, CancellationToken ct)
     {

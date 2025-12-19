@@ -23,6 +23,9 @@
     <Project Path="src/APIs/ScoreCast.Ws.Services/ScoreCast.Ws.Services.csproj" />
     <Project Path="src/APIs/ScoreCast.Ws/ScoreCast.Ws.csproj" />
   </Folder>
+  <Folder Name="/src/Jobs/">
+    <Project Path="src/Jobs/ScoreCast.Jobs/ScoreCast.Jobs.csproj" />
+  </Folder>
   <Folder Name="/src/Shared/">
     <Project Path="src/Shared/ScoreCast.ApiClient/ScoreCast.ApiClient.csproj" />
     <Project Path="src/Shared/ScoreCast.Models/ScoreCast.Models.csproj" />
@@ -32,5 +35,8 @@
     <Project Path="src/Web/ScoreCast.Web/ScoreCast.Web.csproj" />
     <Project Path="src/Web/ScoreCast.Web.Components/ScoreCast.Web.Components.csproj" />
     <Project Path="src/Web/ScoreCast.Web.Server/ScoreCast.Web.Server.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ScoreCast.ArchTests/ScoreCast.ArchTests.csproj" />
   </Folder>
 </Solution>
