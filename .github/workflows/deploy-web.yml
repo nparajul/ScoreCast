@@ -2,7 +2,7 @@ name: Deploy Web to Cloudflare Pages
 
 on:
   push:
-    branches: [production]
+    branches: [cloudfare-dev]
     paths:
       - 'src/Web/**'
       - 'src/Shared/**'
