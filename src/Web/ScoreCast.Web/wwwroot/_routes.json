@@ -3,11 +3,15 @@
   "include": ["/*"],
   "exclude": [
     "/_framework/*",
+    "/_content/*",
     "/css/*",
     "/images/*",
     "/*.js",
     "/*.json",
     "/*.ico",
-    "/*.wasm"
+    "/*.wasm",
+    "/*.css",
+    "/*.png",
+    "/*.svg"
   ]
 }
