@@ -63,7 +63,7 @@
         <MudNavMenu>
             @foreach (var onePage in RoleNav.Pages.Where(p => p.ParentPageId is null))
             {
-                <MudNavLink Href="@onePage.PageUrl" Match="NavLinkMatch.All" OnClick="@(() => _drawerOpen = false)">
+                <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => NavigateAndCloseDrawer(onePage.PageUrl))">
                     @onePage.PageName
                 </MudNavLink>
             }
