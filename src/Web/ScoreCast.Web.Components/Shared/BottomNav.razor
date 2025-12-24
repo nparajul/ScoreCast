@@ -1,0 +1,17 @@
+@using Microsoft.AspNetCore.Components.Authorization
+
+<AuthorizeView>
+    <Authorized>
+        <MudPaper Class="d-flex d-md-none bottom-nav" Elevation="4">
+            @foreach (var tab in Tabs)
+            {
+                <MudButton Class="@TabClass(tab.Url)" OnClick="@(() => Navigate(tab.Url))">
+                    <div class="d-flex flex-column align-center">
+                        <MudIcon Icon="@tab.Icon" Size="Size.Small" />
+                        <MudText Typo="Typo.caption">@tab.Label</MudText>
+                    </div>
+                </MudButton>
+            }
+        </MudPaper>
+    </Authorized>
+</AuthorizeView>
