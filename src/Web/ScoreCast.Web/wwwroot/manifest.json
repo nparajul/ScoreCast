@@ -1,24 +1,30 @@
 {
   "name": "ScoreCast",
   "short_name": "ScoreCast",
-  "description": "Premier League Predictions & Football Stats",
+  "description": "Football Predictions, Live Scores & Stats",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#7c4dff",
+  "background_color": "#F5F7FA",
+  "theme_color": "#0A1929",
   "orientation": "any",
   "icons": [
     {
       "src": "icon-192.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icon-512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ]
 }
