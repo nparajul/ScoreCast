@@ -18,34 +18,50 @@
     left: 0;
     right: 0;
     z-index: 1100;
-    display: flex;
-    justify-content: space-around;
     background: #FFFFFF;
     border-top: 1px solid rgba(0,0,0,0.08);
-    padding: 4px 0;
-    padding-bottom: max(4px, env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav-scroll {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.bottom-nav-scroll::-webkit-scrollbar {
+    display: none;
 }
 
 .bottom-nav-tab {
-    flex: 1;
-    min-width: 0 !important;
-    padding: 4px 0 !important;
-    border-radius: 0 !important;
-    color: rgba(0,0,0,0.5) !important;
-    text-transform: none !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 72px;
+    padding: 6px 12px;
+    border: none;
+    background: none;
+    color: rgba(0,0,0,0.45);
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .bottom-nav-tab.active {
-    color: #0A1929 !important;
+    color: #0A1929;
 }
 
 .bottom-nav-tab .mud-icon-root {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
 }
 
-.bottom-nav-tab .mud-typography-caption {
+.bottom-nav-label {
     font-size: 0.65rem;
     line-height: 1.2;
+    margin-top: 2px;
 }
 
 @media (min-width: 960px) {
