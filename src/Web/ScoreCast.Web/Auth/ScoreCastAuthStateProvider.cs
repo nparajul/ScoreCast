@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.WebAssembly.Http;
 using Microsoft.JSInterop;
 
 using ScoreCast.Shared.Types;
@@ -58,7 +59,11 @@ public sealed class ScoreCastAuthStateProvider(
             ["scope"] = "openid profile email offline_access"
         });
 
-        var response = await http.PostAsync(TokenEndpoint, content);
+        var request = new HttpRequestMessage(HttpMethod.Post, TokenEndpoint) { Content = content };
+        request.SetBrowserRequestMode(BrowserRequestMode.Cors);
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Omit);
+
+        var response = await http.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {
             var error = await response.Content.ReadAsStringAsync();
@@ -90,7 +95,14 @@ public sealed class ScoreCastAuthStateProvider(
                 ["client_id"] = ClientId,
                 ["refresh_token"] = refreshToken
             });
-            try { await http.PostAsync(logoutEndpoint, content); } catch { /* best effort */ }
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Post, logoutEndpoint) { Content = content };
+                request.SetBrowserRequestMode(BrowserRequestMode.Cors);
+                request.SetBrowserRequestCredentials(BrowserRequestCredentials.Omit);
+                await http.SendAsync(request);
+            }
+            catch { /* best effort */ }
         }
 
         await ClearTokens();
@@ -129,7 +141,11 @@ public sealed class ScoreCastAuthStateProvider(
             ["refresh_token"] = refreshToken
         });
 
-        var response = await http.PostAsync(TokenEndpoint, content);
+        var request = new HttpRequestMessage(HttpMethod.Post, TokenEndpoint) { Content = content };
+        request.SetBrowserRequestMode(BrowserRequestMode.Cors);
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Omit);
+
+        var response = await http.SendAsync(request);
         if (!response.IsSuccessStatusCode) return false;
 
         await ApplyTokenResponse(response);
