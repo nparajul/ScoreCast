@@ -122,7 +122,7 @@ public sealed class ScoreCastAuthStateProvider(
     private async Task<TokenApiResponse> PostTokenRequest(object body)
     {
         var result = await authApi.TokenAsync(body);
-        return new TokenApiResponse(result.Success, result.Message, result.Data);
+        return new TokenApiResponse(result.Success, result.Message, result.Data?.TokenJson);
     }
 
     private async Task ApplyTokenData(string? tokenJson)
