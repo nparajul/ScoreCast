@@ -1,18 +1,16 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 
-using ScoreCast.Models.V1.Responses;
 using ScoreCast.Shared.Types;
 using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Auth;
 
 public sealed class ScoreCastAuthStateProvider(
-    IHttpClientFactory httpFactory,
+    IAuthApi authApi,
     IJSRuntime js,
     IConfiguration config) : AuthenticationStateProvider, IAuthService
 {
@@ -123,11 +121,8 @@ public sealed class ScoreCastAuthStateProvider(
 
     private async Task<TokenApiResponse> PostTokenRequest(object body)
     {
-        var http = httpFactory.CreateClient("ScoreCastAuth");
-        var response = await http.PostAsJsonAsync("/api/v1/auth/token", body);
-        var result = await response.Content.ReadFromJsonAsync<ScoreCastResponse<string>>();
-
-        return new TokenApiResponse(result?.Success == true, result?.Message, result?.Data);
+        var result = await authApi.TokenAsync(body);
+        return new TokenApiResponse(result.Success, result.Message, result.Data);
     }
 
     private async Task ApplyTokenData(string? tokenJson)
