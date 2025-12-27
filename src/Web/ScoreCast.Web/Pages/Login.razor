@@ -23,7 +23,7 @@
                           Required="true"
                           Class="mb-4"
                           Immediate="true"
-                          Disabled="_loading" />
+                           />
 
             <MudTextField @bind-Value="_model.Password"
                           Label="Password"
@@ -31,19 +31,14 @@
                           InputType="InputType.Password"
                           Required="true"
                           Class="mb-4"
-                          Disabled="_loading" />
+                           />
 
             <MudButton ButtonType="ButtonType.Submit"
                        Variant="Variant.Filled"
                        Color="Color.Tertiary"
                        FullWidth="true"
                        Size="Size.Large"
-                       Disabled="_loading"
                        Class="mb-4">
-                @if (_loading)
-                {
-                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                }
                 Log In
             </MudButton>
         </EditForm>
