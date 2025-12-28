@@ -17,6 +17,7 @@ public partial class BottomNav : ComponentBase, IDisposable
         (Icons.Material.Filled.SportsSoccer, "Scores", "/scores"),
         (Icons.Material.Filled.Edit, "Predict", "/predict"),
         (Icons.Material.Filled.EmojiEvents, "Leagues", "/dashboard"),
+        (Icons.Material.Filled.AutoAwesome, "Insights", "/insights"),
         (Icons.Material.Filled.Leaderboard, "Tables", "/points-table"),
         (Icons.Material.Filled.People, "Players", "/player-stats"),
         (Icons.Material.Filled.Shield, "Teams", "/teams"),
