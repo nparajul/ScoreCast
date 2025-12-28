@@ -14,7 +14,7 @@ public partial class MainLayout : IDisposable
     private long _selectedRoleId;
     private bool _showBackButton;
 
-    private static readonly string[] RootPaths = ["/", "/leagues", ""];
+    private static readonly string[] RootPaths = ["/", "/leagues", "/dashboard", "/settings", ""];
 
     private string? WrapperClass { get; set; }
 

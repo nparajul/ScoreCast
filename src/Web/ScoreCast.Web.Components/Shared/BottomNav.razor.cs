@@ -20,6 +20,7 @@ public partial class BottomNav : ComponentBase, IDisposable
         (Icons.Material.Filled.Leaderboard, "Tables", "/points-table"),
         (Icons.Material.Filled.People, "Players", "/player-stats"),
         (Icons.Material.Filled.Shield, "Teams", "/teams"),
+        (Icons.Material.Filled.Settings, "Settings", "/settings"),
     ];
 
     private string _currentPath = "";
