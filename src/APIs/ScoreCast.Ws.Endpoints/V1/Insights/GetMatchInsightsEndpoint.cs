@@ -106,11 +106,12 @@ public sealed class GetMatchInsightsEndpoint
                 var aStats = teamStats.GetValueOrDefault(aId);
                 var hPos = ranked.GetValueOrDefault(hId);
                 var aPos = ranked.GetValueOrDefault(aId);
-                return $"{i + 1}. {ins.HomeTeamName} (#{hPos}, {hs.Points}pts, form:{hs.Form}) vs {ins.AwayTeamName} (#{aPos}, {aStats.Points}pts, form:{aStats.Form}) — Home win {ins.HomeWinPct}%, Draw {ins.DrawPct}%, Away {ins.AwayWinPct}%";
+                var ko = ins.KickoffTime?.ToString("ddd d MMM yyyy, HH:mm") ?? "TBD";
+                return $"{i + 1}. {ins.HomeTeamName} (#{hPos}, {hs.Points}pts, form:{hs.Form}) vs {ins.AwayTeamName} (#{aPos}, {aStats.Points}pts, form:{aStats.Form}) — {ko} — Home win {ins.HomeWinPct}%, Draw {ins.DrawPct}%, Away {ins.AwayWinPct}%";
             });
 
             var prompt = $"""
-You are an insightful Premier League pundit. For each match write ONE punchy 1-2 sentence preview that references the teams' league position, recent form, and what's at stake (title race, top 4, relegation battle, mid-table etc). Be specific, not generic. {totalTeams} teams in the league.
+You are an expert Premier League analyst. For each match write ONE punchy 2-sentence preview. Reference league position, recent form, and what's at stake (title race, top 4, relegation etc). Also weave in any relevant context you know about these teams — key injuries, managerial situations, transfer impacts, tactical trends, or notable storylines. Be specific and insightful, not generic. {totalTeams} teams in the league.
 Return ONLY a JSON array of strings, one per match, same order.
 
 Matches:
