@@ -28,8 +28,17 @@ public partial class Insights
             if (gwResp is not { Success: true, Data: not null }) return;
 
             var resp = await Api.GetMatchInsightsAsync(currentSeason.Id, gwResp.Data.CurrentGameweek, CancellationToken.None);
-            if (resp is { Success: true, Data: not null })
+            if (resp is { Success: true, Data: not null } && resp.Data.Count > 0)
+            {
                 _insights = resp.Data;
+            }
+            else
+            {
+                // Current gameweek done — try next
+                var nextResp = await Api.GetMatchInsightsAsync(currentSeason.Id, gwResp.Data.CurrentGameweek + 1, CancellationToken.None);
+                if (nextResp is { Success: true, Data: not null })
+                    _insights = nextResp.Data;
+            }
 
             _loaded = true;
         });
