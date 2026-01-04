@@ -35,6 +35,7 @@ public sealed class ScoreCastDbContext(DbContextOptions<ScoreCastDbContext> opti
     public DbSet<MatchLineup> MatchLineups => Set<MatchLineup>();
     public DbSet<ExternalMapping> ExternalMappings => Set<ExternalMapping>();
     public DbSet<AppConfig> AppConfigs => Set<AppConfig>();
+    public DbSet<MatchInsightCache> MatchInsightCaches => Set<MatchInsightCache>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
