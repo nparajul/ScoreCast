@@ -149,7 +149,6 @@ internal sealed record SyncCompetitionCommandHandler(
                 season.Name = name;
                 season.StartDate = startDate;
                 season.EndDate = endDate;
-                season.CurrentMatchday = apiSeason.CurrentMatchday;
                 season.WinnerTeam = winnerTeam;
                 season.IsCurrent = externalId == currentSeasonExternalId;
             }
