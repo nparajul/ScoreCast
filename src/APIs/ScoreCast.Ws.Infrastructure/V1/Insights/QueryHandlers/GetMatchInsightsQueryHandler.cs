@@ -1,5 +1,5 @@
 using System.Text.Json;
-using System.Xml.Linq;
+using System.Text.RegularExpressions;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
@@ -23,7 +23,6 @@ internal sealed record GetMatchInsightsQueryHandler(
     public async Task<ScoreCastResponse<List<MatchInsightResult>>> ExecuteAsync(
         GetMatchInsightsQuery query, CancellationToken ct)
     {
-        // Check cache first
         var cached = await DbContext.MatchInsightCaches
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.SeasonId == query.SeasonId && c.GameweekNumber == query.GameweekNumber, ct);
@@ -32,20 +31,38 @@ internal sealed record GetMatchInsightsQueryHandler(
             return ScoreCastResponse<List<MatchInsightResult>>.Ok(
                 JsonSerializer.Deserialize<List<MatchInsightResult>>(cached.ResponseJson) ?? []);
 
+        var season = await DbContext.Seasons
+            .AsNoTracking()
+            .Include(s => s.Competition)
+            .FirstOrDefaultAsync(s => s.Id == query.SeasonId, ct);
+
+        if (season is null)
+            return ScoreCastResponse<List<MatchInsightResult>>.Ok([]);
+
         var matches = await GetScheduledMatches(query, ct);
         if (matches.Count == 0)
             return ScoreCastResponse<List<MatchInsightResult>>.Ok([]);
 
         var teamIds = matches.SelectMany(m => new[] { m.HomeId, m.AwayId }).Distinct().ToList();
         var recentResults = await GetRecentResults(query.SeasonId, teamIds, ct);
+        var h2hResults = await GetH2HResults(teamIds, ct);
         var teamStats = BuildTeamStats(teamIds, recentResults);
-        var ranked = RankTeams(teamStats);
-        var insights = matches.Select(m => BuildInsight(m, teamStats, ranked)).ToList();
+
+        // Scrape real standings + news from BBC
+        var bbcSlug = GetBbcSlug(season.Competition.Code);
+        var http = HttpClientFactory.CreateClient();
+        var standingsTask = ScrapeStandings(http, bbcSlug, ct);
+        var headlinesTask = ScrapeHeadlines(http, bbcSlug, ct);
+        await Task.WhenAll(standingsTask, headlinesTask);
+        var standings = standingsTask.Result;
+        var headlines = headlinesTask.Result;
+
+        var insights = matches.Select(m => BuildInsight(m, teamStats, standings)).ToList();
 
         if (ChatClient is not null)
-            await EnrichWithAi(matches, insights, teamStats, ranked, ct);
+            await EnrichWithAi(matches, insights, teamStats, standings, h2hResults, headlines,
+                season.Competition.Name, ct);
 
-        // Save to cache
         DbContext.MatchInsightCaches.Add(new MatchInsightCache
         {
             SeasonId = query.SeasonId,
@@ -80,17 +97,26 @@ internal sealed record GetMatchInsightsQueryHandler(
             .Select(m => new ResultData(m.HomeTeamId, m.AwayTeamId, m.HomeScore, m.AwayScore))
             .ToListAsync(ct);
 
+    private async Task<List<ResultData>> GetH2HResults(List<long> teamIds, CancellationToken ct) =>
+        await DbContext.Matches
+            .AsNoTracking()
+            .Where(m => m.Status == MatchStatus.Finished
+                        && teamIds.Contains(m.HomeTeamId) && teamIds.Contains(m.AwayTeamId))
+            .OrderByDescending(m => m.KickoffTime)
+            .Take(100)
+            .Select(m => new ResultData(m.HomeTeamId, m.AwayTeamId, m.HomeScore, m.AwayScore))
+            .ToListAsync(ct);
+
     private static Dictionary<long, TeamStat> BuildTeamStats(List<long> teamIds, List<ResultData> results) =>
         teamIds.ToDictionary(id => id, id =>
         {
             var all = results.Where(r => r.HomeTeamId == id || r.AwayTeamId == id).ToList();
             var last5 = all.Take(5).Select(r => Outcome(r, id)).ToList();
-            var pts = all.Sum(r => Outcome(r, id) switch { "W" => 3, "D" => 1, _ => 0 });
             var form = last5.Count > 0 ? string.Join("", last5) : "?";
             var formPct = last5.Count > 0
                 ? (last5.Count(f => f == "W") * 3.0 + last5.Count(f => f == "D")) / (last5.Count * 3)
                 : 0.5;
-            return new TeamStat(form, pts, formPct);
+            return new TeamStat(form, formPct);
         });
 
     private static string Outcome(ResultData r, long teamId)
@@ -100,17 +126,12 @@ internal sealed record GetMatchInsightsQueryHandler(
         return scored > conceded ? "W" : scored == conceded ? "D" : "L";
     }
 
-    private static Dictionary<long, int> RankTeams(Dictionary<long, TeamStat> stats) =>
-        stats.OrderByDescending(t => t.Value.Points)
-            .Select((t, i) => (t.Key, Pos: i + 1))
-            .ToDictionary(x => x.Key, x => x.Pos);
-
     private static MatchInsightResult BuildInsight(
-        MatchData m, Dictionary<long, TeamStat> stats, Dictionary<long, int> ranked)
+        MatchData m, Dictionary<long, TeamStat> stats, Dictionary<string, StandingRow> standings)
     {
         var homeStr = stats.GetValueOrDefault(m.HomeId)?.FormPct ?? 0.5;
         var awayStr = stats.GetValueOrDefault(m.AwayId)?.FormPct ?? 0.5;
-        homeStr = Math.Min(1.0, homeStr + 0.1);
+        homeStr = Math.Min(1.0, homeStr + 0.1); // home advantage
         var total = homeStr + awayStr + 0.3;
         var homePct = (int)(homeStr / total * 100);
         var awayPct = (int)(awayStr / total * 100);
@@ -120,34 +141,137 @@ internal sealed record GetMatchInsightsQueryHandler(
             m.AwayName, m.AwayShort, m.AwayLogo, m.KickoffTime, homePct, drawPct, awayPct, null);
     }
 
+    // --- BBC scraping ---
+
+    private static string GetBbcSlug(string code) => code switch
+    {
+        "PL" => "premier-league",
+        "ELC" => "championship",
+        "BL1" => "german-bundesliga",
+        "SA" => "italian-serie-a",
+        "PD" => "spanish-la-liga",
+        "FL1" => "french-ligue-one",
+        _ => "premier-league"
+    };
+
+    private static async Task<Dictionary<string, StandingRow>> ScrapeStandings(
+        HttpClient http, string slug, CancellationToken ct)
+    {
+        try
+        {
+            var html = await http.GetStringAsync($"https://www.bbc.co.uk/sport/football/{slug}/table", ct);
+            var result = new Dictionary<string, StandingRow>(StringComparer.OrdinalIgnoreCase);
+
+            // Pattern: position, team name, played, won, drawn, lost, GF, GA, GD, points
+            var rows = Regex.Matches(html,
+                @"<td[^>]*class=""[^""]*gs-o-table__cell[^""]*""[^>]*>(\d+)</td>\s*" +
+                @"<td[^>]*>.*?<(?:span|abbr)[^>]*>([^<]+)</(?:span|abbr)>.*?</td>\s*" +
+                @"<td[^>]*>(\d+)</td>\s*<td[^>]*>(\d+)</td>\s*<td[^>]*>(\d+)</td>\s*<td[^>]*>(\d+)</td>\s*" +
+                @"<td[^>]*>(\d+)</td>\s*<td[^>]*>(\d+)</td>\s*<td[^>]*>(-?\d+)</td>\s*<td[^>]*>(\d+)</td>",
+                RegexOptions.Singleline);
+
+            if (rows.Count == 0)
+            {
+                // Simpler fallback: parse the text table format BBC returns
+                var lines = html.Split('\n');
+                foreach (var line in lines)
+                {
+                    // Look for lines with team data patterns
+                    var m = Regex.Match(line, @"^\s*(\d+)\s+.*?(\w[\w\s]+\w)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(-?\d+)\s+(\d+)");
+                    if (m.Success)
+                    {
+                        var team = m.Groups[2].Value.Trim();
+                        result[team] = new StandingRow(
+                            int.Parse(m.Groups[1].Value), int.Parse(m.Groups[3].Value),
+                            int.Parse(m.Groups[4].Value), int.Parse(m.Groups[5].Value),
+                            int.Parse(m.Groups[6].Value), int.Parse(m.Groups[9].Value),
+                            int.Parse(m.Groups[10].Value));
+                    }
+                }
+            }
+            else
+            {
+                foreach (System.Text.RegularExpressions.Match row in rows)
+                {
+                    var team = row.Groups[2].Value.Trim();
+                    result[team] = new StandingRow(
+                        int.Parse(row.Groups[1].Value), int.Parse(row.Groups[3].Value),
+                        int.Parse(row.Groups[4].Value), int.Parse(row.Groups[5].Value),
+                        int.Parse(row.Groups[6].Value), int.Parse(row.Groups[9].Value),
+                        int.Parse(row.Groups[10].Value));
+                }
+            }
+
+            return result;
+        }
+        catch { return []; }
+    }
+
+    private static async Task<List<string>> ScrapeHeadlines(
+        HttpClient http, string slug, CancellationToken ct)
+    {
+        try
+        {
+            var html = await http.GetStringAsync($"https://www.bbc.co.uk/sport/football/{slug}", ct);
+            var headlines = Regex.Matches(html, @"<h3[^>]*>(.*?)</h3>", RegexOptions.Singleline)
+                .Select(m => Regex.Replace(m.Groups[1].Value, "<[^>]+>", "").Trim())
+                .Where(h => h.Length > 10 && h.Length < 200)
+                .Distinct()
+                .Take(15)
+                .ToList();
+            return headlines;
+        }
+        catch { return []; }
+    }
+
+    // --- AI enrichment ---
+
     private async Task EnrichWithAi(
         List<MatchData> matches, List<MatchInsightResult> insights,
-        Dictionary<long, TeamStat> stats, Dictionary<long, int> ranked, CancellationToken ct)
+        Dictionary<long, TeamStat> stats, Dictionary<string, StandingRow> standings,
+        List<ResultData> h2hResults, List<string> headlines,
+        string competitionName, CancellationToken ct)
     {
-        var newsMap = await FetchTeamNews(matches, ct);
-        var totalTeams = ranked.Count > 0 ? ranked.Values.Max() : 20;
-
         var matchContext = insights.Select((ins, i) =>
         {
-            var hs = stats.GetValueOrDefault(matches[i].HomeId);
-            var aStats = stats.GetValueOrDefault(matches[i].AwayId);
-            var hPos = ranked.GetValueOrDefault(matches[i].HomeId);
-            var aPos = ranked.GetValueOrDefault(matches[i].AwayId);
+            var m = matches[i];
+            var hs = stats.GetValueOrDefault(m.HomeId);
+            var aStats = stats.GetValueOrDefault(m.AwayId);
             var ko = ins.KickoffTime?.ToString("ddd d MMM yyyy, HH:mm") ?? "TBD";
-            var line = $"{i + 1}. {ins.HomeTeamName} (#{hPos}, {hs?.Points}pts, form:{hs?.Form}) vs {ins.AwayTeamName} (#{aPos}, {aStats?.Points}pts, form:{aStats?.Form}) — {ko} — Home win {ins.HomeWinPct}%, Draw {ins.DrawPct}%, Away {ins.AwayWinPct}%";
-            if (newsMap.TryGetValue(matches[i].HomeName, out var homeNews))
-                line += $"\n   {ins.HomeTeamName} news: {homeNews}";
-            if (newsMap.TryGetValue(matches[i].AwayName, out var awayNews))
-                line += $"\n   {ins.AwayTeamName} news: {awayNews}";
+
+            // Real standings from BBC
+            var hStand = FindStanding(standings, m.HomeName, m.HomeShort);
+            var aStand = FindStanding(standings, m.AwayName, m.AwayShort);
+            var hPos = hStand is not null ? $"#{hStand.Position} ({hStand.Points}pts, GD {hStand.GoalDiff:+0;-0})" : "N/A";
+            var aPos = aStand is not null ? $"#{aStand.Position} ({aStand.Points}pts, GD {aStand.GoalDiff:+0;-0})" : "N/A";
+
+            // H2H from DB
+            var h2h = h2hResults
+                .Where(r => (r.HomeTeamId == m.HomeId && r.AwayTeamId == m.AwayId)
+                          || (r.HomeTeamId == m.AwayId && r.AwayTeamId == m.HomeId))
+                .Take(5)
+                .Select(r => $"{r.HomeScore}-{r.AwayScore}")
+                .ToList();
+            var h2hStr = h2h.Count > 0 ? string.Join(", ", h2h) : "no recent meetings";
+
+            var line = $"{i + 1}. {ins.HomeTeamName} [{hPos}, form:{hs?.Form}] vs {ins.AwayTeamName} [{aPos}, form:{aStats?.Form}] — {ko}";
+            line += $"\n   H2H (last {h2h.Count}): {h2hStr}";
+            line += $"\n   Win%: Home {ins.HomeWinPct}%, Draw {ins.DrawPct}%, Away {ins.AwayWinPct}%";
             return line;
         });
 
+        var newsSection = headlines.Count > 0
+            ? $"\n\nLatest {competitionName} headlines:\n{string.Join("\n", headlines.Select(h => $"- {h}"))}"
+            : "";
+
         var prompt = $"""
-You are an expert Premier League analyst. For each match write ONE punchy 2-sentence preview. Reference league position, recent form, what's at stake, and incorporate the latest news headlines provided. Mention specific injuries, transfers, managerial changes, or storylines from the news. Be specific and insightful. {totalTeams} teams in the league.
-Return ONLY a JSON array of strings, one per match, same order.
+You are an expert football analyst covering {competitionName}. For each match below, write ONE punchy 2-sentence preview.
+Use the real league standings, recent form, head-to-head record, and the latest news headlines to make each preview specific and insightful.
+Mention what's at stake (title race, European spots, relegation battle), key storylines from the news, and any notable patterns.
+Return ONLY a JSON array of strings, one per match, same order. No markdown.
 
 Matches:
-{string.Join("\n", matchContext)}
+{string.Join("\n", matchContext)}{newsSection}
 """;
 
         try
@@ -159,41 +283,26 @@ Matches:
                 raw = raw.Split('\n', 2).Length > 1 ? raw.Split('\n', 2)[1] : raw;
                 raw = raw.TrimEnd('`').Trim();
             }
-            var summaries = raw.TrimStart('[').TrimEnd(']')
-                .Split("\",")
-                .Select(s => s.Trim().Trim('"').Trim())
-                .Where(s => !string.IsNullOrWhiteSpace(s))
-                .ToList();
 
-            for (var i = 0; i < Math.Min(summaries.Count, insights.Count); i++)
-                insights[i] = insights[i] with { AiSummary = summaries[i] };
+            var summaries = JsonSerializer.Deserialize<List<string>>(raw);
+            if (summaries is not null)
+                for (var i = 0; i < Math.Min(summaries.Count, insights.Count); i++)
+                    insights[i] = insights[i] with { AiSummary = summaries[i] };
         }
         catch { /* AI is optional */ }
     }
 
-    private async Task<Dictionary<string, string>> FetchTeamNews(List<MatchData> matches, CancellationToken ct)
+    private static StandingRow? FindStanding(Dictionary<string, StandingRow> standings, string name, string? shortName)
     {
-        var http = HttpClientFactory.CreateClient();
-        var teamNames = matches.SelectMany(m => new[] { m.HomeName, m.AwayName }).Distinct();
-        var tasks = teamNames.Select(async name =>
-        {
-            try
-            {
-                var q = Uri.EscapeDataString($"{name} Premier League");
-                var rss = await http.GetStringAsync(
-                    $"https://news.google.com/rss/search?q={q}&hl=en-US&gl=US&ceid=US:en", ct);
-                var headlines = XDocument.Parse(rss).Descendants("item")
-                    .Take(3)
-                    .Select(item => item.Element("title")?.Value)
-                    .Where(t => t is not null);
-                return (name, News: string.Join(" | ", headlines));
-            }
-            catch { return (name, News: ""); }
-        });
+        if (standings.Count == 0) return null;
+        if (standings.TryGetValue(name, out var s)) return s;
+        if (shortName is not null && standings.TryGetValue(shortName, out s)) return s;
 
-        return (await Task.WhenAll(tasks))
-            .Where(r => !string.IsNullOrWhiteSpace(r.News))
-            .ToDictionary(r => r.name, r => r.News);
+        // Fuzzy: try matching on key words (e.g. "Arsenal FC" → "Arsenal")
+        var key = standings.Keys.FirstOrDefault(k =>
+            k.Contains(name.Split(' ')[0], StringComparison.OrdinalIgnoreCase) ||
+            name.Contains(k.Split(' ')[0], StringComparison.OrdinalIgnoreCase));
+        return key is not null ? standings[key] : null;
     }
 
     private sealed record MatchData(long Id, DateTime? KickoffTime,
@@ -202,5 +311,7 @@ Matches:
 
     private sealed record ResultData(long HomeTeamId, long AwayTeamId, int? HomeScore, int? AwayScore);
 
-    private sealed record TeamStat(string Form, int Points, double FormPct);
+    private sealed record TeamStat(string Form, double FormPct);
+
+    private sealed record StandingRow(int Position, int Played, int Won, int Drawn, int Lost, int GoalDiff, int Points);
 }
