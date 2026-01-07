@@ -20,10 +20,12 @@ internal sealed record SyncUserCommandHandler(
         var request = command.Request;
 
         var existingUser = await DbContext.UserMasters
-            .FirstOrDefaultAsync(u => u.KeycloakUserId == request.KeycloakUserId, ct);
+            .FirstOrDefaultAsync(u => u.KeycloakUserId == request.KeycloakUserId
+                                      || u.Email == request.Email, ct);
 
         if (existingUser is not null)
         {
+            existingUser.KeycloakUserId = request.KeycloakUserId ?? existingUser.KeycloakUserId;
             existingUser.Email = request.Email;
             existingUser.DisplayName = request.DisplayName ?? existingUser.DisplayName;
             existingUser.LastLoginDate = ScoreCastDateTime.Now;

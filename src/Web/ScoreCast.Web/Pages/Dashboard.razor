@@ -6,57 +6,59 @@
     @if (_predictionTiles.Count > 0)
     {
         <MudText Typo="Typo.h5" Style="font-weight:700;text-align:center;" Class="mb-3">Predictions</MudText>
-        <div class="d-flex flex-wrap justify-center gap-4 mb-6">
+        <div class="d-flex flex-wrap justify-center gap-3 mb-6">
             @foreach (var tile in _predictionTiles)
             {
-                <MudPaper Elevation="3" Class="rounded-xl overflow-hidden d-flex flex-column"
-                          Style="width:220px;min-width:160px;flex:1;max-width:260px;text-align:center;color:white;">
+                <MudPaper Elevation="3" Class="rounded-xl overflow-hidden d-flex flex-column prediction-tile"
+                          Style="text-align:center;color:white;">
                     @if (tile.LogoUrl is not null)
                     {
-                        <div style="background:rgba(255,255,255,0.95);padding:20px 0;display:flex;align-items:center;justify-content:center;">
-                            <MudImage Src="@tile.LogoUrl" Width="80" Height="80" ObjectFit="ObjectFit.Contain" />
+                        <div style="background:rgba(255,255,255,0.95);padding:12px 0;display:flex;align-items:center;justify-content:center;">
+                            <MudImage Src="@tile.LogoUrl" Width="56" Height="56" ObjectFit="ObjectFit.Contain" />
                         </div>
                     }
                     else
                     {
-                        <div style="background:rgba(255,255,255,0.1);padding:20px 0;display:flex;align-items:center;justify-content:center;">
-                            <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Style="font-size:64px;opacity:0.9;" />
+                        <div style="background:rgba(255,255,255,0.1);padding:12px 0;display:flex;align-items:center;justify-content:center;">
+                            <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Style="font-size:48px;opacity:0.9;" />
                         </div>
                     }
-                    <div class="pa-4 d-flex flex-column align-center flex-grow-1"
+                    <div class="pa-3 d-flex flex-column align-center flex-grow-1"
                          style="background:linear-gradient(135deg, var(--mud-palette-tertiary) 0%, var(--mud-palette-primary) 100%);">
-                        <MudText Typo="Typo.subtitle1" Style="font-weight:700;color:white;line-height:1.3;">@tile.CompetitionName</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:700;color:white;line-height:1.2;">@tile.CompetitionName</MudText>
                         <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
-                                 Style="color:rgba(255,255,255,0.85);border-color:rgba(255,255,255,0.4);font-weight:600;"
-                                 Class="mt-1 mb-3">
+                                 Style="color:rgba(255,255,255,0.85);border-color:rgba(255,255,255,0.4);font-weight:600;font-size:0.7rem;"
+                                 Class="mt-1 mb-2">
                             @tile.SeasonName Season
                         </MudChip>
                         <MudButton Variant="Variant.Filled" Size="Size.Small" FullWidth="true"
-                                   Style="background:white;color:var(--mud-palette-tertiary);font-weight:700;border-radius:8px;"
+                                   Style="background:white;color:var(--mud-palette-tertiary);font-weight:700;border-radius:8px;font-size:0.75rem;"
                                    StartIcon="@Icons.Material.Filled.SportsSoccer"
                                    OnClick="@(() => NavigateToPredict(tile.CompetitionCode, tile.SeasonId))">
-                            Make Predictions
+                            Predict
                         </MudButton>
                     </div>
                 </MudPaper>
             }
 
-            <MudPaper Elevation="1" Class="pa-5 rounded-xl d-flex flex-column align-center justify-center"
-                      Style="width:240px;text-align:center;border:2px dashed var(--mud-palette-lines-default);cursor:pointer;"
+            <MudPaper Elevation="1" Class="pa-4 rounded-xl d-flex flex-column align-center justify-center prediction-tile"
+                      Style="text-align:center;border:2px dashed var(--mud-palette-lines-default);cursor:pointer;"
                       @onclick="@(() => _showAddPredictionDialog = true)">
-                <MudIcon Icon="@Icons.Material.Filled.Add" Style="font-size:40px;color:var(--mud-palette-text-secondary);" Class="mb-2" />
-                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Add Competition</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Add" Style="font-size:32px;color:var(--mud-palette-text-secondary);" Class="mb-1" />
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Add Competition</MudText>
             </MudPaper>
         </div>
     }
-    else if (_initialized && _leagues.Count > 0)
+    else if (_initialized)
     {
+        <MudText Typo="Typo.h5" Style="font-weight:700;text-align:center;" Class="mb-1">Predictions</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Style="text-align:center;" Class="mb-3">Pick a competition to start predicting scores</MudText>
         <div class="d-flex justify-center mb-6">
-            <MudPaper Elevation="1" Class="pa-5 rounded-xl d-flex flex-column align-center justify-center"
-                      Style="width:240px;text-align:center;border:2px dashed var(--mud-palette-lines-default);cursor:pointer;"
+            <MudPaper Elevation="1" Class="pa-4 rounded-xl d-flex flex-column align-center justify-center prediction-tile"
+                      Style="text-align:center;border:2px dashed var(--mud-palette-lines-default);cursor:pointer;"
                       @onclick="@(() => _showAddPredictionDialog = true)">
-                <MudIcon Icon="@Icons.Material.Filled.Add" Style="font-size:40px;color:var(--mud-palette-text-secondary);" Class="mb-2" />
-                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Start Predicting</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Add" Style="font-size:32px;color:var(--mud-palette-text-secondary);" Class="mb-1" />
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Add Competition</MudText>
             </MudPaper>
         </div>
     }

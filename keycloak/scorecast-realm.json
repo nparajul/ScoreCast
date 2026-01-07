@@ -180,5 +180,12 @@
       ]
     }
   ],
-  "loginTheme": "scorecast"
+  "loginTheme": "scorecast",
+  "rememberMe": true,
+  "ssoSessionIdleTimeout": 86400000,
+  "ssoSessionMaxLifespan": 86400000,
+  "accessTokenLifespan": 900,
+  "offlineSessionIdleTimeout": 2592000,
+  "offlineSessionMaxLifespan": 86400000,
+  "offlineSessionMaxLifespanEnabled": true
 }

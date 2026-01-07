@@ -8,6 +8,10 @@ on:
     - cron: '*/2 12-23 * * *'
     # Calculate Points — every 10 minutes during match hours
     - cron: '*/10 12-23 * * *'
+    # Update Matchday — every 10 minutes during match hours
+    - cron: '5,15,25,35,45,55 12-23 * * *'
+    # Generate AI Insights — daily at 6 AM UTC
+    - cron: '0 6 * * *'
   workflow_dispatch:
     inputs:
       job:
@@ -19,6 +23,8 @@ on:
           - enhance-live
           - calculate-points
           - sync-pl-events
+          - generate-insights
+          - update-matchday
 
 env:
   API_BASE_URL: ${{ secrets.SCORECAST_API_URL }}
@@ -133,3 +139,23 @@ jobs:
             [ "$COMPLETE" = "true" ] || [ "$PROCESSED" = "0" ] && break
             sleep 1
           done
+
+  generate-insights:
+    if: github.event.schedule == '0 6 * * *' || github.event.inputs.job == 'generate-insights'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate AI insights
+        run: |
+          RESULT=$(curl --max-time 120 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+            "$API_BASE_URL/api/v1/master-data/generate-insights" || echo '{"message":"Request failed"}')
+          echo "Result: $(echo $RESULT | jq -r '.message // "done"')"
+
+  update-matchday:
+    if: github.event.schedule == '5,15,25,35,45,55 12-23 * * *' || github.event.inputs.job == 'update-matchday'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update current matchday
+        run: |
+          RESULT=$(curl --max-time 30 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+            "$API_BASE_URL/api/v1/master-data/update-matchday" || echo '{"message":"Request failed"}')
+          echo "Result: $(echo $RESULT | jq -r '.message // "done"')"
