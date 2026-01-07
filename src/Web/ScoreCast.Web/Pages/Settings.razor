@@ -1,4 +1,6 @@
 @page "/settings"
+@using ScoreCast.Web.Validation
+@using ScoreCast.Models.V1.Responses.Football
 
 <PageGuard>
 <MudContainer MaxWidth="MaxWidth.Small" Class="py-4">
@@ -10,42 +12,73 @@
                 @(_profile.DisplayName?[0].ToString().ToUpper() ?? "?")
             </MudAvatar>
             <MudText Typo="Typo.h6" Style="font-weight:700;">@(_profile.DisplayName ?? _profile.UserId)</MudText>
-            <MudText Typo="Typo.caption" Style="opacity:0.6;">@_profile.Email</MudText>
+            <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">@_profile.Email</MudText>
+            <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">Member since @_profile.MemberSince.ToString("MMM yyyy")</MudText>
         </div>
 
         <MudPaper Elevation="1" Class="pa-4 rounded-lg mb-4">
-            <MudText Typo="Typo.overline" Style="font-weight:600;" Class="mb-3">Stats</MudText>
+            <MudText Typo="Typo.subtitle2" Style="font-weight:700; letter-spacing:0.05em; text-transform:uppercase;" Class="mb-3">📊 Stats</MudText>
             <div class="d-flex justify-space-around text-center">
                 <div>
                     <MudText Typo="Typo.h5" Color="Color.Tertiary" Style="font-weight:700;">@_profile.TotalPoints</MudText>
-                    <MudText Typo="Typo.caption" Style="opacity:0.6;">Points</MudText>
+                    <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">Points</MudText>
                 </div>
                 <div>
                     <MudText Typo="Typo.h5" Color="Color.Tertiary" Style="font-weight:700;">@_profile.CurrentStreak</MudText>
-                    <MudText Typo="Typo.caption" Style="opacity:0.6;">Streak</MudText>
+                    <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">Streak</MudText>
                 </div>
                 <div>
                     <MudText Typo="Typo.h5" Color="Color.Tertiary" Style="font-weight:700;">@_profile.LongestStreak</MudText>
-                    <MudText Typo="Typo.caption" Style="opacity:0.6;">Best Streak</MudText>
+                    <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">Best Streak</MudText>
                 </div>
             </div>
         </MudPaper>
 
         <MudPaper Elevation="1" Class="pa-4 rounded-lg mb-4">
-            <MudText Typo="Typo.overline" Style="font-weight:600;" Class="mb-3">Profile</MudText>
+            <MudText Typo="Typo.subtitle2" Style="font-weight:700; letter-spacing:0.05em; text-transform:uppercase;" Class="mb-3">✏️ Profile</MudText>
 
-            <MudTextField @bind-Value="_displayName"
-                          Label="Display Name"
-                          Variant="Variant.Outlined"
-                          Immediate="true"
-                          MaxLength="30"
-                          Class="mb-3" />
+            <MudForm @ref="_form" Model="_model" Validation="_validator.ToMudValidation()">
+                <MudTextField @bind-Value="_model.DisplayName"
+                              Label="Display Name"
+                              Variant="Variant.Outlined"
+                              Immediate="true"
+                              MaxLength="30"
+                              For="@(() => _model.DisplayName)"
+                              Class="mb-3" />
 
-            <MudTextField @bind-Value="_favoriteTeam"
-                          Label="Favourite Team"
-                          Variant="Variant.Outlined"
-                          Immediate="true"
-                          Class="mb-3" />
+                <div class="d-flex align-center gap-3 mb-3">
+                    @if (!string.IsNullOrWhiteSpace(_selectedTeam?.LogoUrl))
+                    {
+                        <MudImage Src="@_selectedTeam.LogoUrl" Width="32" Height="32" ObjectFit="ObjectFit.Contain" />
+                    }
+                    <MudAutocomplete T="TeamResult"
+                                  Label="Favourite Team"
+                                  Placeholder="Search any team..."
+                                  @bind-Value="_selectedTeam"
+                                  SearchFunc="SearchTeams"
+                                  ToStringFunc="@(t => t?.Name ?? "")"
+                                  Variant="Variant.Outlined"
+                                  Clearable="true"
+                                  CoerceValue="false"
+                                  MinCharacters="0"
+                                  MaxItems="50"
+                                  Style="flex:1;">
+                        <ItemTemplate Context="team">
+                            <div class="d-flex align-center gap-2">
+                                @if (!string.IsNullOrWhiteSpace(team.LogoUrl))
+                                {
+                                    <MudImage Src="@team.LogoUrl" Width="24" Height="24" ObjectFit="ObjectFit.Contain" />
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Small" />
+                                }
+                                <MudText Typo="Typo.body2">@team.Name</MudText>
+                            </div>
+                        </ItemTemplate>
+                    </MudAutocomplete>
+                </div>
+            </MudForm>
 
             <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
                        Disabled="@(!HasChanges)" OnClick="SaveProfile">

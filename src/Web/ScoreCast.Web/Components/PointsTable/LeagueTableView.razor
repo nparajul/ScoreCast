@@ -3,12 +3,12 @@
 @* ── MOBILE: tabbed views ── *@
 @if (IsMobile)
 {
-    <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:4px;margin-bottom:12px;">
+    <div style="display:flex;background:var(--mud-palette-dark);border-radius:20px;padding:3px;margin-bottom:12px;max-width:220px;">
         @foreach (var tab in new[] { "Short", "Full", "Form" })
         {
             var isActive = _mobileTab == tab;
             <div @onclick="@(() => _mobileTab = tab)"
-                 style="flex:1;text-align:center;padding:8px 0;border-radius:24px;font-size:0.875rem;font-weight:700;cursor:pointer;
+                 style="flex:1;text-align:center;padding:5px 0;border-radius:17px;font-size:0.75rem;font-weight:600;cursor:pointer;
                         background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
                         color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
                 @tab
@@ -158,7 +158,7 @@ else
             <MudTh Style="text-align:center;"><MudTooltip Text="Goals Against">GA</MudTooltip></MudTh>
             <MudTh Style="text-align:center;"><MudTooltip Text="Goal Difference">GD</MudTooltip></MudTh>
             <MudTh Style="text-align:center;font-weight:700;"><MudTooltip Text="Points">Pts</MudTooltip></MudTh>
-            <MudTh Style="text-align:center;"><MudTooltip Text="Last 5 matches (most recent first)">Form</MudTooltip></MudTh>
+            <MudTh Style="text-align:center;"><MudTooltip Text="Last 5 matches (oldest first)">Form</MudTooltip></MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="#">@context.Position</MudTd>
