@@ -94,9 +94,7 @@ public sealed class RegisterEndpoint(IConfiguration config, IHttpClientFactory h
 
     private static async Task<string?> CreateKeycloakUser(HttpClient http, string authority, string adminToken, RegisterRequest req, CancellationToken ct)
     {
-        var usersUrl = authority.Replace("/realms/scorecast", "/admin/realms/scorecast")
-                                .Replace("/realms/scorecast-auth", "/admin/realms/scorecast-auth")
-                       + "/users";
+        var usersUrl = authority.Replace("/realms/", "/admin/realms/") + "/users";
 
         var userPayload = JsonSerializer.Serialize(new
         {
