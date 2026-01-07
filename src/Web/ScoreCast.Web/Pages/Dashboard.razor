@@ -51,12 +51,14 @@
     }
     else if (_initialized)
     {
+        <MudText Typo="Typo.h5" Style="font-weight:700;text-align:center;" Class="mb-1">Predictions</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Style="text-align:center;" Class="mb-3">Pick a competition to start predicting scores</MudText>
         <div class="d-flex justify-center mb-6">
             <MudPaper Elevation="1" Class="pa-4 rounded-xl d-flex flex-column align-center justify-center prediction-tile"
                       Style="text-align:center;border:2px dashed var(--mud-palette-lines-default);cursor:pointer;"
                       @onclick="@(() => _showAddPredictionDialog = true)">
                 <MudIcon Icon="@Icons.Material.Filled.Add" Style="font-size:32px;color:var(--mud-palette-text-secondary);" Class="mb-1" />
-                <MudText Typo="Typo.caption" Color="Color.Secondary">Start Predicting</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Add Competition</MudText>
             </MudPaper>
         </div>
     }
