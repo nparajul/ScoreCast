@@ -126,22 +126,27 @@ Run both projects:
 
 ## Data Sync
 
-Automated via separate GitHub Actions workflows (each with its own wake-up + retry logic):
+Match data flows through two stages:
 
-| Workflow | Schedule | Description |
+1. **Sync Matches** — historical data sync that pulls fixtures, kickoff times, and final scores from external APIs. Runs every 6 hours to pick up schedule changes, postponements, and results for matches that finished outside live hours.
+
+2. **Enhance Live** — during match hours (12-23 UTC), polls the Pulse API every 2 minutes for real-time scores, match minute, and events (goals, cards, subs) for any match not yet marked as finished. This is what keeps live scores updating.
+
+After scores are in, two follow-up jobs run every 10 minutes during match hours:
+- **Calculate Points** — computes prediction outcomes for finished matches
+- **Update Matchday** — advances the current gameweek per season
+
+Each job runs as a separate GitHub Actions workflow with its own Render API wake-up and retry logic. Empty or error responses fail the job (red) instead of silently passing.
+
+| Workflow | Schedule | What it does |
 |---|---|---|
-| `sync-matches.yml` | Every 6 hours | Fixtures with scores and status |
-| `enhance-live.yml` | Every 2 min (12-23 UTC) | Real-time scores for live matches |
-| `calculate-points.yml` | Every 10 min (12-23 UTC) | Compute outcomes and user points |
-| `update-matchday.yml` | Every 10 min (12-23 UTC) | Update current matchday per season |
-| `generate-insights.yml` | Daily 6 AM UTC | AI match previews for upcoming gameweeks |
-| `sync-pl-events.yml` | Manual only | Sync PL match events (goals, cards, subs) |
-
-Each workflow wakes the Render API independently before calling endpoints. Empty responses fail the job instead of silently succeeding.
+| `sync-matches.yml` | Every 6 hours | Fixtures, scores, statuses from Pulse/football-data.org |
+| `enhance-live.yml` | Every 2 min (12-23 UTC) | Live scores, match events, minute-by-minute updates |
+| `calculate-points.yml` | Every 10 min (12-23 UTC) | Prediction outcomes for finished matches |
+| `update-matchday.yml` | Every 10 min (12-23 UTC) | Current gameweek per season |
+| `generate-insights.yml` | Daily 6 AM UTC | AI match previews for upcoming fixtures |
 
 Manual sync also available via admin page (`/master-data-sync`).
-
-All jobs send `appName: "GITHUB-ACTIONS:<JOB-NAME>"` for audit trail.
 
 ## Data Sources
 
