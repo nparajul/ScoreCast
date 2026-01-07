@@ -76,9 +76,7 @@ public sealed class RegisterEndpoint(IConfiguration config, IHttpClientFactory h
 
         if (adminUsername is null || adminPassword is null) return null;
 
-        var masterTokenUrl = authority.Replace("/realms/scorecast", "/realms/master")
-                                     .Replace("/realms/scorecast-auth", "/realms/master")
-                             + "/protocol/openid-connect/token";
+        var masterTokenUrl = authority + "/protocol/openid-connect/token";
 
         var response = await http.PostAsync(masterTokenUrl, new FormUrlEncodedContent(new Dictionary<string, string>
         {
