@@ -1,0 +1,67 @@
+name: Calculate Points
+
+on:
+  schedule:
+    - cron: '*/10 12-23 * * *'
+  workflow_dispatch:
+
+env:
+  API_BASE_URL: ${{ secrets.SCORECAST_API_URL }}
+  API_KEY: ${{ secrets.SCORECAST_API_KEY }}
+
+jobs:
+  calculate-points:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake up API
+        run: |
+          for i in 1 2 3 4 5 6 7 8; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$API_BASE_URL/api/v1/health/")
+            echo "Attempt $i: HTTP $STATUS"
+            [ "$STATUS" = "200" ] && break
+            sleep 15
+          done
+          [ "$STATUS" = "200" ] || { echo "::error::API did not wake up"; exit 1; }
+
+      - name: Get current season IDs
+        id: seasons
+        run: |
+          for i in 1 2 3; do
+            COMPETITIONS=$(curl -s --max-time 30 -H "X-Api-Key: $API_KEY" "$API_BASE_URL/api/v1/football/competitions")
+            CODES=$(echo "$COMPETITIONS" | jq -r '.data[].code // empty' 2>/dev/null)
+            [ -n "$CODES" ] && break
+            echo "Attempt $i: empty competitions, retrying..."
+            sleep 10
+          done
+          if [ -z "$CODES" ]; then
+            echo "::error::No competitions returned"
+            exit 1
+          fi
+
+          SEASON_IDS=""
+          for CODE in $CODES; do
+            RESPONSE=$(curl -s --max-time 30 -H "X-Api-Key: $API_KEY" "$API_BASE_URL/api/v1/football/competitions/$CODE/seasons")
+            SID=$(echo "$RESPONSE" | jq -r '.data[] | select(.isCurrent) | .id // empty' 2>/dev/null)
+            [ -n "$SID" ] && SEASON_IDS="$SEASON_IDS $SID"
+          done
+          if [ -z "$SEASON_IDS" ]; then
+            echo "::error::No current seasons found"
+            exit 1
+          fi
+          echo "Season IDs:$SEASON_IDS"
+          echo "ids=$SEASON_IDS" >> $GITHUB_OUTPUT
+
+      - name: Calculate outcomes per season
+        run: |
+          FAILED=0
+          for SID in ${{ steps.seasons.outputs.ids }}; do
+            echo "Calculating season $SID..."
+            RESULT=$(curl -s --max-time 60 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+              -d "{\"seasonId\":$SID,\"appName\":\"GITHUB-ACTIONS:CALCULATE-POINTS\"}" \
+              "$API_BASE_URL/api/v1/prediction/calculate-outcomes")
+            SUCCESS=$(echo "$RESULT" | jq -r '.success // false' 2>/dev/null)
+            MSG=$(echo "$RESULT" | jq -r '.message // empty' 2>/dev/null)
+            echo "Season $SID: success=$SUCCESS message=$MSG"
+            [ "$SUCCESS" != "true" ] && FAILED=1
+          done
+          [ "$FAILED" = "1" ] && { echo "::error::One or more seasons failed"; exit 1; }
