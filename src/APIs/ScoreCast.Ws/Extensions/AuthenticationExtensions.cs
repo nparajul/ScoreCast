@@ -9,16 +9,14 @@ public static class AuthenticationExtensions
 {
     public static void AddScoreCastAuthentication(this WebApplicationBuilder builder)
     {
-        var keycloakSection = builder.Configuration.GetSection("Keycloak");
+        var firebaseProjectId = builder.Configuration["Firebase:ProjectId"]!;
 
         builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.Authority = keycloakSection["Authority"];
-                options.Audience = keycloakSection["Audience"];
-                options.RequireHttpsMetadata = !builder.Environment.IsDevelopment()
-                                               && !builder.Environment.IsEnvironment("Local");
+                options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
+                options.Audience = firebaseProjectId;
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -26,16 +24,13 @@ public static class AuthenticationExtensions
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = keycloakSection["Authority"],
-                    ValidAudience = keycloakSection["Audience"],
-                    NameClaimType = "preferred_username",
-                    RoleClaimType = "roles"
+                    ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
+                    ValidAudience = firebaseProjectId
                 };
             })
             .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthHandler>(
                 ApiKeyAuth.SchemeName, null);
 
-        builder.Services.AddTransient<IClaimsTransformation, KeycloakRoleClaimTransformation>();
         builder.Services.AddAuthorization();
     }
 }

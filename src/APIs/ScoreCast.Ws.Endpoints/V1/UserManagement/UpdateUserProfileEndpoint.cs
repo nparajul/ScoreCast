@@ -21,7 +21,7 @@ public sealed class UpdateUserProfileEndpoint : Endpoint<UpdateUserProfileReques
 
     public override async Task HandleAsync(UpdateUserProfileRequest req, CancellationToken ct)
     {
-        var result = await new UpdateUserProfileCommand(HttpContext.GetKeycloakUserId(), req).ExecuteAsync(ct);
+        var result = await new UpdateUserProfileCommand(HttpContext.GetFirebaseUserId(), req).ExecuteAsync(ct);
         await Send.OkAsync(result, ct);
     }
 }

@@ -7,34 +7,35 @@ using ScoreCast.Ws.Application.V1.Interfaces;
 
 namespace ScoreCast.Ws.Endpoints.Preprocessors;
 
-public sealed class KeycloakUserPreprocessor : IGlobalPreProcessor
+public sealed class FirebaseUserPreprocessor : IGlobalPreProcessor
 {
-    public const string KeycloakUserIdKey = "KeycloakUserId";
+    public const string FirebaseUserIdKey = "FirebaseUserId";
 
     public async Task PreProcessAsync(IPreProcessorContext ctx, CancellationToken ct)
     {
         if (ctx.HttpContext.User.Identity is not { IsAuthenticated: true })
             return;
 
-        var keycloakUserId = ctx.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var firebaseUserId = ctx.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                             ?? ctx.HttpContext.User.FindFirstValue("user_id");
 
-        if (string.IsNullOrWhiteSpace(keycloakUserId))
+        if (string.IsNullOrWhiteSpace(firebaseUserId))
         {
             await ctx.HttpContext.Response.SendUnauthorizedAsync(ct);
             return;
         }
 
-        ctx.HttpContext.Items[KeycloakUserIdKey] = keycloakUserId;
+        ctx.HttpContext.Items[FirebaseUserIdKey] = firebaseUserId;
 
         if (ctx.Request is ScoreCastRequest request)
         {
             if (request is SyncUserRequest syncRequest)
-                syncRequest.KeycloakUserId = keycloakUserId;
+                syncRequest.KeycloakUserId = firebaseUserId;
 
             var dbContext = ctx.HttpContext.RequestServices.GetRequiredService<IScoreCastDbContext>();
             var userId = await dbContext.UserMasters
                 .AsNoTracking()
-                .Where(u => u.KeycloakUserId == keycloakUserId)
+                .Where(u => u.KeycloakUserId == firebaseUserId)
                 .Select(u => u.UserId)
                 .FirstOrDefaultAsync(ct);
 

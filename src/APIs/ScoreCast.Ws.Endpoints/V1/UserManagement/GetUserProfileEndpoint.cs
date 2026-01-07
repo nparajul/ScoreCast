@@ -20,7 +20,7 @@ public sealed class GetUserProfileEndpoint : EndpointWithoutRequest<ScoreCastRes
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var result = await new GetUserProfileQuery(HttpContext.GetKeycloakUserId()).ExecuteAsync(ct);
+        var result = await new GetUserProfileQuery(HttpContext.GetFirebaseUserId()).ExecuteAsync(ct);
         await Send.OkAsync(result, ct);
     }
 }

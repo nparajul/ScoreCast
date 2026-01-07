@@ -5,6 +5,6 @@ namespace ScoreCast.Ws.Endpoints.Extensions;
 
 public static class HttpContextExtensions
 {
-    public static string GetKeycloakUserId(this HttpContext httpContext)
-        => (string)httpContext.Items[KeycloakUserPreprocessor.KeycloakUserIdKey]!;
+    public static string GetFirebaseUserId(this HttpContext httpContext)
+        => (string)httpContext.Items[FirebaseUserPreprocessor.FirebaseUserIdKey]!;
 }

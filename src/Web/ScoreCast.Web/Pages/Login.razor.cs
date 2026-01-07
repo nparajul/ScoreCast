@@ -1,5 +1,8 @@
 using ScoreCast.Web.Auth;
 using ScoreCast.Web.Components.Helpers;
+using ScoreCast.Web.Validation;
+using ScoreCast.Web.Validation.Auth;
+using ScoreCast.Web.ViewModels.Auth;
 
 namespace ScoreCast.Web.Pages;
 
@@ -9,7 +12,9 @@ public partial class Login
     [Inject] private NavigationManager Nav { get; set; } = null!;
     [Inject] private ILoadingService Loading { get; set; } = null!;
 
-    private readonly LoginModel _model = new();
+    private readonly LoginViewModel _model = new();
+    private readonly Func<object, string, Task<IEnumerable<string>>> _validation = new LoginViewModelValidator().ToMudValidation();
+    private MudForm _form = null!;
     private string? _error;
 
     protected override async Task OnInitializedAsync()
@@ -21,11 +26,13 @@ public partial class Login
 
     private async Task HandleLogin()
     {
-        _error = null;
+        await _form.ValidateAsync();
+        if (!_form.IsValid) return;
 
+        _error = null;
         AuthResult result = default!;
         await Loading.While(async () =>
-            result = await Auth.LoginAsync(_model.Username, _model.Password));
+            result = await Auth.LoginAsync(_model.Email, _model.Password));
 
         if (result.Success)
             Nav.NavigateTo("/dashboard", replace: true);
@@ -33,9 +40,16 @@ public partial class Login
             _error = result.Error;
     }
 
-    private sealed class LoginModel
+    private async Task HandleGoogleSignIn()
     {
-        public string Username { get; set; } = "";
-        public string Password { get; set; } = "";
+        _error = null;
+        AuthResult result = default!;
+        await Loading.While(async () =>
+            result = await Auth.SignInWithGoogleAsync());
+
+        if (result.Success)
+            Nav.NavigateTo("/dashboard", replace: true);
+        else if (result.Error != "Sign-in cancelled")
+            _error = result.Error;
     }
 }
