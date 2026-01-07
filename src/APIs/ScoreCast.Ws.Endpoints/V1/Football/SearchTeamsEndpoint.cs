@@ -15,7 +15,7 @@ public sealed class SearchTeamsEndpoint : Endpoint<SearchTeamsRequest, ScoreCast
 
     public override async Task HandleAsync(SearchTeamsRequest request, CancellationToken ct)
     {
-        var result = await new SearchTeamsQuery(request.Q).ExecuteAsync(ct);
+        var result = await new SearchTeamsQuery(request.Q, request.Skip, request.Take).ExecuteAsync(ct);
         await Send.OkAsync(result, ct);
     }
 }

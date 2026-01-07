@@ -1,14 +1,15 @@
+using ScoreCast.Models.V1.Requests.Football;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Ws.Application.V1.Football.Queries;
 
 namespace ScoreCast.Ws.Endpoints.V1.Football;
 
-public sealed class GetCompetitionZonesEndpoint : EndpointWithoutRequest<ScoreCastResponse<List<CompetitionZoneResult>>>
+public sealed class GetCompetitionZonesEndpoint : Endpoint<GetCompetitionZonesRequest, ScoreCastResponse<List<CompetitionZoneResult>>>
 {
     public override void Configure()
     {
-        Get("/competitions/{competitionCode}/zones");
+        Get("/competitions/{CompetitionCode}/zones");
         Group<FootballGroup>();
         Summary(s =>
         {
@@ -17,10 +18,9 @@ public sealed class GetCompetitionZonesEndpoint : EndpointWithoutRequest<ScoreCa
         });
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(GetCompetitionZonesRequest req, CancellationToken ct)
     {
-        var code = Route<string>("competitionCode")!;
-        var result = await new GetCompetitionZonesQuery(code).ExecuteAsync(ct);
+        var result = await new GetCompetitionZonesQuery(req.CompetitionCode).ExecuteAsync(ct);
         await Send.OkAsync(result, ct);
     }
 }
