@@ -18,17 +18,27 @@ jobs:
           for i in 1 2 3 4 5 6 7 8; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$API_BASE_URL/api/v1/health/")
             echo "Attempt $i: HTTP $STATUS"
-            [ "$STATUS" = "200" ] && break
+            if [ "$STATUS" = "200" ]; then break; fi
             sleep 15
           done
-          [ "$STATUS" = "200" ] || { echo "::error::API did not wake up"; exit 1; }
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::API did not wake up"
+            exit 1
+          fi
 
       - name: Enhance live matches
         run: |
-          RESULT=$(curl -s --max-time 120 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
-            -d '{"appName":"GITHUB-ACTIONS:ENHANCE-LIVE"}' \
-            "$API_BASE_URL/api/v1/master-data/enhance-live")
-          SUCCESS=$(echo "$RESULT" | jq -r '.success // false' 2>/dev/null)
-          MSG=$(echo "$RESULT" | jq -r '.message // empty' 2>/dev/null)
-          echo "success=$SUCCESS message=$MSG"
-          [ "$SUCCESS" != "true" ] && { echo "::error::enhance-live failed: $MSG"; exit 1; }
+          for i in 1 2 3; do
+            RESULT=$(curl -s --max-time 120 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+              -d '{"appName":"GITHUB-ACTIONS:ENHANCE-LIVE"}' \
+              "$API_BASE_URL/api/v1/master-data/enhance-live")
+            SUCCESS=$(echo "$RESULT" | jq -r '.success // false' 2>/dev/null)
+            MSG=$(echo "$RESULT" | jq -r '.message // empty' 2>/dev/null)
+            echo "Attempt $i: success=$SUCCESS message=$MSG"
+            if [ "$SUCCESS" = "true" ]; then break; fi
+            sleep 5
+          done
+          if [ "$SUCCESS" != "true" ]; then
+            echo "::error::enhance-live failed: $MSG"
+            exit 1
+          fi
