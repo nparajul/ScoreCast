@@ -11,6 +11,7 @@
     .predict-input::-webkit-outer-spin-button,
     .predict-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .predict-input:disabled { opacity: 0.5; }
+    .predict-incomplete { border-color: #f44336 !important; }
     .predict-exact { background: rgba(46, 125, 50, 0.25); }
     .predict-result-gd { background: rgba(0, 131, 143, 0.25); }
     .predict-correct { background: rgba(255, 179, 0, 0.25); }
@@ -31,19 +32,19 @@
 
     @if (_gameweek is not null)
     {
-        @if (_matches.All(m => m.IsLocked) && !_matches.Any(m => m.HasPrediction))
+        @if (_matches.All(m => m.IsLocked) && !_matches.Any(m => m.HasSavedPrediction))
         {
             <MudAlert Severity="Severity.Error" Variant="Variant.Text" Dense="true" Class="mb-2">
                 You missed this gameweek! No predictions were submitted before the deadline.
             </MudAlert>
         }
-        else if (!_matches.All(m => m.IsLocked) && _matches.Any(m => m.HasPrediction))
+        else if (!_matches.All(m => m.IsLocked) && _matches.Any(m => m.HasSavedPrediction))
         {
             <MudAlert Severity="Severity.Info" Variant="Variant.Text" Dense="true" Class="mb-2">
                 You've already submitted predictions for this gameweek. You can still edit them before kickoff.
             </MudAlert>
         }
-        else if (!_matches.All(m => m.IsLocked) && !_matches.Any(m => m.HasPrediction))
+        else if (!_matches.All(m => m.IsLocked) && !_matches.Any(m => m.HasSavedPrediction))
         {
             <MudAlert Severity="Severity.Warning" Variant="Variant.Text" Dense="true" Class="mb-2">
                 No predictions made yet for this gameweek. Enter your scores below!
@@ -77,10 +78,10 @@
                             </div>
                             <div class="d-flex align-center justify-center gap-1" style="flex-shrink:0;padding:0 4px;">
                                 <input type="number" @bind="match.PredictedHomeScore" disabled="@match.IsLocked"
-                                       class="predict-input" />
+                                       class="predict-input @(match.IsIncomplete ? "predict-incomplete" : "")" min="0" />
                                 <span style="font-weight:700;font-size:15px;">-</span>
                                 <input type="number" @bind="match.PredictedAwayScore" disabled="@match.IsLocked"
-                                       class="predict-input" />
+                                       class="predict-input @(match.IsIncomplete ? "predict-incomplete" : "")" min="0" />
                             </div>
                             <div class="d-flex align-center gap-1" style="flex:1;overflow:hidden;">
                                 @if (match.AwayTeamLogo is not null)

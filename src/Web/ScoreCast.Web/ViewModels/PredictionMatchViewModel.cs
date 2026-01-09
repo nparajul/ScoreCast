@@ -19,6 +19,7 @@ public sealed class PredictionMatchViewModel
     public int? PredictedAwayScore { get; set; }
     public string? Outcome { get; set; }
     public bool HasPrediction => PredictedHomeScore.HasValue && PredictedAwayScore.HasValue;
+    public bool HasSavedPrediction { get; set; }
     public bool IsLocked => Status == nameof(MatchStatus.Finished)
                             || (KickoffTime.HasValue && KickoffTime.Value <= ScoreCastDateTime.Now);
 
@@ -64,9 +65,15 @@ public sealed class PredictionMatchViewModel
         if (incomplete.Count > 0)
             return $"Please enter both scores for: {string.Join(", ", incomplete.Select(m => $"{m.HomeTeamShortName} vs {m.AwayTeamShortName}"))}";
 
+        var negative = unlocked.Where(m => m.PredictedHomeScore < 0 || m.PredictedAwayScore < 0).ToList();
+        if (negative.Count > 0)
+            return "Scores cannot be negative";
+
         var missing = unlocked.Where(m => !m.HasPrediction).ToList();
         return missing.Count > 0
             ? $"Please enter predictions for all matches ({missing.Count} remaining)"
             : null;
     }
+
+    public bool IsIncomplete => !IsLocked && (PredictedHomeScore.HasValue != PredictedAwayScore.HasValue);
 }

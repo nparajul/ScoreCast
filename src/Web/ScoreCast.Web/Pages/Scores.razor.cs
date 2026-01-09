@@ -129,22 +129,40 @@ public partial class Scores : IDisposable
             .ToList();
     }
 
+    private bool _shouldScroll;
+
     private void QueueScrollToFocusGroup()
     {
         if (_gameweek is null) return;
+
+        // Don't scroll if all matches are finished
+        if (_gameweek.Matches.All(m => m.Status == nameof(MatchStatus.Finished))) return;
+
         var groups = GetMatchesByDate();
-        var target = groups.FirstOrDefault(g => g.Label == "Today") ?? groups.FirstOrDefault();
-        _scrollToAnchor = target?.AnchorId;
+        var today = ScoreCastDateTime.Now.Date;
+
+        // Priority: Today > Tomorrow > next upcoming date
+        var target = groups.FirstOrDefault(g => g.Label == "Today")
+            ?? groups.FirstOrDefault(g => g.Label == "Tomorrow")
+            ?? groups.FirstOrDefault(g => g.Matches.Any(m => m.KickoffTime.HasValue && DateOnly.FromDateTime(m.KickoffTime.Value.ToLocalTime()) >= today));
+
+        if (target is not null)
+        {
+            _scrollToAnchor = target.AnchorId;
+            _shouldScroll = true;
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_scrollToAnchor is not null)
+        if (_shouldScroll && _scrollToAnchor is not null)
         {
+            _shouldScroll = false;
             var anchor = _scrollToAnchor;
             _scrollToAnchor = null;
+            await Task.Delay(150);
             await Js.InvokeVoidAsync("eval",
-                $"document.getElementById('{anchor}')?.scrollIntoView({{behavior:'smooth',block:'start'}})");
+                $"(function(){{var el=document.getElementById('{anchor}');if(el){{var y=el.getBoundingClientRect().top+window.scrollY-120;window.scrollTo({{top:y,behavior:'smooth'}});}}}})()");
         }
     }
 }
