@@ -36,11 +36,24 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
 
     private async Task<ScoreCastResponse> ExecuteCoreAsync(EnhanceLiveMatchesCommand command, CancellationToken ct)
     {
-        // 1. Get all current seasons
-        var currentSeasons = await DbContext.Seasons
-            .Include(s => s.Competition)
-            .Where(s => s.IsCurrent)
-            .ToListAsync(ct);
+        // 1. Get target seasons
+        List<Season> currentSeasons;
+        if (command.Request.SeasonId.HasValue)
+        {
+            var season = await DbContext.Seasons
+                .Include(s => s.Competition)
+                .FirstOrDefaultAsync(s => s.Id == command.Request.SeasonId.Value, ct);
+            if (season is null)
+                return ScoreCastResponse.NotFound($"Season {command.Request.SeasonId} not found.");
+            currentSeasons = [season];
+        }
+        else
+        {
+            currentSeasons = await DbContext.Seasons
+                .Include(s => s.Competition)
+                .Where(s => s.IsCurrent)
+                .ToListAsync(ct);
+        }
 
         if (currentSeasons.Count == 0)
             return ScoreCastResponse.Error("No current seasons found.");
@@ -341,7 +354,8 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
         }
         catch (Exception ex)
         {
-            throw new ScoreCastException("Football-data.org bulk matches API failed", ex);
+            Logger.LogWarning(ex, "Football-data.org bulk matches API failed");
+            return (0, $"Football-data.org: {ex.Message}");
         }
 
         if (fdResponse?.Matches is not { Count: > 0 }) return (0, null);
