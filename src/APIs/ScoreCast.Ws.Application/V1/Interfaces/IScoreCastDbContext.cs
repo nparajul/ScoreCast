@@ -35,4 +35,5 @@ public interface IScoreCastDbContext
     DbSet<ExternalMapping> ExternalMappings { get; }
     DbSet<AppConfig> AppConfigs { get; }
     DbSet<MatchInsightCache> MatchInsightCaches { get; }
+    DbSet<UserSeason> UserSeasons { get; }
 }

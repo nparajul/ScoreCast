@@ -30,4 +30,10 @@ public partial interface IScoreCastApiClient
 
     [Get("/api/v1/prediction/scoring-rules")]
     Task<ScoreCastResponse<List<ScoringRuleResult>>> GetScoringRulesAsync(CancellationToken ct);
+
+    [Post("/api/v1/prediction/user-seasons")]
+    Task<ScoreCastResponse<UserSeasonResult>> EnrollUserSeasonAsync([Body] EnrollUserSeasonRequest request, CancellationToken ct);
+
+    [Get("/api/v1/prediction/user-seasons")]
+    Task<ScoreCastResponse<List<UserSeasonResult>>> GetUserSeasonsAsync(CancellationToken ct);
 }
