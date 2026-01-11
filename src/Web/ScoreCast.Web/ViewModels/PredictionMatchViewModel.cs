@@ -55,25 +55,5 @@ public sealed class PredictionMatchViewModel
         };
     }
 
-    public static string? Validate(List<PredictionMatchViewModel> matches)
-    {
-        var unlocked = matches.Where(m => !m.IsLocked).ToList();
-        if (unlocked.Count == 0)
-            return "No matches available to predict";
-
-        var incomplete = unlocked.Where(m => m.PredictedHomeScore.HasValue != m.PredictedAwayScore.HasValue).ToList();
-        if (incomplete.Count > 0)
-            return $"Please enter both scores for: {string.Join(", ", incomplete.Select(m => $"{m.HomeTeamShortName} vs {m.AwayTeamShortName}"))}";
-
-        var negative = unlocked.Where(m => m.PredictedHomeScore < 0 || m.PredictedAwayScore < 0).ToList();
-        if (negative.Count > 0)
-            return "Scores cannot be negative";
-
-        var missing = unlocked.Where(m => !m.HasPrediction).ToList();
-        return missing.Count > 0
-            ? $"Please enter predictions for all matches ({missing.Count} remaining)"
-            : null;
-    }
-
     public bool IsIncomplete => !IsLocked && (PredictedHomeScore.HasValue != PredictedAwayScore.HasValue);
 }
