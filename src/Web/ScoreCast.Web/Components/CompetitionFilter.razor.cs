@@ -17,6 +17,7 @@ public partial class CompetitionFilter
     private string? _selectedCountry;
     private CompetitionResult? _selectedCompetition;
     private SeasonResult? _selectedSeason;
+    private bool _loaded;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -47,12 +48,14 @@ public partial class CompetitionFilter
             _selectedCountry = defaultCompetition.CountryName;
             _filteredCompetitions = _competitions.Where(c => c.CountryName == _selectedCountry).ToList();
             _selectedCompetition = _filteredCompetitions.FirstOrDefault(c => c.Id == defaultCompetition.Id);
+            _loaded = true;
             StateHasChanged();
             await Task.Yield();
             if (_selectedCompetition is not null)
                 await LoadSeasonsAsync(_selectedCompetition);
         }
 
+        _loaded = true;
         StateHasChanged();
     }
 
