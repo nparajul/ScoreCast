@@ -1,0 +1,42 @@
+@using ScoreCast.Models.V1.Requests.UserManagement
+
+<MudDialog Options="@(new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true, NoHeader = true, CloseOnEscapeKey = false, BackdropClick = false })">
+    <DialogContent>
+        <div class="d-flex flex-column align-center"
+             style="background:linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); margin:-24px -24px 0; padding:40px 24px 28px; border-radius:28px 28px 0 0;">
+            <div style="background:rgba(255,255,255,0.12); border-radius:20px; padding:14px; margin-bottom:12px;">
+                <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="40" Height="40" />
+            </div>
+            <MudText Typo="Typo.h5" Style="color:#FFFFFF; font-weight:700;">Pick a Username</MudText>
+            <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.6); margin-top:4px;">This is how others will see you</MudText>
+        </div>
+
+        <div class="pa-6">
+            <MudTextField @bind-Value="_username"
+                          Label="Username"
+                          Placeholder="e.g. niteshp"
+                          Variant="Variant.Outlined"
+                          Immediate="true"
+                          AutoFocus="true"
+                          HelperText="3–20 characters, letters, numbers, underscores only"
+                          Error="@(!string.IsNullOrEmpty(_error))"
+                          ErrorText="@_error"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.AlternateEmail"
+                          Class="mb-4" />
+
+            <MudButton OnClick="Submit"
+                       Variant="Variant.Filled"
+                       Color="Color.Tertiary"
+                       Disabled="@(_submitting || string.IsNullOrWhiteSpace(_username))"
+                       FullWidth="true"
+                       Style="border-radius:14px;">
+                @if (_submitting)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                }
+                Confirm
+            </MudButton>
+        </div>
+    </DialogContent>
+</MudDialog>

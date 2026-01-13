@@ -22,7 +22,7 @@ public sealed class ScoreCastSaveChangesInterceptor(IHttpContextAccessor httpCon
         if (httpContext is null)
             return base.SavingChangesAsync(eventData, result, cancellationToken);
 
-        var userId = new UserId(httpContext.User.CurrentUser());
+        var userId = httpContext.Items["ScoreCastUserId"] as string ?? "Guest";
 
         foreach (var entry in dbContext.ChangeTracker.Entries<IAuditable>())
             switch (entry.State)
