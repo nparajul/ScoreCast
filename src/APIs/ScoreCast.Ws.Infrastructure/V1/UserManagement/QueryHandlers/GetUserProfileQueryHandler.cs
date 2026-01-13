@@ -15,7 +15,7 @@ internal sealed record GetUserProfileQueryHandler(
     {
         var user = await DbContext.UserMasters
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.KeycloakUserId == query.KeycloakUserId, ct);
+            .FirstOrDefaultAsync(u => u.FirebaseUid == query.FirebaseUid, ct);
 
         if (user is null)
             return ScoreCastResponse<UserProfileResult>.NotFound("User profile not found");

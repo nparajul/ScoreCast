@@ -20,12 +20,12 @@ internal sealed record SyncUserCommandHandler(
         var request = command.Request;
 
         var existingUser = await DbContext.UserMasters
-            .FirstOrDefaultAsync(u => u.KeycloakUserId == request.KeycloakUserId
+            .FirstOrDefaultAsync(u => u.FirebaseUid == request.FirebaseUid
                                       || u.Email == request.Email, ct);
 
         if (existingUser is not null)
         {
-            existingUser.KeycloakUserId = request.KeycloakUserId ?? existingUser.KeycloakUserId;
+            existingUser.FirebaseUid = request.FirebaseUid ?? existingUser.FirebaseUid;
             existingUser.Email = request.Email;
             existingUser.DisplayName = request.DisplayName ?? existingUser.DisplayName;
             existingUser.LastLoginDate = ScoreCastDateTime.Now;
@@ -38,7 +38,7 @@ internal sealed record SyncUserCommandHandler(
 
         var newUser = new UserMaster
         {
-            KeycloakUserId = request.KeycloakUserId!,
+            FirebaseUid = request.FirebaseUid!,
             UserId = request.Email,
             Email = request.Email,
             DisplayName = request.DisplayName,

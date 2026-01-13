@@ -24,7 +24,7 @@ internal sealed partial record SetUsernameCommandHandler(
             return ScoreCastResponse<UserProfileResult>.Error("Username can only contain letters, numbers, and underscores");
 
         var user = await DbContext.UserMasters
-            .FirstOrDefaultAsync(u => u.KeycloakUserId == command.KeycloakUserId, ct);
+            .FirstOrDefaultAsync(u => u.FirebaseUid == command.FirebaseUid, ct);
 
         if (user is null)
             return ScoreCastResponse<UserProfileResult>.NotFound("User not found");
