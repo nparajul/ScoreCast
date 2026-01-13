@@ -30,7 +30,7 @@ internal sealed record GetUserProfileQueryHandler(
             new UserProfileResult(
                 user.Id, user.UserId, user.Email, user.DisplayName,
                 user.AvatarUrl, user.FavoriteTeam, user.TotalPoints,
-                user.CurrentStreak, completedGws, user.IsActive,
+                user.BestGameweek, completedGws, user.IsActive,
                 user.CreatedDate));
     }
 }
