@@ -13,6 +13,7 @@ public partial class Scores : IDisposable
     [Inject] private IScoreCastApiClient Api { get; set; } = null!;
     [Inject] private ILoadingService Loading { get; set; } = null!;
     [Inject] private IAlertService Alert { get; set; } = null!;
+    [Inject] private IClientTimeProvider ClientTime { get; set; } = null!;
 
     private const string _appName = "SCORES";
 
@@ -22,6 +23,7 @@ public partial class Scores : IDisposable
 
     private async Task OnFilterChanged(CompetitionFilterState state)
     {
+        await ClientTime.InitializeAsync();
         _selectedSeason = state.Season;
         _gameweek = null;
         _expandedMatches.Clear();
@@ -105,9 +107,9 @@ public partial class Scores : IDisposable
     {
         if (_gameweek is null) return [];
 
-        var today = ScoreCastDateTime.Now.Date;
+        var today = ClientTime.Today;
         return _gameweek.Matches
-            .GroupBy(m => m.KickoffTime.HasValue ? DateOnly.FromDateTime(m.KickoffTime.Value.ToLocalTime()) : (DateOnly?)null)
+            .GroupBy(m => m.KickoffTime.HasValue ? DateOnly.FromDateTime(ClientTime.ToLocal(m.KickoffTime.Value)) : (DateOnly?)null)
             .OrderBy(g => g.Key)
             .Select(g =>
             {

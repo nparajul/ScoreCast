@@ -10,6 +10,7 @@ public static class ComponentServiceExtensions
         services.AddScoped<ILoadingService, LoadingService>();
         services.AddScoped<IAlertService, AlertService>();
         services.AddScoped<IRoleNavigationService, RoleNavigationService>();
+        services.AddScoped<IClientTimeProvider, ClientTimeProvider>();
         return services;
     }
 }
