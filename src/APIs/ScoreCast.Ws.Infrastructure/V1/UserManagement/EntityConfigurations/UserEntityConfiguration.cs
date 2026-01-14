@@ -18,7 +18,7 @@ internal sealed class UserEntityConfiguration : BaseEntityConfiguration<UserMast
         var order = 1;
 
         builder.Property(u => u.FirebaseUid)
-            .HasColumnName("keycloak_user_id")
+            .HasColumnName("firebase_uid")
             .HasColumnOrder(order++)
             .IsRequired()
             .HasMaxLength(50);
@@ -56,7 +56,7 @@ internal sealed class UserEntityConfiguration : BaseEntityConfiguration<UserMast
             .HasDefaultValue(0);
 
         builder.Property(u => u.BestGameweek)
-            .HasColumnName("current_streak")
+            .HasColumnName("best_gameweek")
             .HasColumnOrder(order++);
 
         builder.Property(u => u.IsActive)
