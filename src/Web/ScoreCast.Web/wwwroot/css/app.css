@@ -264,3 +264,7 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.3; }
 }
+
+.hover-highlight:hover {
+    background: var(--mud-palette-action-default-hover);
+}
