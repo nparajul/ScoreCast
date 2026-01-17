@@ -83,9 +83,7 @@
                                             <div style="font-size:12px;font-weight:600;color:var(--mud-palette-text-secondary);">
                                                 @if (match.KickoffTime.HasValue)
                                                 {
-                                                    @ClientTime.ToLocal(match.KickoffTime.Value).ToString("dd MMM")
-                                                    <br />
-                                                    @ClientTime.ToLocal(match.KickoffTime.Value).ToString("HH:mm")
+                                                    @FormatDate(match.KickoffTime.Value)
                                                 }
                                                 else
                                                 {
