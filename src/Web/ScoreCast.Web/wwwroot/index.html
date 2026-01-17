@@ -33,7 +33,8 @@
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
                 newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+                    if (newWorker.state === 'activated' && navigator.serviceWorker.controller && !sessionStorage.getItem('sw-updated')) {
+                        sessionStorage.setItem('sw-updated', '1');
                         location.reload();
                     }
                 });
