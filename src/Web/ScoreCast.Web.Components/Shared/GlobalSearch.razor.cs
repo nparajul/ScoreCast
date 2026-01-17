@@ -9,12 +9,15 @@ public partial class GlobalSearch
 
     [Parameter] public bool Visible { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public bool Inline { get; set; }
 
     private string? _query;
     private List<SearchItem> _allItems = [];
     private List<SearchItem> _filtered = [];
     private bool _dataLoaded;
     private bool _loading;
+
+    private bool HasResults => _loading || _filtered.Count > 0 || !string.IsNullOrWhiteSpace(_query);
 
     private async Task OnSearchChanged(string? value)
     {
@@ -84,5 +87,5 @@ public partial class GlobalSearch
         await OnClose.InvokeAsync();
     }
 
-    private record SearchItem(string Emoji, string Name, string? ImageUrl, string Category, string Url);
+    public record SearchItem(string Emoji, string Name, string? ImageUrl, string Category, string Url);
 }

@@ -50,10 +50,19 @@
 
         <AuthorizeView>
             <Authorized>
-                <MudIconButton Icon="@Icons.Material.Filled.Search"
-                               Color="Color.Inherit"
-                               OnClick="@(() => _searchOpen = !_searchOpen)"
-                               aria-label="Search" />
+                @if (_searchOpen && !_isMobile)
+                {
+                    <div style="position:relative;width:280px;">
+                        <GlobalSearch Visible="true" Inline="true" OnClose="@(() => { _searchOpen = false; StateHasChanged(); })" />
+                    </div>
+                }
+                else
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Search"
+                                   Color="Color.Inherit"
+                                   OnClick="@(() => _searchOpen = !_searchOpen)"
+                                   aria-label="Search" />
+                }
             </Authorized>
         </AuthorizeView>
 
@@ -70,7 +79,7 @@
         <LoginDisplay Class="d-none d-md-flex" />
     </MudAppBar>
 
-    <GlobalSearch Visible="_searchOpen" OnClose="@(() => { _searchOpen = false; StateHasChanged(); })" />
+    <GlobalSearch Visible="@(_searchOpen && _isMobile)" OnClose="@(() => { _searchOpen = false; StateHasChanged(); })" />
 
     @* Desktop drawer (unchanged) *@
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Temporary" Class="d-none d-md-flex">
