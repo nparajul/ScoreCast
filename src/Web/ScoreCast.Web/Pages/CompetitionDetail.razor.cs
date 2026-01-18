@@ -24,7 +24,9 @@ public partial class CompetitionDetail : ScoreCastComponentBase
     private readonly HashSet<long> _expandedMatches = [];
 
     private string _activeTab = "Table";
-    private string _playerStatTab = "Goals";
+    private string _playerStatTab = "Overall";
+    private string _sortColumn = "Goals";
+    private bool _sortDescending = true;
     private static readonly string[] _tabs = ["Table", "Scores", "Players"];
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -132,16 +134,45 @@ public partial class CompetitionDetail : ScoreCastComponentBase
             .ToList();
     }
 
-    private record PlayerStatDisplay(string PlayerName, string? TeamLogo, int Value);
-
-    private List<PlayerStatDisplay> GetPlayerStatRows()
+    private void SortBy(string column)
     {
-        if (_playerStats is null) return [];
-        return _playerStatTab switch
+        if (_sortColumn == column) _sortDescending = !_sortDescending;
+        else { _sortColumn = column; _sortDescending = true; }
+    }
+
+    private string SortIcon(string column) =>
+        _sortColumn != column ? "" : _sortDescending ? Icons.Material.Filled.ArrowDownward : Icons.Material.Filled.ArrowUpward;
+
+    private IEnumerable<PlayerStatRow> SortedPlayerRows
+    {
+        get
         {
-            "Goals" => _playerStats.Rows.OrderByDescending(p => p.Goals).Take(20).Select(p => new PlayerStatDisplay(p.PlayerName, p.TeamLogo, p.Goals)).ToList(),
-            "Assists" => _playerStats.Rows.OrderByDescending(p => p.Assists).Take(20).Select(p => new PlayerStatDisplay(p.PlayerName, p.TeamLogo, p.Assists)).ToList(),
-            _ => []
-        };
+            if (_playerStats is null) return [];
+            var rows = _playerStats.Rows.AsEnumerable();
+            return _sortColumn switch
+            {
+                "Goals" => _sortDescending ? rows.OrderByDescending(r => r.Goals + r.PenaltyGoals).ThenByDescending(r => r.Assists) : rows.OrderBy(r => r.Goals + r.PenaltyGoals),
+                "Assists" => _sortDescending ? rows.OrderByDescending(r => r.Assists).ThenByDescending(r => r.Goals + r.PenaltyGoals) : rows.OrderBy(r => r.Assists),
+                "YellowCards" => _sortDescending ? rows.OrderByDescending(r => r.YellowCards).ThenByDescending(r => r.RedCards) : rows.OrderBy(r => r.YellowCards),
+                "RedCards" => _sortDescending ? rows.OrderByDescending(r => r.RedCards).ThenByDescending(r => r.YellowCards) : rows.OrderBy(r => r.RedCards),
+                _ => rows.OrderByDescending(r => r.Goals + r.PenaltyGoals)
+            };
+        }
+    }
+
+    private IEnumerable<PlayerStatRow> MobileTabRows
+    {
+        get
+        {
+            if (_playerStats is null) return [];
+            var rows = _playerStats.Rows.AsEnumerable();
+            return _playerStatTab switch
+            {
+                "Goals" => rows.OrderByDescending(r => r.Goals + r.PenaltyGoals).ThenByDescending(r => r.Assists),
+                "Assists" => rows.OrderByDescending(r => r.Assists).ThenByDescending(r => r.Goals + r.PenaltyGoals),
+                "Discipline" => rows.OrderByDescending(r => r.YellowCards + r.RedCards).ThenByDescending(r => r.RedCards),
+                _ => rows.OrderByDescending(r => r.Goals + r.PenaltyGoals).ThenByDescending(r => r.Assists)
+            };
+        }
     }
 }
