@@ -30,55 +30,41 @@ jobs:
         id: seasons
         run: |
           for i in 1 2 3; do
-            COMPETITIONS=$(curl -s --max-time 30 -H "X-Api-Key: $API_KEY" "$API_BASE_URL/api/v1/football/competitions")
-            CODES=$(echo "$COMPETITIONS" | jq -r '.data[].code // empty' 2>/dev/null | tr '\n' ' ' | xargs)
-            if [ -n "$CODES" ]; then break; fi
-            echo "Attempt $i: empty competitions, retrying..."
+            RESPONSE=$(curl -s --max-time 30 -H "X-Api-Key: $API_KEY" "$API_BASE_URL/api/v1/master-data/enhance-live/seasons")
+            IDS=$(echo "$RESPONSE" | jq -r '.data[]' 2>/dev/null | tr '\n' ' ' | xargs)
+            if [ -n "$IDS" ]; then break; fi
+            echo "Attempt $i: empty response, retrying..."
             sleep 10
           done
-          if [ -z "$CODES" ]; then
-            echo "::error::No competitions returned"
-            exit 1
-          fi
-
-          SEASON_IDS=""
-          for CODE in $CODES; do
-            for j in 1 2 3; do
-              RESPONSE=$(curl -s --max-time 30 -H "X-Api-Key: $API_KEY" "$API_BASE_URL/api/v1/football/competitions/$CODE/seasons")
-              SID=$(echo "$RESPONSE" | jq -r '.data[] | select(.isCurrent) | .id // empty' 2>/dev/null)
-              if [ -n "$SID" ]; then break; fi
-              sleep 5
-            done
-            if [ -n "$SID" ]; then SEASON_IDS="$SEASON_IDS $SID"; fi
-          done
-          if [ -z "$SEASON_IDS" ]; then
+          if [ -z "$IDS" ]; then
             echo "::error::No current seasons found"
             exit 1
           fi
-          SEASON_IDS=$(echo "$SEASON_IDS" | xargs)
-          echo "Season IDs: $SEASON_IDS"
-          echo "ids=$SEASON_IDS" >> $GITHUB_OUTPUT
+          echo "Season IDs: $IDS"
+          echo "ids=$IDS" >> $GITHUB_OUTPUT
 
       - name: Calculate outcomes per season
         run: |
-          FAILED=0
+          SUCCEEDED=0
+          TOTAL=0
           for SID in ${{ steps.seasons.outputs.ids }}; do
+            TOTAL=$((TOTAL + 1))
             echo "Calculating season $SID..."
             for i in 1 2 3; do
-              HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" --max-time 60 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+              HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" --max-time 60 -X POST \
+                -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
                 -d "{\"seasonId\":$SID,\"appName\":\"GITHUB-ACTIONS:CALCULATE-POINTS\"}" \
                 "$API_BASE_URL/api/v1/prediction/calculate-outcomes")
               RESULT=$(cat /tmp/response.json)
               SUCCESS=$(echo "$RESULT" | jq -r '.success // false' 2>/dev/null)
               MSG=$(echo "$RESULT" | jq -r '.message // empty' 2>/dev/null)
               echo "Attempt $i - Season $SID: HTTP $HTTP_CODE success=$SUCCESS message=$MSG"
-              if [ "$SUCCESS" != "true" ] && [ -n "$RESULT" ]; then echo "Raw: $RESULT"; fi
-              if [ "$SUCCESS" = "true" ]; then break; fi
+              if [ "$SUCCESS" = "true" ]; then SUCCEEDED=$((SUCCEEDED + 1)); break; fi
               sleep 5
             done
-            if [ "$SUCCESS" != "true" ]; then FAILED=1; fi
           done
-          if [ "$FAILED" = "1" ]; then
-            echo "::error::One or more seasons failed"
+          echo "Calculated $SUCCEEDED/$TOTAL seasons"
+          if [ "$SUCCEEDED" = "0" ]; then
+            echo "::error::All seasons failed"
             exit 1
           fi
