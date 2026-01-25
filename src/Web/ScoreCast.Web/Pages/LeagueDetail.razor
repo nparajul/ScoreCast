@@ -51,7 +51,8 @@
                                         <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
                                     }
                                 </MudAvatar>
-                                <span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:@(IsMobile ? "100px" : "none");">@row.DisplayName</span>
+                                <span @onclick="@(() => Nav.NavigateTo($"/dashboard/{LeagueId}/player/{row.UserId}"))"
+                                      style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:@(IsMobile ? "100px" : "none");cursor:pointer;text-decoration:underline;text-decoration-color:var(--mud-palette-text-secondary);text-underline-offset:2px;">@row.DisplayName</span>
                             </div>
                         </td>
                         <td style="padding:8px 2px;text-align:center;font-weight:700;font-size:15px;">@row.TotalPoints</td>

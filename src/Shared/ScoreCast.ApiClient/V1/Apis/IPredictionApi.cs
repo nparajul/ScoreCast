@@ -42,4 +42,10 @@ public partial interface IScoreCastApiClient
 
     [Get("/api/v1/prediction/user-seasons")]
     Task<ScoreCastResponse<List<UserSeasonResult>>> GetUserSeasonsAsync(CancellationToken ct);
+
+    [Get("/api/v1/prediction/profile/{targetUserId}/{predictionLeagueId}")]
+    Task<ScoreCastResponse<PlayerProfileResult>> GetPlayerProfileAsync(long targetUserId, long predictionLeagueId, CancellationToken ct);
+
+    [Get("/api/v1/prediction/profile/{targetUserId}/{predictionLeagueId}/{seasonId}/{gameweekId}")]
+    Task<ScoreCastResponse<PlayerGameweekResult>> GetPlayerGameweekAsync(long targetUserId, long predictionLeagueId, long seasonId, long gameweekId, CancellationToken ct);
 }
