@@ -31,6 +31,12 @@ public partial interface IScoreCastApiClient
     [Get("/api/v1/prediction/scoring-rules")]
     Task<ScoreCastResponse<List<ScoringRuleResult>>> GetScoringRulesAsync(CancellationToken ct);
 
+    [Post("/api/v1/prediction/risk-plays")]
+    Task<ScoreCastResponse> SubmitRiskPlaysAsync([Body] SubmitRiskPlaysRequest request, CancellationToken ct);
+
+    [Get("/api/v1/prediction/risk-plays/{seasonId}/{gameweekId}")]
+    Task<ScoreCastResponse<List<RiskPlayResult>>> GetMyRiskPlaysAsync(long seasonId, long gameweekId, CancellationToken ct);
+
     [Post("/api/v1/prediction/user-seasons")]
     Task<ScoreCastResponse<UserSeasonResult>> EnrollUserSeasonAsync([Body] EnrollUserSeasonRequest request, CancellationToken ct);
 

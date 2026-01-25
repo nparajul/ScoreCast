@@ -7,6 +7,8 @@ namespace ScoreCast.Web.ViewModels;
 public sealed class PredictionMatchViewModel
 {
     public long MatchId { get; private init; }
+    public long HomeTeamId { get; private init; }
+    public long AwayTeamId { get; private init; }
     public string? HomeTeamShortName { get; private init; }
     public string? AwayTeamShortName { get; private init; }
     public string? HomeTeamLogo { get; private init; }
@@ -26,6 +28,8 @@ public sealed class PredictionMatchViewModel
     public static PredictionMatchViewModel FromMatch(MatchDetail match) => new()
     {
         MatchId = match.MatchId,
+        HomeTeamId = match.HomeTeamId,
+        AwayTeamId = match.AwayTeamId,
         HomeTeamShortName = match.HomeTeamShortName,
         AwayTeamShortName = match.AwayTeamShortName,
         HomeTeamLogo = match.HomeTeamLogo,

@@ -51,15 +51,24 @@ internal sealed record GetLeagueStandingsQueryHandler(
                 Count = g.Select(p => p.GameweekId).Distinct().Count()
             });
 
+        // Include resolved risk play bonus/penalty
+        var riskBonusByUser = await DbContext.RiskPlays
+            .AsNoTracking()
+            .Where(r => r.SeasonId == league.SeasonId && r.IsResolved == true
+                        && !r.IsDeleted && memberUserIds.Contains(r.UserId))
+            .GroupBy(r => r.UserId)
+            .ToDictionaryAsync(g => g.Key, g => g.Sum(r => r.BonusPoints ?? 0), ct);
+
         var standings = members
             .Select(m =>
             {
                 var stats = predictionStats.GetValueOrDefault(m.UserId);
+                var riskBonus = riskBonusByUser.GetValueOrDefault(m.UserId);
                 return new LeagueStandingRow(
                     m.UserId,
                     m.DisplayName ?? m.UserIdString,
                     m.AvatarUrl,
-                    stats?.TotalPoints ?? 0,
+                    (stats?.TotalPoints ?? 0) + riskBonus,
                     stats?.ExactScores ?? 0,
                     stats?.CorrectResults ?? 0,
                     stats?.Count ?? 0);
