@@ -13,7 +13,6 @@ internal sealed record GetPlayerProfileQueryHandler(
 {
     public async Task<ScoreCastResponse<PlayerProfileResult>> ExecuteAsync(GetPlayerProfileQuery query, CancellationToken ct)
     {
-        // Verify requesting user is in the same league
         var requestingUser = await DbContext.UserMasters.AsNoTracking()
             .FirstOrDefaultAsync(u => u.UserId == query.RequestingUserId, ct);
         if (requestingUser is null)
@@ -24,7 +23,6 @@ internal sealed record GetPlayerProfileQueryHandler(
         if (!isMember)
             return ScoreCastResponse<PlayerProfileResult>.Error("Not a member of this league");
 
-        // Verify target user is also in the league
         var targetMember = await DbContext.PredictionLeagueMembers.AsNoTracking()
             .AnyAsync(m => m.PredictionLeagueId == query.PredictionLeagueId && m.UserId == query.TargetUserId, ct);
         if (!targetMember)
@@ -38,46 +36,54 @@ internal sealed record GetPlayerProfileQueryHandler(
         var league = await DbContext.PredictionLeagues.AsNoTracking()
             .FirstOrDefaultAsync(l => l.Id == query.PredictionLeagueId, ct);
 
+        // Resolve scoped GW ids
+        int? startingGwNumber = null;
+        if (league!.StartingGameweekId.HasValue)
+        {
+            startingGwNumber = await DbContext.Gameweeks.AsNoTracking()
+                .Where(g => g.Id == league.StartingGameweekId.Value)
+                .Select(g => (int?)g.Number)
+                .FirstOrDefaultAsync(ct);
+        }
+
+        var scopedGwIds = await DbContext.Gameweeks.AsNoTracking()
+            .Where(g => g.SeasonId == league.SeasonId
+                        && (!startingGwNumber.HasValue || g.Number >= startingGwNumber.Value))
+            .Select(g => g.Id)
+            .ToHashSetAsync(ct);
+
         var scoringRules = await DbContext.PredictionScoringRules.AsNoTracking()
             .Where(r => r.PredictionType == PredictionType.Score && r.StageType == null)
             .ToDictionaryAsync(r => r.Outcome, r => r.Points, ct);
 
         var predictions = await DbContext.Predictions.AsNoTracking()
-            .Where(p => p.SeasonId == league!.SeasonId && p.UserId == query.TargetUserId && p.Outcome != null)
+            .Where(p => p.SeasonId == league.SeasonId && p.UserId == query.TargetUserId && p.Outcome != null)
             .Select(p => new { p.Outcome, p.Match!.GameweekId })
             .ToListAsync(ct);
 
-        var riskBonus = await DbContext.RiskPlays.AsNoTracking()
-            .Where(r => r.SeasonId == league!.SeasonId && r.UserId == query.TargetUserId && r.IsResolved == true && !r.IsDeleted)
-            .SumAsync(r => r.BonusPoints ?? 0, ct);
+        var scopedPredictions = predictions.Where(p => scopedGwIds.Contains(p.GameweekId)).ToList();
 
-        var totalPredictionPoints = predictions.Sum(p => scoringRules.GetValueOrDefault(p.Outcome!.Value, 0));
-        var matchweeksPlayed = predictions.Select(p => p.GameweekId).Distinct().Count();
+        var riskPlays = await DbContext.RiskPlays.AsNoTracking()
+            .Where(r => r.SeasonId == league.SeasonId && r.UserId == query.TargetUserId
+                        && r.IsResolved == true && !r.IsDeleted && scopedGwIds.Contains(r.GameweekId))
+            .Select(r => new { r.GameweekId, r.BonusPoints })
+            .ToListAsync(ct);
 
-        // Per-gameweek points for average and best
-        var gwPoints = predictions
-            .GroupBy(p => p.GameweekId)
-            .Select(g => g.Sum(p => scoringRules.GetValueOrDefault(p.Outcome!.Value, 0)))
-            .ToList();
-
-        var riskByGw = await DbContext.RiskPlays.AsNoTracking()
-            .Where(r => r.SeasonId == league!.SeasonId && r.UserId == query.TargetUserId && r.IsResolved == true && !r.IsDeleted)
-            .GroupBy(r => r.GameweekId)
-            .Select(g => new { GwId = g.Key, Bonus = g.Sum(r => r.BonusPoints ?? 0) })
-            .ToDictionaryAsync(x => x.GwId, x => x.Bonus, ct);
+        var riskBonus = riskPlays.Sum(r => r.BonusPoints ?? 0);
+        var totalPredictionPoints = scopedPredictions.Sum(p => scoringRules.GetValueOrDefault(p.Outcome!.Value, 0));
+        var matchweeksPlayed = scopedPredictions.Select(p => p.GameweekId).Distinct().Count();
 
         var bestGw = 0;
         decimal avgPts = 0;
-        if (gwPoints.Count > 0)
+        if (matchweeksPlayed > 0)
         {
-            // Merge risk bonus into per-GW totals
-            var allGwIds = predictions.Select(p => p.GameweekId).Distinct().ToList();
-            var gwTotals = allGwIds.Select(gwId =>
-            {
-                var predPts = predictions.Where(p => p.GameweekId == gwId)
-                    .Sum(p => scoringRules.GetValueOrDefault(p.Outcome!.Value, 0));
-                return predPts + riskByGw.GetValueOrDefault(gwId, 0);
-            }).ToList();
+            var riskByGw = riskPlays.GroupBy(r => r.GameweekId)
+                .ToDictionary(g => g.Key, g => g.Sum(r => r.BonusPoints ?? 0));
+
+            var gwTotals = scopedPredictions.GroupBy(p => p.GameweekId)
+                .Select(g => g.Sum(p => scoringRules.GetValueOrDefault(p.Outcome!.Value, 0))
+                             + riskByGw.GetValueOrDefault(g.Key, 0))
+                .ToList();
 
             bestGw = gwTotals.Max();
             avgPts = Math.Round((decimal)(totalPredictionPoints + riskBonus) / matchweeksPlayed, 1);
@@ -91,8 +97,8 @@ internal sealed record GetPlayerProfileQueryHandler(
             totalPredictionPoints + riskBonus,
             bestGw,
             matchweeksPlayed,
-            predictions.Count(p => p.Outcome == PredictionOutcome.ExactScore),
-            predictions.Count(p => p.Outcome == PredictionOutcome.CorrectResult),
+            scopedPredictions.Count(p => p.Outcome == PredictionOutcome.ExactScore),
+            scopedPredictions.Count(p => p.Outcome == PredictionOutcome.CorrectResult),
             avgPts));
     }
 }
