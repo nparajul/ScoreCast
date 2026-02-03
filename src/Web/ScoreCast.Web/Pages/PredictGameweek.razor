@@ -109,7 +109,7 @@
                                         <div class="d-flex align-center justify-space-between" style="padding:3px 0;font-size:12px;border-top:1px solid rgba(128,128,128,0.2);">
                                             <div class="d-flex align-center gap-1" style="flex:1;min-width:0;">
                                                 @if (m.HomeLogo is not null) { <img src="@m.HomeLogo" alt="" style="width:14px;height:14px;" /> }
-                                                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@m.Home vs @m.Away</span>
+                                                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><a href="/teams/@m.HomeTeamId" style="color:inherit;text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--mud-palette-text-secondary);">@m.Home</a> vs <a href="/teams/@m.AwayTeamId" style="color:inherit;text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--mud-palette-text-secondary);">@m.Away</a></span>
                                             </div>
                                             <div class="d-flex align-center gap-2" style="flex-shrink:0;">
                                                 <span style="color:var(--mud-palette-text-secondary);">@m.PredHome-@m.PredAway</span>
