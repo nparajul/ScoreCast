@@ -15,11 +15,6 @@
 
 <PageGuard>
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
-    <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack"
-               OnClick="@(() => Nav.NavigateTo($"/dashboard/{LeagueId}"))" Class="mb-2">
-        Back to League
-    </MudButton>
-
     @if (_profile is not null)
     {
         @* Profile Header *@
