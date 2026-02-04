@@ -40,7 +40,7 @@
                                 {
                                     <img src="@row.TeamLogo" alt="" style="width:20px;height:20px;" />
                                 }
-                                <span style="font-size:0.8125rem;font-weight:600;">@(row.TeamShortName ?? row.TeamName)</span>
+                                <a href="/teams/@row.TeamId" style="font-size:0.8125rem;font-weight:600;color:inherit;text-decoration:none;">@(row.TeamShortName ?? row.TeamName)</a>
                             </div>
                         </td>
                         <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;">@row.Played</td>

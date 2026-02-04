@@ -143,8 +143,8 @@ internal sealed record GetOrCreateMatchInsightsCommandHandler(
         var awayPct = (int)(awayStr / total * 100);
         var drawPct = 100 - homePct - awayPct;
 
-        return new MatchInsightResult(m.Id, m.HomeName, m.HomeShort, m.HomeLogo,
-            m.AwayName, m.AwayShort, m.AwayLogo, m.KickoffTime, homePct, drawPct, awayPct, null);
+        return new MatchInsightResult(m.Id, m.HomeId, m.HomeName, m.HomeShort, m.HomeLogo,
+            m.AwayId, m.AwayName, m.AwayShort, m.AwayLogo, m.KickoffTime, homePct, drawPct, awayPct, null);
     }
 
     // --- BBC scraping ---

@@ -40,11 +40,11 @@
                                 {
                                     <img src="@m.HomeTeamLogo" alt="" style="width:@(IsMobile ? "20" : "24")px;height:@(IsMobile ? "20" : "24")px;object-fit:contain;" />
                                 }
-                                <span style="font-weight:700;font-size:@(IsMobile ? "12" : "14")px;">@(m.HomeTeamShortName ?? m.HomeTeamName)</span>
+                                <span style="font-weight:700;font-size:@(IsMobile ? "12" : "14")px;"><a href="/teams/@m.HomeTeamId" style="color:inherit;text-decoration:none;">@(m.HomeTeamShortName ?? m.HomeTeamName)</a></span>
                             </div>
                             <span style="font-size:11px;color:var(--mud-palette-text-secondary);">vs</span>
                             <div class="d-flex align-center gap-1">
-                                <span style="font-weight:700;font-size:@(IsMobile ? "12" : "14")px;">@(m.AwayTeamShortName ?? m.AwayTeamName)</span>
+                                <span style="font-weight:700;font-size:@(IsMobile ? "12" : "14")px;"><a href="/teams/@m.AwayTeamId" style="color:inherit;text-decoration:none;">@(m.AwayTeamShortName ?? m.AwayTeamName)</a></span>
                                 @if (m.AwayTeamLogo is not null)
                                 {
                                     <img src="@m.AwayTeamLogo" alt="" style="width:@(IsMobile ? "20" : "24")px;height:@(IsMobile ? "20" : "24")px;object-fit:contain;" />
