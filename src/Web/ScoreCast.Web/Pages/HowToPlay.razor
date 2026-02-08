@@ -1,0 +1,129 @@
+@page "/how-to-play"
+@attribute [AllowAnonymous]
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-4" Style="padding-bottom:100px;">
+
+    <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight:800;" Class="mb-1">How to Play</MudText>
+    <MudText Typo="Typo.body2" Align="Align.Center" Style="color:var(--mud-palette-text-secondary);" Class="mb-6">Everything you need to know about ScoreCast</MudText>
+
+    @* The Basics *@
+    <MudText Typo="Typo.h5" Style="font-weight:700;" Class="mb-2">🎯 The Basics</MudText>
+    <MudText Typo="Typo.body1" Class="mb-1">ScoreCast is a free football prediction game. Before each matchweek, you predict the exact scoreline for every match. After the matches are played, you earn points based on how close you were.</MudText>
+    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);" Class="mb-4">Predictions lock at kickoff — once a match starts, you can't change your prediction for that match. Matches that haven't kicked off yet can still be edited.</MudText>
+
+    @* Scoring *@
+    <MudText Typo="Typo.h5" Style="font-weight:700;" Class="mb-2">📊 Scoring</MudText>
+    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);" Class="mb-3">Points are awarded based on how accurate your prediction is:</MudText>
+
+    <MudSimpleTable Dense="true" Elevation="1" Style="border-radius:10px;max-width:500px;" Class="mb-2">
+        <thead>
+            <tr>
+                <th style="padding:10px 14px;">Outcome</th>
+                <th style="padding:10px 14px;text-align:center;">Points</th>
+                <th style="padding:10px 14px;">Example</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="background:rgba(46,125,50,0.15);">
+                <td style="padding:10px 14px;font-weight:600;">Exact Scoreline</td>
+                <td style="padding:10px 14px;text-align:center;font-weight:800;font-size:18px;">10</td>
+                <td style="padding:10px 14px;font-size:13px;color:var(--mud-palette-text-secondary);">You predicted 2-1, result was 2-1</td>
+            </tr>
+            <tr style="background:rgba(0,131,143,0.15);">
+                <td style="padding:10px 14px;font-weight:600;">Correct Result + GD</td>
+                <td style="padding:10px 14px;text-align:center;font-weight:800;font-size:18px;">7</td>
+                <td style="padding:10px 14px;font-size:13px;color:var(--mud-palette-text-secondary);">You predicted 3-2, result was 2-1</td>
+            </tr>
+            <tr style="background:rgba(255,179,0,0.15);">
+                <td style="padding:10px 14px;font-weight:600;">Correct Result</td>
+                <td style="padding:10px 14px;text-align:center;font-weight:800;font-size:18px;">5</td>
+                <td style="padding:10px 14px;font-size:13px;color:var(--mud-palette-text-secondary);">You predicted 3-0, result was 2-1</td>
+            </tr>
+            <tr style="background:rgba(156,39,176,0.12);">
+                <td style="padding:10px 14px;font-weight:600;">Correct Goal Difference</td>
+                <td style="padding:10px 14px;text-align:center;font-weight:800;font-size:18px;">3</td>
+                <td style="padding:10px 14px;font-size:13px;color:var(--mud-palette-text-secondary);">You predicted 2-1, result was 0-1 (both GD of 1)</td>
+            </tr>
+            <tr style="background:rgba(211,47,47,0.12);">
+                <td style="padding:10px 14px;font-weight:600;">Incorrect</td>
+                <td style="padding:10px 14px;text-align:center;font-weight:800;font-size:18px;">0</td>
+                <td style="padding:10px 14px;font-size:13px;color:var(--mud-palette-text-secondary);">Nothing matched</td>
+            </tr>
+        </tbody>
+    </MudSimpleTable>
+    <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);" Class="mb-6">With 10 matches per gameweek, the maximum prediction score is 100 points.</MudText>
+
+    @* Risk Plays *@
+    <MudText Typo="Typo.h5" Style="font-weight:700;" Class="mb-2">🎲 Risk Plays</MudText>
+    <MudText Typo="Typo.body1" Class="mb-1">Risk plays are optional side challenges you can add to your predictions each gameweek. They can earn you bonus points — or cost you if you get them wrong.</MudText>
+    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);" Class="mb-3">You can place up to 5 risk plays per gameweek: 1 Double Down, 1 Exact Score Boost, and 2 from the minor plays (Clean Sheet, First Goal, Over/Under).</MudText>
+
+    <MudSimpleTable Dense="true" Elevation="1" Style="border-radius:10px;max-width:600px;" Class="mb-2">
+        <thead>
+            <tr>
+                <th style="padding:10px 14px;">Risk Play</th>
+                <th style="padding:10px 14px;">How It Works</th>
+                <th style="padding:10px 14px;text-align:center;">Won</th>
+                <th style="padding:10px 14px;text-align:center;">Lost</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding:10px 14px;font-weight:600;">⚡ Double Down</td>
+                <td style="padding:10px 14px;font-size:13px;">Pick one match — your prediction points are doubled</td>
+                <td style="padding:10px 14px;text-align:center;color:#4caf50;font-weight:700;">+base pts</td>
+                <td style="padding:10px 14px;text-align:center;color:#f44336;font-weight:700;">-5</td>
+            </tr>
+            <tr>
+                <td style="padding:10px 14px;font-weight:600;">🎯 Exact Score Boost</td>
+                <td style="padding:10px 14px;font-size:13px;">Confident you'll nail the exact score? Big bonus if right</td>
+                <td style="padding:10px 14px;text-align:center;color:#4caf50;font-weight:700;">+15</td>
+                <td style="padding:10px 14px;text-align:center;color:#f44336;font-weight:700;">-5</td>
+            </tr>
+            <tr>
+                <td style="padding:10px 14px;font-weight:600;">🧤 Clean Sheet Bet</td>
+                <td style="padding:10px 14px;font-size:13px;">Pick a team to keep a clean sheet</td>
+                <td style="padding:10px 14px;text-align:center;color:#4caf50;font-weight:700;">+5</td>
+                <td style="padding:10px 14px;text-align:center;color:#f44336;font-weight:700;">-3</td>
+            </tr>
+            <tr>
+                <td style="padding:10px 14px;font-weight:600;">⚽ First Goal Team</td>
+                <td style="padding:10px 14px;font-size:13px;">Pick which team scores first in a match</td>
+                <td style="padding:10px 14px;text-align:center;color:#4caf50;font-weight:700;">+3</td>
+                <td style="padding:10px 14px;text-align:center;color:#f44336;font-weight:700;">-2</td>
+            </tr>
+            <tr>
+                <td style="padding:10px 14px;font-weight:600;">📊 Over/Under 2.5</td>
+                <td style="padding:10px 14px;font-size:13px;">Will there be over or under 2.5 total goals?</td>
+                <td style="padding:10px 14px;text-align:center;color:#4caf50;font-weight:700;">+3</td>
+                <td style="padding:10px 14px;text-align:center;color:#f44336;font-weight:700;">-2</td>
+            </tr>
+        </tbody>
+    </MudSimpleTable>
+    <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);" Class="mb-6">Risk plays are resolved live during matches but only finalized at full time (VAR-safe). Maximum risk play bonus per gameweek: +36 points.</MudText>
+
+    @* Leagues *@
+    <MudText Typo="Typo.h5" Style="font-weight:700;" Class="mb-2">👥 Private Leagues</MudText>
+    <MudText Typo="Typo.body1" Class="mb-1">Create a league and share the 6-character invite code with your friends. Everyone in the league competes on the same leaderboard.</MudText>
+    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);" Class="mb-1">Leagues are tied to a specific competition and season. When a league is created mid-season, it starts counting from the next gameweek — so everyone gets a fair start.</MudText>
+    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);" Class="mb-6">You can join multiple leagues and view any member's prediction history and stats from their player profile.</MudText>
+
+    @* Visibility *@
+    <MudText Typo="Typo.h5" Style="font-weight:700;" Class="mb-2">🔒 Prediction Visibility</MudText>
+    <MudText Typo="Typo.body1" Class="mb-1">You can't see another player's predictions until the match kicks off. This prevents copying.</MudText>
+    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);" Class="mb-6">Risk plays are hidden until all matches in the gameweek have kicked off — so you can't see someone's strategy before the last match starts.</MudText>
+
+    @* Live *@
+    <MudText Typo="Typo.h5" Style="font-weight:700;" Class="mb-2">⚡ Live Scoring</MudText>
+    <MudText Typo="Typo.body1" Class="mb-1">During matches, your points and risk play results update in real time. You'll see live previews tagged with "(live)" — these are provisional and can change (e.g. if a goal is disallowed by VAR).</MudText>
+    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);" Class="mb-6">Points are only finalized when a match reaches full time. Your total can go negative if you have a bad gameweek with lost risk plays.</MudText>
+
+    @* Not Betting *@
+    <div style="padding:16px 20px;border-radius:10px;border:2px solid var(--mud-palette-warning);background:var(--mud-palette-surface);margin-bottom:24px;">
+        <MudText Typo="Typo.subtitle1" Style="font-weight:700;">🚫 This is NOT a betting site</MudText>
+        <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);margin-top:4px;">
+            ScoreCast is a free prediction game played purely for fun and bragging rights. There is no real money involved — no stakes, no wagers, no payouts. We do not facilitate, encourage, support, or endorse gambling or betting in any form. Terms like "risk plays" and "bonus points" refer only to in-game scoring mechanics with zero monetary value.
+        </MudText>
+    </div>
+
+</MudContainer>
