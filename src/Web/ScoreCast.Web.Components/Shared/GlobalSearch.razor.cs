@@ -14,16 +14,30 @@ public partial class GlobalSearch
     private string? _query;
     private List<SearchItem> _allItems = [];
     private List<SearchItem> _filtered = [];
+    private List<SearchItem> _suggestions = [];
     private bool _dataLoaded;
     private bool _loading;
 
-    private bool HasResults => _loading || _filtered.Count > 0 || !string.IsNullOrWhiteSpace(_query);
+    private bool HasResults => _loading || _filtered.Count > 0 || _suggestions.Count > 0
+                               || (_query?.Length >= 2);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Visible && !_dataLoaded && _allItems.Count == 0)
+        {
+            _loading = true;
+            StateHasChanged();
+            await LoadDataAsync();
+            _loading = false;
+            StateHasChanged();
+        }
+    }
 
     private async Task OnSearchChanged(string? value)
     {
         _query = value;
 
-        if (string.IsNullOrWhiteSpace(value))
+        if (string.IsNullOrWhiteSpace(value) || value.Length < 2)
         {
             _filtered = [];
             return;
@@ -55,6 +69,9 @@ public partial class GlobalSearch
             foreach (var c in comps.Data)
                 _allItems.Add(new("🏆", c.Name, c.LogoUrl, "Competition", $"/competitions/{c.Id}"));
 
+            // Build suggestions: competitions + top teams per competition
+            _suggestions.AddRange(_allItems.Where(i => i.Category == "Competition"));
+
             foreach (var comp in comps.Data)
             {
                 var teams = await Api.GetTeamsAsync(comp.Name, CancellationToken.None);
@@ -64,6 +81,12 @@ public partial class GlobalSearch
                     {
                         if (_allItems.All(i => i.Url != $"/teams/{t.Id}"))
                             _allItems.Add(new("🛡️", t.Name, t.LogoUrl, "Team", $"/teams/{t.Id}"));
+                    }
+                    // Top 3 teams for suggestions
+                    foreach (var t in teams.Data.Take(3))
+                    {
+                        if (_suggestions.All(s => s.Url != $"/teams/{t.Id}"))
+                            _suggestions.Add(new("🛡️", t.Name, t.LogoUrl, "Popular Teams", $"/teams/{t.Id}"));
                     }
                 }
             }
