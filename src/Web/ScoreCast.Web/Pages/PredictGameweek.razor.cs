@@ -190,7 +190,8 @@ public partial class PredictGameweek
                 if (riskEntries.Count > 0)
                     await Api.SubmitRiskPlaysAsync(new SubmitRiskPlaysRequest { SeasonId = SeasonId, RiskPlays = riskEntries }, CancellationToken.None);
 
-                Alert.Add(response.Message ?? "Predictions saved!", Severity.Success);
+                Alert.Add(response.Message ?? "Predictions saved!",
+                    response.Message?.Contains("skipped") == true ? Severity.Warning : Severity.Success);
             }
             else
                 Alert.Add(response?.Message ?? "Failed to save predictions", Severity.Error);

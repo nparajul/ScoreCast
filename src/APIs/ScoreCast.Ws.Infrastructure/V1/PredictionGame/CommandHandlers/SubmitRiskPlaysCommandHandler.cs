@@ -2,6 +2,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Shared.Enums;
+using ScoreCast.Shared.Types;
 using ScoreCast.Ws.Application;
 using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Application.V1.PredictionGame.Commands;
@@ -31,22 +32,29 @@ internal sealed record SubmitRiskPlaysCommandHandler(
         var matches = await DbContext.Matches
             .AsNoTracking()
             .Where(m => matchIds.Contains(m.Id))
-            .Select(m => new { m.Id, m.GameweekId, m.Status })
+            .Select(m => new { m.Id, m.GameweekId, m.Status, m.KickoffTime })
             .ToListAsync(ct);
 
         if (matches.Count == 0) return ScoreCastResponse.Error("No valid matches");
 
+        var now = ScoreCastDateTime.Now.Value;
         var gameweekId = matches[0].GameweekId;
 
-        // Validate no locked matches
-        var lockedIds = matches.Where(m => m.Status != MatchStatus.Scheduled).Select(m => m.Id).ToHashSet();
-        if (request.RiskPlays.Any(r => lockedIds.Contains(r.MatchId)))
-            return ScoreCastResponse.Error("Cannot place risk plays on started/finished matches");
+        // Reject matches that have started (by status OR kickoff time)
+        var lockedIds = matches
+            .Where(m => m.Status != MatchStatus.Scheduled
+                        || (m.KickoffTime.HasValue && m.KickoffTime.Value <= now))
+            .Select(m => m.Id).ToHashSet();
+
+        // Filter out risk plays on locked matches
+        var validPlays = request.RiskPlays.Where(r => !lockedIds.Contains(r.MatchId)).ToList();
+        if (validPlays.Count == 0 && request.RiskPlays.Count > 0)
+            return ScoreCastResponse.Error("All selected matches have already kicked off");
 
         // Validate limits
-        var ddCount = request.RiskPlays.Count(r => r.RiskType == RiskPlayType.DoubleDown);
-        var esCount = request.RiskPlays.Count(r => r.RiskType == RiskPlayType.ExactScoreBoost);
-        var minorCount = request.RiskPlays.Count(r => r.RiskType is RiskPlayType.CleanSheetBet or RiskPlayType.FirstGoalTeam or RiskPlayType.OverUnderGoals);
+        var ddCount = validPlays.Count(r => r.RiskType == RiskPlayType.DoubleDown);
+        var esCount = validPlays.Count(r => r.RiskType == RiskPlayType.ExactScoreBoost);
+        var minorCount = validPlays.Count(r => r.RiskType is RiskPlayType.CleanSheetBet or RiskPlayType.FirstGoalTeam or RiskPlayType.OverUnderGoals);
 
         if (ddCount > MaxDoubleDown) return ScoreCastResponse.Error("Max 1 Double Down per gameweek");
         if (esCount > MaxExactScoreBoost) return ScoreCastResponse.Error("Max 1 Exact Score Boost per gameweek");
@@ -57,7 +65,7 @@ internal sealed record SubmitRiskPlaysCommandHandler(
             .Where(r => r.UserId == user.Id && r.GameweekId == gameweekId && !r.IsDeleted)
             .ToListAsync(ct);
 
-        foreach (var entry in request.RiskPlays)
+        foreach (var entry in validPlays)
         {
             var ex = existing.FirstOrDefault(r => r.MatchId == entry.MatchId && r.RiskType == entry.RiskType);
             if (ex is not null)
@@ -79,11 +87,11 @@ internal sealed record SubmitRiskPlaysCommandHandler(
         }
 
         // Remove risk plays not in the new submission for this GW
-        var submittedKeys = request.RiskPlays.Select(r => (r.MatchId, r.RiskType)).ToHashSet();
+        var submittedKeys = validPlays.Select(r => (r.MatchId, r.RiskType)).ToHashSet();
         foreach (var old in existing.Where(r => !submittedKeys.Contains((r.MatchId, r.RiskType))))
             old.IsDeleted = true;
 
         await UnitOfWork.SaveChangesAsync(request.AppName ?? nameof(SubmitRiskPlaysCommand), ct);
-        return ScoreCastResponse.Ok($"Saved {request.RiskPlays.Count} risk plays");
+        return ScoreCastResponse.Ok($"Saved {validPlays.Count} risk plays");
     }
 }

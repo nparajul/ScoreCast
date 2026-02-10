@@ -1,6 +1,8 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
+using ScoreCast.Shared.Enums;
+using ScoreCast.Shared.Types;
 using ScoreCast.Ws.Application;
 using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Application.V1.PredictionGame.Commands;
@@ -24,14 +26,35 @@ internal sealed record SubmitPredictionsCommandHandler(
 
         var matchIds = request.Predictions.Select(p => p.MatchId).ToList();
 
+        // Check kickoff times — reject matches that have already started
+        var now = ScoreCastDateTime.Now.Value;
+        var matches = await DbContext.Matches
+            .AsNoTracking()
+            .Where(m => matchIds.Contains(m.Id))
+            .Select(m => new { m.Id, m.KickoffTime, m.Status })
+            .ToListAsync(ct);
+
+        var lockedMatchIds = matches
+            .Where(m => m.Status != MatchStatus.Scheduled
+                        || (m.KickoffTime.HasValue && m.KickoffTime.Value <= now))
+            .Select(m => m.Id)
+            .ToHashSet();
+
+        var validPredictions = request.Predictions.Where(p => !lockedMatchIds.Contains(p.MatchId)).ToList();
+        var skippedCount = request.Predictions.Count - validPredictions.Count;
+
+        if (validPredictions.Count == 0 && skippedCount > 0)
+            return ScoreCastResponse.Error("All matches have already kicked off — predictions cannot be saved");
+
+        var validMatchIds = validPredictions.Select(p => p.MatchId).ToList();
         var existing = await DbContext.Predictions
             .Where(p => p.SeasonId == request.SeasonId
                         && p.UserId == user.Id
                         && p.MatchId != null
-                        && matchIds.Contains(p.MatchId.Value))
+                        && validMatchIds.Contains(p.MatchId.Value))
             .ToDictionaryAsync(p => p.MatchId!.Value, ct);
 
-        foreach (var entry in request.Predictions)
+        foreach (var entry in validPredictions)
         {
             if (existing.TryGetValue(entry.MatchId, out var prediction))
             {
@@ -53,6 +76,9 @@ internal sealed record SubmitPredictionsCommandHandler(
 
         await UnitOfWork.SaveChangesAsync(request.AppName ?? nameof(SubmitPredictionsCommand), ct);
 
-        return ScoreCastResponse.Ok($"Saved {request.Predictions.Count} predictions");
+        if (skippedCount > 0)
+            return ScoreCastResponse.Ok($"Saved {validPredictions.Count} predictions. {skippedCount} skipped — matches already kicked off.");
+
+        return ScoreCastResponse.Ok($"Saved {validPredictions.Count} predictions");
     }
 }
