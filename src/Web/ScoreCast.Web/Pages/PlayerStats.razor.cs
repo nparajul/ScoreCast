@@ -88,7 +88,8 @@ public partial class PlayerStats
                 ? _rows
                 : _rows.Where(r => r.PlayerName.Contains(_search, StringComparison.OrdinalIgnoreCase)
                     || (r.TeamName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false));
-            return filtered.Where(r => r.CleanSheets > 0).OrderByDescending(r => r.CleanSheets).ToList();
+            return filtered.Where(r => r.CleanSheets > 0 && r.Position == ScoreCast.Shared.Constants.PlayerPositions.Goalkeeper)
+                .OrderByDescending(r => r.CleanSheets).ToList();
         }
     }
 
@@ -105,7 +106,7 @@ public partial class PlayerStats
             {
                 "Goals" => filtered.OrderByDescending(r => r.Goals + r.PenaltyGoals).ThenByDescending(r => r.Assists),
                 "Assists" => filtered.OrderByDescending(r => r.Assists).ThenByDescending(r => r.Goals + r.PenaltyGoals),
-                "Clean Sheets" => filtered.Where(r => r.Position == ScoreCast.Shared.Constants.PlayerPositions.Goalkeeper)
+                "Clean Sheets" => filtered.Where(r => r.Position == ScoreCast.Shared.Constants.PlayerPositions.Goalkeeper && r.CleanSheets > 0)
                     .OrderByDescending(r => r.CleanSheets),
                 "Discipline" => filtered.OrderByDescending(r => r.YellowCards + r.RedCards).ThenByDescending(r => r.RedCards),
                 _ => filtered.OrderByDescending(r => r.Goals + r.PenaltyGoals).ThenByDescending(r => r.Assists)
