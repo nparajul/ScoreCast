@@ -48,7 +48,9 @@ internal sealed record PulseEvent(
     [property: JsonPropertyName("assistId")] int? AssistId,
     PulseClock? Clock,
     string Type,
-    string? Description);
+    string? Description,
+    string? Phase,
+    PulseDate? Time);
 
 internal sealed record PulseClock(
     double? Secs,
