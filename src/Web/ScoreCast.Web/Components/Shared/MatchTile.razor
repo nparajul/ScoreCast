@@ -38,7 +38,7 @@
                     }
                 }
             </div>
-            <div style="min-width:60px;text-align:center;flex-shrink:0;">
+            <a href="/matches/@Match.MatchId" @onclick:stopPropagation="true" style="min-width:60px;text-align:center;text-decoration:none;color:inherit;">
                 @if (Match.Status == nameof(MatchStatus.Finished))
                 {
                     <span style="font-weight:700;font-size:@(IsMobile ? "14" : "17")px;">@Match.HomeScore - @Match.AwayScore</span>
@@ -57,7 +57,7 @@
                         @(Match.KickoffTime.HasValue ? FormatLocal(Match.KickoffTime.Value, "HH:mm") : "TBD")
                     </span>
                 }
-            </div>
+            </a>
             <div class="d-flex align-center gap-1" style="flex:1;overflow:hidden;">
                 @if (Match.AwayTeamId != ExcludeTeamId)
                 {
@@ -84,6 +84,9 @@
             </div>
         </div>
         <div class="d-flex align-center justify-center" style="margin-top:2px;">
+            <span @onclick="GoToMatch" @onclick:stopPropagation="true" style="cursor:pointer;display:inline-flex;">
+                <MudIcon Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Style="color:var(--mud-palette-text-secondary);" />
+            </span>
             <MudIcon Icon="@(IsExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Size="Size.Small" Style="color:var(--mud-palette-text-secondary);" />
         </div>
     </div>

@@ -1,0 +1,318 @@
+@page "/matches/{MatchId:long}"
+
+<PageGuard>
+@if (_loaded && _match is not null)
+{
+<div>
+    <MudContainer MaxWidth="MaxWidth.Medium" Style="padding-top:12px;padding-bottom:100px;">
+
+        @* Header: competition + back *@
+        <div class="d-flex align-center gap-2 mb-2">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small" OnClick="@(() => Nav.NavigateTo("/scores"))" />
+            @if (_match.CompetitionLogo is not null)
+            {
+                <img src="@_match.CompetitionLogo" alt="" style="width:20px;height:20px;" />
+            }
+            <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);font-weight:600;">@_match.CompetitionName</MudText>
+        </div>
+
+        @* Scoreboard *@
+        <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;padding:20px 16px;text-align:center;">
+            @if (_match.Status == nameof(MatchStatus.Live))
+            {
+                <div class="d-flex align-center justify-center gap-2 mb-2">
+                    <span class="live-pulse"></span>
+                    <span style="font-size:12px;font-weight:700;color:#f44336;letter-spacing:1px;">LIVE</span>
+                    @if (_clockDisplay is not null)
+                    {
+                        <span style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">@_clockDisplay</span>
+                    }
+                </div>
+            }
+            else if (_match.Status == nameof(MatchStatus.Finished))
+            {
+                <div style="font-size:12px;font-weight:700;color:var(--mud-palette-text-secondary);margin-bottom:8px;">FULL TIME</div>
+            }
+            else if (_match.KickoffTime.HasValue)
+            {
+                <div style="font-size:12px;color:var(--mud-palette-text-secondary);margin-bottom:8px;">
+                    @FormatLocal(_match.KickoffTime.Value, "ddd dd MMM yyyy, HH:mm")
+                </div>
+            }
+
+            <div class="d-flex align-center justify-center" style="gap:@(IsMobile ? "12" : "24")px;">
+                <a href="/teams/@_match.HomeTeamId" style="text-decoration:none;color:inherit;text-align:center;flex:1;">
+                    @if (_match.HomeTeamLogo is not null)
+                    {
+                        <img src="@_match.HomeTeamLogo" alt="" style="width:@(IsMobile ? "48" : "64")px;height:@(IsMobile ? "48" : "64")px;display:block;margin:0 auto 6px;" />
+                    }
+                    <div style="font-weight:700;font-size:@(IsMobile ? "13" : "15")px;">@_match.HomeTeamShortName</div>
+                </a>
+
+                <div style="min-width:80px;">
+                    @if (_match.Status is nameof(MatchStatus.Live) or nameof(MatchStatus.Finished))
+                    {
+                        <div style="font-size:@(IsMobile ? "28" : "36")px;font-weight:800;font-variant-numeric:tabular-nums;color:@(_match.Status == nameof(MatchStatus.Live) ? "#4caf50" : "inherit");">
+                            @(_match.HomeScore ?? 0) - @(_match.AwayScore ?? 0)
+                        </div>
+                        @if (_match.HalfTimeHomeScore is not null)
+                        {
+                            <div style="font-size:11px;color:var(--mud-palette-text-secondary);">HT: @_match.HalfTimeHomeScore - @_match.HalfTimeAwayScore</div>
+                        }
+                    }
+                    else
+                    {
+                        <div style="font-size:20px;font-weight:700;color:var(--mud-palette-text-secondary);">vs</div>
+                    }
+                </div>
+
+                <a href="/teams/@_match.AwayTeamId" style="text-decoration:none;color:inherit;text-align:center;flex:1;">
+                    @if (_match.AwayTeamLogo is not null)
+                    {
+                        <img src="@_match.AwayTeamLogo" alt="" style="width:@(IsMobile ? "48" : "64")px;height:@(IsMobile ? "48" : "64")px;display:block;margin:0 auto 6px;" />
+                    }
+                    <div style="font-weight:700;font-size:@(IsMobile ? "13" : "15")px;">@_match.AwayTeamShortName</div>
+                </a>
+            </div>
+
+            @if (_match.Venue is not null || _match.Referee is not null)
+            {
+                <div style="margin-top:10px;font-size:12px;color:var(--mud-palette-text-secondary);">
+                    @if (_match.Venue is not null) { <span>🏟️ @_match.Venue</span> }
+                    @if (_match.Venue is not null && _match.Referee is not null) { <span> · </span> }
+                    @if (_match.Referee is not null) { <span>🧑‍⚖️ @_match.Referee</span> }
+                </div>
+            }
+        </MudPaper>
+
+        @* Tabs *@
+        <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:3px;margin:12px 0;">
+            @foreach (var tab in new[] { "Events", "Lineups" })
+            {
+                var isActive = _activeTab == tab;
+                <div @onclick="@(() => _activeTab = tab)"
+                     style="flex:1;text-align:center;padding:8px 0;border-radius:24px;font-size:0.8rem;font-weight:700;cursor:pointer;
+                            background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
+                            color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
+                    @tab
+                </div>
+            }
+        </div>
+
+        @* Events Tab *@
+        @if (_activeTab == "Events")
+        {
+            <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;">
+                @if (OrderedEvents.Count > 0)
+                {
+                    @foreach (var evt in OrderedEvents)
+                    {
+                        <div style="display:flex;align-items:center;padding:10px 14px;gap:10px;border-bottom:1px solid var(--mud-palette-divider);">
+                            <span style="min-width:36px;font-size:12px;font-weight:700;color:var(--mud-palette-text-secondary);text-align:center;">@evt.Minute</span>
+                            <span style="font-size:16px;min-width:24px;text-align:center;">@EventIcon(evt.EventType)</span>
+                            <div style="flex:1;">
+                                <div style="font-weight:600;font-size:13px;@(evt.IsHome ? "" : "text-align:right;")">
+                                    @evt.PlayerName
+                                </div>
+                                @if (evt.AssistName is not null)
+                                {
+                                    <div style="font-size:11px;color:var(--mud-palette-text-secondary);@(evt.IsHome ? "" : "text-align:right;")">
+                                        👟 @evt.AssistName
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div style="padding:24px;text-align:center;color:var(--mud-palette-text-secondary);font-size:13px;">
+                        @if (_match.Status == nameof(MatchStatus.Scheduled))
+                        {
+                            <text>Match hasn't started yet</text>
+                        }
+                        else
+                        {
+                            <text>No events recorded</text>
+                        }
+                    </div>
+                }
+            </MudPaper>
+        }
+
+        @* Lineups Tab *@
+        @if (_activeTab == "Lineups")
+        {
+            @if (_match.HomeLineup.Count > 0 || _match.AwayLineup.Count > 0)
+            {
+                @* Formation Pitch *@
+                @if (_match.HomeFormation is not null || _match.AwayFormation is not null)
+                {
+                    <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;background:linear-gradient(180deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);position:relative;padding:16px 8px;">
+                        @* Pitch lines *@
+                        <div style="position:absolute;inset:0;pointer-events:none;">
+                            <div style="position:absolute;top:50%;left:10%;right:10%;height:1px;background:rgba(255,255,255,0.2);"></div>
+                            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border:1px solid rgba(255,255,255,0.2);border-radius:50%;"></div>
+                        </div>
+
+                        @* Home formation (top half) *@
+                        @if (_match.HomeFormation is not null)
+                        {
+                            <div style="text-align:center;margin-bottom:6px;">
+                                <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);">@_match.HomeTeamShortName — @_match.HomeFormation</span>
+                            </div>
+                            @foreach (var row in GetFormationRows(_match.HomeLineup, _match.HomeFormation, false))
+                            {
+                                <div class="d-flex justify-center" style="gap:@(IsMobile ? "6" : "12")px;margin-bottom:8px;">
+                                    @foreach (var p in row)
+                                    {
+                                        <div style="text-align:center;width:@(IsMobile ? "48" : "56")px;">
+                                            <div style="position:relative;display:inline-block;">
+                                                @if (p.PhotoUrl is not null)
+                                                {
+                                                    <img src="@p.PhotoUrl" alt="" style="width:@(IsMobile ? 32 : 38)px;height:@(IsMobile ? 32 : 38)px;border-radius:50%;object-fit:cover;background:#333;" />
+                                                }
+                                                else
+                                                {
+                                                    <div style="width:@(IsMobile ? 32 : 38)px;height:@(IsMobile ? 32 : 38)px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;">
+                                                        <span style="font-size:@((IsMobile ? 32 : 38)/3)px;color:white;font-weight:700;">@(p.Name.Length > 0 ? p.Name[0].ToString() : "?")</span>
+                                                    </div>
+                                                }
+                                                @if (p.Icons.Count > 0)
+                                                {
+                                                    <div style="position:absolute;bottom:-2px;right:-4px;font-size:10px;line-height:1;">
+                                                        @string.Join("", p.Icons.Select(PlayerIcon))
+                                                    </div>
+                                                }
+                                            </div>
+                                            @if (p.ShirtNumber is not null)
+                                            {
+                                                <div style="font-size:9px;color:rgba(255,255,255,0.6);">@p.ShirtNumber</div>
+                                            }
+                                            <div style="font-size:@(IsMobile ? "9" : "10")px;color:white;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                @LastName(p.Name)
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+
+                        <div style="height:16px;"></div>
+
+                        @* Away formation (bottom half, reversed) *@
+                        @if (_match.AwayFormation is not null)
+                        {
+                            @foreach (var row in GetFormationRows(_match.AwayLineup, _match.AwayFormation, true))
+                            {
+                                <div class="d-flex justify-center" style="gap:@(IsMobile ? "6" : "12")px;margin-bottom:8px;">
+                                    @foreach (var p in row)
+                                    {
+                                        <div style="text-align:center;width:@(IsMobile ? "48" : "56")px;">
+                                            <div style="position:relative;display:inline-block;">
+                                                @if (p.PhotoUrl is not null)
+                                                {
+                                                    <img src="@p.PhotoUrl" alt="" style="width:@(IsMobile ? 32 : 38)px;height:@(IsMobile ? 32 : 38)px;border-radius:50%;object-fit:cover;background:#333;" />
+                                                }
+                                                else
+                                                {
+                                                    <div style="width:@(IsMobile ? 32 : 38)px;height:@(IsMobile ? 32 : 38)px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;">
+                                                        <span style="font-size:@((IsMobile ? 32 : 38)/3)px;color:white;font-weight:700;">@(p.Name.Length > 0 ? p.Name[0].ToString() : "?")</span>
+                                                    </div>
+                                                }
+                                                @if (p.Icons.Count > 0)
+                                                {
+                                                    <div style="position:absolute;bottom:-2px;right:-4px;font-size:10px;line-height:1;">
+                                                        @string.Join("", p.Icons.Select(PlayerIcon))
+                                                    </div>
+                                                }
+                                            </div>
+                                            @if (p.ShirtNumber is not null)
+                                            {
+                                                <div style="font-size:9px;color:rgba(255,255,255,0.6);">@p.ShirtNumber</div>
+                                            }
+                                            <div style="font-size:@(IsMobile ? "9" : "10")px;color:white;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                @LastName(p.Name)
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            <div style="text-align:center;margin-top:6px;">
+                                <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);">@_match.AwayTeamShortName — @_match.AwayFormation</span>
+                            </div>
+                        }
+                    </MudPaper>
+                }
+
+                @* Substitutes *@
+                @if (_match.HomeSubs.Count > 0 || _match.AwaySubs.Count > 0)
+                {
+                    <MudText Typo="Typo.subtitle2" Style="font-weight:700;margin:12px 0 6px;">Substitutes</MudText>
+                    <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;">
+                        <div class="d-flex" style="gap:0;">
+                            <div style="flex:1;padding:10px;">
+                                @foreach (var p in _match.HomeSubs)
+                                {
+                                    <div class="d-flex align-center gap-2" style="margin-bottom:6px;">
+                                        @if (p.PhotoUrl is not null)
+                                        {
+                                            <img src="@p.PhotoUrl" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#333;" />
+                                        }
+                                        else
+                                        {
+                                            <div style="width:28px;height:28px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;">
+                                                <span style="font-size:9px;color:white;font-weight:700;">@(p.Name.Length > 0 ? p.Name[0].ToString() : "?")</span>
+                                            </div>
+                                        }
+                                        <div>
+                                            <div style="font-size:12px;font-weight:600;">@p.Name</div>
+                                            @if (p.Icons.Count > 0)
+                                            {
+                                                <span style="font-size:10px;">@string.Join(" ", p.Icons.Select(PlayerIcon))</span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <div style="width:1px;background:var(--mud-palette-divider);"></div>
+                            <div style="flex:1;padding:10px;">
+                                @foreach (var p in _match.AwaySubs)
+                                {
+                                    <div class="d-flex align-center gap-2" style="margin-bottom:6px;">
+                                        @if (p.PhotoUrl is not null)
+                                        {
+                                            <img src="@p.PhotoUrl" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#333;" />
+                                        }
+                                        else
+                                        {
+                                            <div style="width:28px;height:28px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;">
+                                                <span style="font-size:9px;color:white;font-weight:700;">@(p.Name.Length > 0 ? p.Name[0].ToString() : "?")</span>
+                                            </div>
+                                        }
+                                        <div>
+                                            <div style="font-size:12px;font-weight:600;">@p.Name</div>
+                                            @if (p.Icons.Count > 0)
+                                            {
+                                                <span style="font-size:10px;">@string.Join(" ", p.Icons.Select(PlayerIcon))</span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </MudPaper>
+                }
+            }
+            else
+            {
+                <MudPaper Elevation="1" Style="border-radius:12px;padding:24px;text-align:center;">
+                    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">Lineups not available yet</MudText>
+                </MudPaper>
+            }
+        }
+
+    </MudContainer>
+</div>
+}
+</PageGuard>
