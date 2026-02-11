@@ -20,7 +20,7 @@ public static class ExternalHttpClientExtensions
             client.DefaultRequestHeaders.Add(FootballDataApi.AuthHeader, apiKey);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         })
-        .AddStandardResilienceHandler();
+        .AddStandardResilienceHandler(o => o.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5));
 
         builder.Services.AddHttpClient(nameof(ScoreCastHttpClient.FplClient), (sp, client) =>
         {

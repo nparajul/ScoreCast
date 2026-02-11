@@ -163,9 +163,11 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
         if (candidateMatches.Count == 0) return (liveMatchIds, updatedCount);
 
         var pulseMappings = await DbContext.ExternalMappings
-            .Where(m => m.Source == ExternalSource.Fpl && m.EntityType == EntityType.Match
+            .Where(m => (m.Source == ExternalSource.Fpl || m.Source == ExternalSource.Pulse)
+                        && m.EntityType == EntityType.Match
                         && candidateMatches.Contains(m.EntityId))
-            .ToDictionaryAsync(m => m.EntityId, m => int.Parse(m.ExternalCode), ct);
+            .GroupBy(m => m.EntityId)
+            .ToDictionaryAsync(g => g.Key, g => int.Parse(g.First().ExternalCode), ct);
 
         if (pulseMappings.Count == 0) return (liveMatchIds, updatedCount);
 
