@@ -1,6 +1,7 @@
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
+using ScoreCast.Shared.Types;
 using ScoreCast.Web.Components;
 using ScoreCast.Web.Components.Helpers;
 
@@ -49,13 +50,33 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         _clockTimer = null;
 
         if (_match is not { Status: nameof(MatchStatus.Live) }) return;
+
         if (_match.Phase == PulseApi.Phase.HalfTime)
         {
-            _clockDisplay = "HT";
+            // Estimate 2nd half start: kickoff + 60 min (45 play + 15 break)
+            if (_match.KickoffTime.HasValue)
+            {
+                var secondHalfStart = _match.KickoffTime.Value.AddMinutes(60);
+                _htRemainingSeconds = (int)(secondHalfStart - ScoreCastDateTime.Now).TotalSeconds;
+                if (_htRemainingSeconds < 0) _htRemainingSeconds = 0;
+                UpdateHtDisplay();
+                _clockTimer = new System.Timers.Timer(1000);
+                _clockTimer.Elapsed += (_, _) =>
+                {
+                    _htRemainingSeconds = Math.Max(0, _htRemainingSeconds - 1);
+                    UpdateHtDisplay();
+                    InvokeAsync(StateHasChanged);
+                };
+                _clockTimer.Start();
+            }
+            else
+            {
+                _clockDisplay = "HT";
+            }
             return;
         }
 
-        // Use Pulse clock.secs (actual elapsed time from kickoff)
+        // Use Pulse clock.secs (actual match time, excludes HT break)
         _elapsedSecs = _match.ClockSeconds ?? 0;
 
         UpdateClockDisplay();
@@ -67,6 +88,20 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
             InvokeAsync(StateHasChanged);
         };
         _clockTimer.Start();
+    }
+
+    private int _htRemainingSeconds;
+
+    private void UpdateHtDisplay()
+    {
+        if (_htRemainingSeconds <= 0)
+            _clockDisplay = "HT — 2nd half imminent";
+        else
+        {
+            var m = _htRemainingSeconds / 60;
+            var s = _htRemainingSeconds % 60;
+            _clockDisplay = $"HT — 2nd half in {m}:{s:D2}";
+        }
     }
 
     private void UpdateClockDisplay()
