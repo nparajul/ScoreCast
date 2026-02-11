@@ -149,7 +149,7 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     private string FormatLocal(DateTime utc, string format) => ClientTime.ToLocal(utc).ToString(format);
 
     private List<MatchPageEvent> OrderedEvents => _match?.Events
-        .Where(e => e.EventType is not EventTypes.SubIn and not EventTypes.SubOut)
+        .Where(e => e.EventType is not EventTypes.SubOut)
         .OrderBy(e => _match.Status == nameof(MatchStatus.Live) ? -e.SortKey : e.SortKey)
         .ToList() ?? [];
 
@@ -173,14 +173,24 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     private static string EventIcon(string type) => type switch
     {
         EventTypes.Goal => "⚽",
-        EventTypes.PenaltyGoal => "⚽ <span style=\"font-size:10px;\">(P)</span>",
-        EventTypes.OwnGoal => "<span style=\"filter:hue-rotate(160deg) saturate(3);\">⚽</span> <span style=\"font-size:10px;color:#d32f2f;\">(OG)</span>",
+        EventTypes.PenaltyGoal => "⚽",
+        EventTypes.OwnGoal => "<span style=\"filter:hue-rotate(160deg) saturate(3);\">⚽</span>",
         EventTypes.YellowCard => "🟨",
         EventTypes.RedCard => "🟥",
         EventTypes.PenaltySaved => "🧤",
         EventTypes.PenaltyMissed => "❌",
+        EventTypes.SubIn => "🔄",
         _ => ""
     };
+
+    private static string FormatRunningScore(string score, bool isHome)
+    {
+        var parts = score.Split(" - ");
+        if (parts.Length != 2) return score;
+        return isHome
+            ? $"<span style=\"font-weight:800;\">{parts[0]}</span> - {parts[1]}"
+            : $"{parts[0]} - <span style=\"font-weight:800;\">{parts[1]}</span>";
+    }
 
     private static string PlayerIcon(string type) => type switch
     {

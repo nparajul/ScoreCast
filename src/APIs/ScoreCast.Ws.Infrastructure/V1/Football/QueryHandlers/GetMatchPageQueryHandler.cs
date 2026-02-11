@@ -50,23 +50,48 @@ internal sealed record GetMatchPageQueryHandler(
             .Select(tp => new { tp.PlayerId, tp.TeamId })
             .ToDictionaryAsync(tp => tp.PlayerId, tp => tp.TeamId, ct);
 
-        // Build assist map: group goal events with assist events by minute
+        // Build assist map
         var assistMap = events
             .Where(e => e.EventType == EventTypes.Assist)
             .ToDictionary(e => $"{e.Minute}", e => e.Name);
 
-        var matchEvents = events
-            .Where(e => e.EventType != EventTypes.Assist)
+        // Build sub pairs: SubIn → find matching SubOut at same minute/team
+        var subOuts = events.Where(e => e.EventType == EventTypes.SubOut).ToList();
+
+        // Build all events (excluding raw assists and SubOut — SubOut merged into SubIn)
+        var allEvents = events
+            .Where(e => e.EventType is not EventTypes.Assist and not EventTypes.SubOut)
             .Select(e =>
             {
                 var isHome = playerTeamMap.GetValueOrDefault(e.PlayerId) == match.HomeTeamId;
-                // Own goals benefit the opposite team
                 if (e.EventType == EventTypes.OwnGoal) isHome = !isHome;
-                var isGoal = e.EventType is EventTypes.Goal or EventTypes.PenaltyGoal;
-                string? assistName = isGoal ? assistMap.GetValueOrDefault($"{e.Minute}") : null;
-                return new MatchPageEvent(e.EventType, e.Name, assistName, e.Minute, isHome, ParseMinute(e.Minute));
+                var isGoal = e.EventType is EventTypes.Goal or EventTypes.PenaltyGoal or EventTypes.OwnGoal;
+                string? assistName = e.EventType is EventTypes.Goal or EventTypes.PenaltyGoal
+                    ? assistMap.GetValueOrDefault($"{e.Minute}") : null;
+                string? playerOff = null;
+                if (e.EventType == EventTypes.SubIn)
+                {
+                    var so = subOuts.FirstOrDefault(s => s.Minute == e.Minute
+                        && playerTeamMap.GetValueOrDefault(s.PlayerId) == playerTeamMap.GetValueOrDefault(e.PlayerId));
+                    if (so is not null) { playerOff = so.Name; subOuts.Remove(so); }
+                }
+                return new MatchPageEvent(e.EventType, e.Name, assistName, e.Minute, isHome,
+                    ParseMinute(e.Minute), playerOff, null);
             })
+            .OrderBy(e => e.SortKey)
             .ToList();
+
+        // Compute running score for goal events
+        int rHome = 0, rAway = 0;
+        var matchEvents = allEvents.Select(e =>
+        {
+            if (e.EventType is EventTypes.Goal or EventTypes.PenaltyGoal or EventTypes.OwnGoal)
+            {
+                if (e.IsHome) rHome++; else rAway++;
+                return e with { RunningScore = $"{rHome} - {rAway}" };
+            }
+            return e;
+        }).ToList();
 
         // Try Pulse for lineups/formation
         string? homeFormation = null, awayFormation = null;
@@ -177,18 +202,6 @@ internal sealed record GetMatchPageQueryHandler(
             catch { /* Pulse unavailable — show page without lineups */ }
         }
 
-        // Build substitution pairs
-        var subIns = events.Where(e => e.EventType == EventTypes.SubIn).ToList();
-        var subOuts = events.Where(e => e.EventType == EventTypes.SubOut).ToList();
-        var matchSubs = subIns.Select(si =>
-        {
-            var so = subOuts.FirstOrDefault(s => s.Minute == si.Minute
-                && playerTeamMap.GetValueOrDefault(s.PlayerId) == playerTeamMap.GetValueOrDefault(si.PlayerId));
-            if (so is not null) subOuts.Remove(so);
-            var isHome = playerTeamMap.GetValueOrDefault(si.PlayerId) == match.HomeTeamId;
-            return new MatchPageSub(si.Name, so?.Name ?? "", si.Minute, isHome);
-        }).ToList();
-
         return ScoreCastResponse<MatchPageResult>.Ok(new MatchPageResult(
             match.Id, match.KickoffTime, match.Status.ToString(), match.Minute,
             clockSeconds, phase, secondHalfStartMillis,
@@ -199,7 +212,7 @@ internal sealed record GetMatchPageQueryHandler(
             homeFormation, awayFormation,
             match.HomeCoach, match.AwayCoach,
             homeLineup, homeSubs, awayLineup, awaySubs,
-            matchEvents, matchSubs));
+            matchEvents));
     }
 
     private static MatchPageLineupPlayer MapPlayer(
