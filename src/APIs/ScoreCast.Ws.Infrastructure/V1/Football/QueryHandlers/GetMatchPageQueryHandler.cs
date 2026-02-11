@@ -58,6 +58,8 @@ internal sealed record GetMatchPageQueryHandler(
             .Select(e =>
             {
                 var isHome = playerTeamMap.GetValueOrDefault(e.PlayerId) == match.HomeTeamId;
+                // Own goals benefit the opposite team
+                if (e.EventType == EventTypes.OwnGoal) isHome = !isHome;
                 var isGoal = e.EventType is EventTypes.Goal or EventTypes.PenaltyGoal;
                 string? assistName = isGoal ? assistMap.GetValueOrDefault($"{e.Minute}") : null;
                 return new MatchPageEvent(e.EventType, e.Name, assistName, e.Minute, isHome, ParseMinute(e.Minute));
@@ -135,29 +137,36 @@ internal sealed record GetMatchPageQueryHandler(
                         .GroupBy(e => e.PlayerId)
                         .ToDictionary(g => g.Key, g => g.Select(e => e.EventType).ToList());
 
-                    // Pulse team → our team mapping
-                    var pulseTeamMap = await DbContext.ExternalMappings.AsNoTracking()
-                        .Where(m => m.Source == ExternalSource.Pulse && m.EntityType == EntityType.Team)
-                        .ToDictionaryAsync(m => m.ExternalCode, m => m.EntityId, ct);
-
-                    foreach (var tl in pulse.TeamLists ?? [])
+                    // teamLists[0] = home, teamLists[1] = away (Pulse convention)
+                    var teamLists = pulse.TeamLists ?? [];
+                    for (var i = 0; i < teamLists.Count && i < 2; i++)
                     {
-                        var teamId = tl.Team is not null && pulseTeamMap.TryGetValue(tl.Team.Id.ToString(), out var tid) ? tid : 0L;
-                        var isHome = teamId == match.HomeTeamId;
+                        var tl = teamLists[i];
+                        var isHome = i == 0;
 
-                        var lineup = (tl.Lineup ?? []).Select(p => MapPlayer(p, pulsePlayerMap, playerPhotos, playerIcons)).ToList();
+                        // Reorder lineup by formation player IDs (GK → DEF → MID → FWD)
+                        var formationOrder = (tl.Formation?.Players ?? []).SelectMany(row => row).ToList();
+                        var lineupById = (tl.Lineup ?? []).ToDictionary(p => p.Id);
+                        var orderedLineup = formationOrder
+                            .Where(lineupById.ContainsKey)
+                            .Select(id => MapPlayer(lineupById[id], pulsePlayerMap, playerPhotos, playerIcons))
+                            .ToList();
+                        foreach (var p in tl.Lineup ?? [])
+                            if (!formationOrder.Contains(p.Id))
+                                orderedLineup.Add(MapPlayer(p, pulsePlayerMap, playerPhotos, playerIcons));
+
                         var subs = (tl.Substitutes ?? []).Select(p => MapPlayer(p, pulsePlayerMap, playerPhotos, playerIcons)).ToList();
 
                         if (isHome)
                         {
                             homeFormation = tl.Formation?.Label;
-                            homeLineup = lineup;
+                            homeLineup = orderedLineup;
                             homeSubs = subs;
                         }
                         else
                         {
                             awayFormation = tl.Formation?.Label;
-                            awayLineup = lineup;
+                            awayLineup = orderedLineup;
                             awaySubs = subs;
                         }
                     }

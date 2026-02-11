@@ -158,8 +158,8 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     private static string EventIcon(string type) => type switch
     {
         EventTypes.Goal => "⚽",
-        EventTypes.PenaltyGoal => "⚽ (P)",
-        EventTypes.OwnGoal => "⚽ (OG)",
+        EventTypes.PenaltyGoal => "⚽ <span style=\"font-size:10px;\">(P)</span>",
+        EventTypes.OwnGoal => "<span style=\"filter:hue-rotate(160deg) saturate(3);\">⚽</span> <span style=\"font-size:10px;color:#d32f2f;\">(OG)</span>",
         EventTypes.YellowCard => "🟨",
         EventTypes.RedCard => "🟥",
         EventTypes.PenaltySaved => "🧤",
