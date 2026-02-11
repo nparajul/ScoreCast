@@ -13,6 +13,7 @@ public sealed record Team : ScoreCastEntity
     public string? Venue { get; set; }
     public string? ClubColors { get; set; }
     public string? Website { get; set; }
+    public string? Coach { get; set; }
     public bool IsActive { get; set; } = true;
 
     public Country Country { get; init; } = null!;
