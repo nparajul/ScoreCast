@@ -49,16 +49,14 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         _clockTimer = null;
 
         if (_match is not { Status: nameof(MatchStatus.Live) }) return;
-        if (_match.Minute is "HT")
+        if (_match.Phase == PulseApi.Phase.HalfTime)
         {
             _clockDisplay = "HT";
-            // No countdown timer for HT — just show HT
             return;
         }
 
-        var min = _match.Minute?.Replace("'", "").Replace(" ", "") ?? "0";
-        var parts = min.Split('+');
-        _elapsedSecs = double.TryParse(parts[0], out var m) ? (int)(m * 60) : 0;
+        // Use Pulse clock.secs (actual elapsed time from kickoff)
+        _elapsedSecs = _match.ClockSeconds ?? 0;
 
         UpdateClockDisplay();
         _clockTimer = new System.Timers.Timer(1000);
