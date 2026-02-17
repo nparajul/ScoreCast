@@ -31,6 +31,7 @@ internal sealed record GetMatchPageQueryHandler(
                 AwayCoach = m.AwayTeam.Coach,
                 CompetitionName = m.Gameweek.Season.Competition.Name,
                 CompetitionLogo = m.Gameweek.Season.Competition.LogoUrl,
+                CompetitionCode = m.Gameweek.Season.Competition.Code,
                 SeasonId = m.Gameweek.SeasonId
             })
             .FirstOrDefaultAsync(ct);
@@ -213,7 +214,7 @@ internal sealed record GetMatchPageQueryHandler(
             match.HomeTeamId, match.HomeTeamName, match.HomeTeamLogo, match.HomeTeamShortName,
             match.AwayTeamId, match.AwayTeamName, match.AwayTeamLogo, match.AwayTeamShortName,
             match.HomeScore, match.AwayScore, match.Venue, match.Referee,
-            htHome, htAway, match.CompetitionName, match.CompetitionLogo,
+            htHome, htAway, match.CompetitionName, match.CompetitionLogo, match.CompetitionCode, match.SeasonId,
             homeFormation, awayFormation,
             match.HomeCoach, match.AwayCoach,
             homeLineup, homeSubs, awayLineup, awaySubs,
