@@ -108,53 +108,53 @@
                     @foreach (var evt in OrderedEvents)
                     {
                         var isSub = evt.EventType == EventTypes.SubIn;
-                        <div style="display:flex;align-items:center;padding:12px 10px;gap:0;border-bottom:1px solid var(--mud-palette-divider);">
+                        <div style="display:flex;align-items:center;padding:6px 8px;gap:0;border-bottom:1px solid var(--mud-palette-divider);">
                             @* Left side (home) *@
-                            <div style="flex:1;text-align:right;padding-right:8px;">
+                            <div style="flex:1;text-align:right;padding-right:6px;">
                                 @if (evt.IsHome)
                                 {
                                     @if (isSub)
                                     {
-                                        <div style="font-size:12px;font-weight:600;color:#4caf50;">@evt.PlayerName</div>
-                                        <div style="font-size:12px;color:#f44336;">@evt.PlayerOff</div>
+                                        <div style="font-size:11px;font-weight:600;color:#4caf50;">@evt.PlayerName</div>
+                                        <div style="font-size:11px;color:#f44336;">@evt.PlayerOff</div>
                                     }
                                     else
                                     {
-                                        <div style="font-weight:600;font-size:13px;">
+                                        <div style="font-weight:600;font-size:12px;">
                                             @evt.PlayerName
-                                            @if (evt.RunningScore is not null) { <span style="color:var(--mud-palette-text-secondary);font-size:11px;">(@((MarkupString)FormatRunningScore(evt.RunningScore, true)))</span> }
+                                            @if (evt.RunningScore is not null) { <span style="color:var(--mud-palette-text-secondary);font-size:10px;">(@((MarkupString)FormatRunningScore(evt.RunningScore, true)))</span> }
                                         </div>
-                                        @if (evt.EventType == EventTypes.OwnGoal) { <div style="font-size:11px;color:var(--mud-palette-text-secondary);">Own goal</div> }
-                                        @if (evt.EventType == EventTypes.PenaltyGoal) { <div style="font-size:11px;color:var(--mud-palette-text-secondary);">Penalty</div> }
-                                        @if (evt.AssistName is not null) { <div style="font-size:11px;color:var(--mud-palette-text-secondary);">@evt.AssistName</div> }
+                                        @if (evt.EventType == EventTypes.OwnGoal) { <div style="font-size:10px;color:var(--mud-palette-text-secondary);">Own goal</div> }
+                                        @if (evt.EventType == EventTypes.PenaltyGoal) { <div style="font-size:10px;color:var(--mud-palette-text-secondary);">Penalty</div> }
+                                        @if (evt.AssistName is not null) { <div style="font-size:10px;color:var(--mud-palette-text-secondary);">@evt.AssistName</div> }
                                     }
                                 }
                             </div>
 
-                            @* Center: icon + minute badge *@
-                            <div style="display:flex;flex-direction:column;align-items:center;min-width:56px;">
-                                <span style="font-size:15px;">@((MarkupString)EventIcon(evt.EventType))</span>
-                                <span style="font-size:12px;font-weight:800;margin-top:2px;">@evt.Minute</span>
+                            @* Center: icon + minute *@
+                            <div style="display:flex;flex-direction:column;align-items:center;min-width:44px;">
+                                <span style="font-size:13px;">@((MarkupString)EventIcon(evt.EventType))</span>
+                                <span style="font-size:11px;font-weight:800;">@evt.Minute</span>
                             </div>
 
                             @* Right side (away) *@
-                            <div style="flex:1;padding-left:8px;">
+                            <div style="flex:1;padding-left:6px;">
                                 @if (!evt.IsHome)
                                 {
                                     @if (isSub)
                                     {
-                                        <div style="font-size:12px;font-weight:600;color:#4caf50;">@evt.PlayerName</div>
-                                        <div style="font-size:12px;color:#f44336;">@evt.PlayerOff</div>
+                                        <div style="font-size:11px;font-weight:600;color:#4caf50;">@evt.PlayerName</div>
+                                        <div style="font-size:11px;color:#f44336;">@evt.PlayerOff</div>
                                     }
                                     else
                                     {
-                                        <div style="font-weight:600;font-size:13px;">
+                                        <div style="font-weight:600;font-size:12px;">
                                             @evt.PlayerName
-                                            @if (evt.RunningScore is not null) { <span style="color:var(--mud-palette-text-secondary);font-size:11px;">(@((MarkupString)FormatRunningScore(evt.RunningScore, false)))</span> }
+                                            @if (evt.RunningScore is not null) { <span style="color:var(--mud-palette-text-secondary);font-size:10px;">(@((MarkupString)FormatRunningScore(evt.RunningScore, false)))</span> }
                                         </div>
-                                        @if (evt.EventType == EventTypes.OwnGoal) { <div style="font-size:11px;color:var(--mud-palette-text-secondary);">Own goal</div> }
-                                        @if (evt.EventType == EventTypes.PenaltyGoal) { <div style="font-size:11px;color:var(--mud-palette-text-secondary);">Penalty</div> }
-                                        @if (evt.AssistName is not null) { <div style="font-size:11px;color:var(--mud-palette-text-secondary);">@evt.AssistName</div> }
+                                        @if (evt.EventType == EventTypes.OwnGoal) { <div style="font-size:10px;color:var(--mud-palette-text-secondary);">Own goal</div> }
+                                        @if (evt.EventType == EventTypes.PenaltyGoal) { <div style="font-size:10px;color:var(--mud-palette-text-secondary);">Penalty</div> }
+                                        @if (evt.AssistName is not null) { <div style="font-size:10px;color:var(--mud-palette-text-secondary);">@evt.AssistName</div> }
                                     }
                                 }
                             </div>
