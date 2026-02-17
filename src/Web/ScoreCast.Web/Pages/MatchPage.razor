@@ -197,7 +197,7 @@
                                 <div style="text-align:center;margin-bottom:4px;">
                                     <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);">@_match.HomeTeamShortName · @_match.HomeFormation</span>
                                 </div>
-                                @foreach (var row in GetFormationRows(_match.HomeLineup, _match.HomeFormation, false))
+                                @foreach (var row in GetFormationRows(_match.HomeLineup, _match.HomeFormation, false, mirrorRows: true))
                                 {
                                     <div class="d-flex justify-center" style="gap:2px;margin-bottom:6px;">
                                         @foreach (var p in row) { @RenderPlayerCard(p, 36) }
