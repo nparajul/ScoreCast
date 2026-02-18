@@ -2,6 +2,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
+using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Types;
 using ScoreCast.Ws.Application.V1.Football.Queries;
 using ScoreCast.Ws.Application.V1.Interfaces;
@@ -65,6 +66,7 @@ internal sealed record GetTeamMatchesQueryHandler(
             eventsByMatch.GetValueOrDefault(m.Id, []).Select(e =>
             {
                 var isHome = playerTeamMap.GetValueOrDefault(e.PlayerId) == m.HomeTeamId;
+                if (e.EventType == EventTypes.OwnGoal) isHome = !isHome;
                 return new MatchEventDetail(e.Name, e.EventType, e.Value, isHome, e.Minute);
             }).ToList()
         )).ToList();
