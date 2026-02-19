@@ -13,10 +13,11 @@ public sealed record Team : ScoreCastEntity
     public string? Venue { get; set; }
     public string? ClubColors { get; set; }
     public string? Website { get; set; }
-    public string? Coach { get; set; }
+    public long? CoachId { get; set; }
     public bool IsActive { get; set; } = true;
 
     public Country Country { get; init; } = null!;
+    public Coach? Coach { get; set; }
     public ICollection<SeasonTeam> SeasonTeams { get; init; } = [];
     public ICollection<TeamPlayer> TeamPlayers { get; init; } = [];
 }
