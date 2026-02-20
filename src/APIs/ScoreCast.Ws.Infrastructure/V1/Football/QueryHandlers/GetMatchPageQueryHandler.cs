@@ -26,9 +26,11 @@ internal sealed record GetMatchPageQueryHandler(
                 HomeTeamName = m.HomeTeam.Name, HomeTeamLogo = m.HomeTeam.LogoUrl,
                 HomeTeamShortName = m.HomeTeam.ShortName ?? m.HomeTeam.Name,
                 HomeCoach = m.HomeTeam.Coach != null ? m.HomeTeam.Coach.Name : null,
+                HomeCoachPhoto = m.HomeTeam.Coach != null ? m.HomeTeam.Coach.PhotoUrl : null,
                 AwayTeamName = m.AwayTeam.Name, AwayTeamLogo = m.AwayTeam.LogoUrl,
                 AwayTeamShortName = m.AwayTeam.ShortName ?? m.AwayTeam.Name,
                 AwayCoach = m.AwayTeam.Coach != null ? m.AwayTeam.Coach.Name : null,
+                AwayCoachPhoto = m.AwayTeam.Coach != null ? m.AwayTeam.Coach.PhotoUrl : null,
                 CompetitionName = m.Gameweek.Season.Competition.Name,
                 CompetitionLogo = m.Gameweek.Season.Competition.LogoUrl,
                 CompetitionCode = m.Gameweek.Season.Competition.Code,
@@ -217,6 +219,7 @@ internal sealed record GetMatchPageQueryHandler(
             htHome, htAway, match.CompetitionName, match.CompetitionLogo, match.CompetitionCode, match.SeasonId,
             homeFormation, awayFormation,
             match.HomeCoach, match.AwayCoach,
+            match.HomeCoachPhoto, match.AwayCoachPhoto,
             homeLineup, homeSubs, awayLineup, awaySubs,
             matchEvents));
     }

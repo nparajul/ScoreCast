@@ -11,6 +11,7 @@ public record MatchPageResult(
     string CompetitionName, string? CompetitionLogo, string CompetitionCode, long SeasonId,
     string? HomeFormation, string? AwayFormation,
     string? HomeCoach, string? AwayCoach,
+    string? HomeCoachPhoto, string? AwayCoachPhoto,
     List<MatchPageLineupPlayer> HomeLineup, List<MatchPageLineupPlayer> HomeSubs,
     List<MatchPageLineupPlayer> AwayLineup, List<MatchPageLineupPlayer> AwaySubs,
     List<MatchPageEvent> Events);
