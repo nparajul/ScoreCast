@@ -5,7 +5,7 @@
         <div class="d-flex d-md-none bottom-nav">
             @foreach (var tab in Tabs)
             {
-                <button class="@TabClass(tab.Url)" @onclick="@(() => Nav.NavigateTo(tab.Url))">
+                <button class="@TabClass(tab.Url)" @onclick="@(() => OnTabClick(tab))">
                     <span class="bottom-nav-icon-wrap">
                         @if (tab.Emoji is not null)
                         {
@@ -20,5 +20,7 @@
                 </button>
             }
         </div>
+
+        <SideDrawer IsOpen="_drawerOpen" OnClose="@(() => { _drawerOpen = false; StateHasChanged(); })" />
     </Authorized>
 </AuthorizeView>
