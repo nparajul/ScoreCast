@@ -359,6 +359,7 @@
                                         <div>
                                             <div style="font-size:12px;font-weight:600;">@p.Name</div>
                                             <div style="font-size:10px;color:var(--mud-palette-text-secondary);">
+                                                @if (p.Position is not null) { <span style="opacity:0.7;">@PlayerPositions.ToShortName(p.Position)</span> }
                                                 @if (p.SubMinute is not null) { <span>@p.SubMinute</span> }
                                                 @string.Join(" ", p.Icons.Select(PlayerIcon))
                                             </div>
@@ -390,6 +391,7 @@
                                         <div>
                                             <div style="font-size:12px;font-weight:600;">@p.Name</div>
                                             <div style="font-size:10px;color:var(--mud-palette-text-secondary);">
+                                                @if (p.Position is not null) { <span style="opacity:0.7;">@PlayerPositions.ToShortName(p.Position)</span> }
                                                 @if (p.SubMinute is not null) { <span>@p.SubMinute</span> }
                                                 @string.Join(" ", p.Icons.Select(PlayerIcon))
                                             </div>

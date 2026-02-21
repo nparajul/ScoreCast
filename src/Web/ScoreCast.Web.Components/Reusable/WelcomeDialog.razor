@@ -2,20 +2,20 @@
 
 <MudDialog Options="@(new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true, NoHeader = true })" Class="welcome-dialog">
     <DialogContent>
-        <div class="d-flex flex-column align-center"
-             style="background:linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); margin:-24px -24px 0; padding:40px 24px 28px; border-radius:28px 28px 0 0;">
-            <div style="background:rgba(255,255,255,0.12); border-radius:20px; padding:14px; margin-bottom:12px;">
-                <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="40" Height="40" />
+        <div class="onboard-hero">
+            <div class="onboard-icon-ring">
+                <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="44" Height="44" />
             </div>
-            <MudText Typo="Typo.h5" Style="color:#FFFFFF; font-weight:700;">Welcome, @Username! 👋</MudText>
-            <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.6); margin-top:4px;">One last thing — pick your team</MudText>
+            <MudText Typo="Typo.h5" Style="color:#fff;font-weight:800;letter-spacing:-0.02em;">Welcome, @Username! 👋</MudText>
+            <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.55);margin-top:2px;">One last thing — pick your team</MudText>
         </div>
 
         <div class="pa-6">
             <div class="d-flex align-center gap-3 mb-5">
                 @if (!string.IsNullOrWhiteSpace(_selectedTeam?.LogoUrl))
                 {
-                    <MudImage Src="@_selectedTeam.LogoUrl" Width="32" Height="32" ObjectFit="ObjectFit.Contain" />
+                    <img src="@_selectedTeam.LogoUrl" alt="" width="36" height="36"
+                         style="object-fit:contain;animation:popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);" />
                 }
                 <MudAutocomplete T="TeamResult"
                                  Label="Favourite Team"
@@ -48,11 +48,11 @@
 
             <div class="d-flex gap-3">
                 <MudButton OnClick="Skip" Variant="Variant.Text" Color="Color.Default"
-                           Style="border-radius:14px; flex:1;">Skip</MudButton>
+                           Style="border-radius:14px;flex:1;text-transform:none;">Skip</MudButton>
                 <MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Tertiary"
                            StartIcon="@Icons.Material.Filled.RocketLaunch"
                            Disabled="@(_selectedTeam is null)"
-                           Style="border-radius:14px; flex:2;">
+                           Style="border-radius:14px;flex:2;text-transform:none;font-weight:700;">
                     Let's Go!
                 </MudButton>
             </div>
