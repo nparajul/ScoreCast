@@ -256,6 +256,13 @@
     color: #ef5350;
 }
 
+@media (min-width: 960px) {
+    .side-drawer,
+    .side-drawer-overlay {
+        display: none !important;
+    }
+}
+
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
