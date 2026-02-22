@@ -154,21 +154,41 @@ internal sealed record GetMatchExtrasQueryHandler(
 
     private async Task<List<PlayerSeasonStat>> GetPlayerStatsAsync(long teamId, long seasonId, CancellationToken ct)
     {
-        return await DbContext.MatchEvents.AsNoTracking()
+        var teamPlayerIds = await DbContext.TeamPlayers.AsNoTracking()
+            .Where(tp => tp.TeamId == teamId && tp.SeasonId == seasonId)
+            .Select(tp => tp.PlayerId)
+            .ToListAsync(ct);
+
+        if (teamPlayerIds.Count == 0) return [];
+
+        var events = await DbContext.MatchEvents.AsNoTracking()
             .Where(e => !e.IsDeleted
-                && e.Match.Gameweek.SeasonId == seasonId
-                && DbContext.TeamPlayers.Any(tp => tp.PlayerId == e.PlayerId && tp.TeamId == teamId && tp.SeasonId == seasonId))
-            .GroupBy(e => new { e.PlayerId, e.Player.Name, e.Player.PhotoUrl, e.Player.Position })
-            .Select(g => new PlayerSeasonStat(
-                g.Key.PlayerId, g.Key.Name, g.Key.PhotoUrl, g.Key.Position,
-                g.Count(e => e.EventType == MatchEventType.Goal || e.EventType == MatchEventType.PenaltyGoal),
-                g.Count(e => e.EventType == MatchEventType.Assist),
-                g.Count(e => e.EventType == MatchEventType.YellowCard),
-                g.Count(e => e.EventType == MatchEventType.RedCard)))
+                && teamPlayerIds.Contains(e.PlayerId)
+                && e.Match.Gameweek.SeasonId == seasonId)
+            .Select(e => new { e.PlayerId, e.EventType })
+            .ToListAsync(ct);
+
+        var players = await DbContext.Players.AsNoTracking()
+            .Where(p => teamPlayerIds.Contains(p.Id))
+            .Select(p => new { p.Id, p.Name, p.PhotoUrl, p.Position })
+            .ToDictionaryAsync(p => p.Id, ct);
+
+        return events
+            .GroupBy(e => e.PlayerId)
+            .Select(g =>
+            {
+                var p = players.GetValueOrDefault(g.Key);
+                return new PlayerSeasonStat(
+                    g.Key, p?.Name ?? "Unknown", p?.PhotoUrl, p?.Position,
+                    g.Count(e => e.EventType is MatchEventType.Goal or MatchEventType.PenaltyGoal),
+                    g.Count(e => e.EventType == MatchEventType.Assist),
+                    g.Count(e => e.EventType == MatchEventType.YellowCard),
+                    g.Count(e => e.EventType == MatchEventType.RedCard));
+            })
             .Where(s => s.Goals > 0 || s.Assists > 0)
             .OrderByDescending(s => s.Goals).ThenByDescending(s => s.Assists)
             .Take(10)
-            .ToListAsync(ct);
+            .ToList();
     }
 
     private static int Pct(int part, int total) => total > 0 ? (int)Math.Round(100.0 * part / total) : 0;
