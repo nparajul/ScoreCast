@@ -23,7 +23,8 @@ public sealed class PredictionMatchViewModel
     public bool HasPrediction => PredictedHomeScore.HasValue && PredictedAwayScore.HasValue;
     public bool HasSavedPrediction { get; set; }
     public bool IsLocked => Status == nameof(MatchStatus.Finished)
-                            || (KickoffTime.HasValue && KickoffTime.Value <= ScoreCastDateTime.Now);
+                            || Status == nameof(MatchStatus.Live)
+                            || (KickoffTime.HasValue && KickoffTime.Value.ToUniversalTime() <= ScoreCastDateTime.Now.Value);
 
     public static PredictionMatchViewModel FromMatch(MatchDetail match) => new()
     {
