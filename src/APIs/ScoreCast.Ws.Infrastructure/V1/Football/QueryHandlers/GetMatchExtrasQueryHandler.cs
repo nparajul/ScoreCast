@@ -29,20 +29,16 @@ internal sealed record GetMatchExtrasQueryHandler(
         if (match is null)
             return ScoreCastResponse<MatchExtrasResult>.Error("Match not found.");
 
-        var h2hTask = GetH2HAsync(match.HomeTeamId, match.AwayTeamId, query.MatchId, ct);
-        var homeFormTask = GetFormAsync(match.HomeTeamId, query.MatchId, match.KickoffTime, ct);
-        var awayFormTask = GetFormAsync(match.AwayTeamId, query.MatchId, match.KickoffTime, ct);
-        var predictionTask = GetUserPredictionAsync(query.MatchId, query.UserId, ct);
-        var communityTask = GetCommunityPredictionsAsync(query.MatchId, ct);
-        var homeStatsTask = GetPlayerStatsAsync(match.HomeTeamId, match.SeasonId, ct);
-        var awayStatsTask = GetPlayerStatsAsync(match.AwayTeamId, match.SeasonId, ct);
-
-        await Task.WhenAll(h2hTask, homeFormTask, awayFormTask, predictionTask, communityTask, homeStatsTask, awayStatsTask);
+        var h2h = await GetH2HAsync(match.HomeTeamId, match.AwayTeamId, query.MatchId, ct);
+        var homeForm = await GetFormAsync(match.HomeTeamId, query.MatchId, match.KickoffTime, ct);
+        var awayForm = await GetFormAsync(match.AwayTeamId, query.MatchId, match.KickoffTime, ct);
+        var prediction = await GetUserPredictionAsync(query.MatchId, query.UserId, ct);
+        var community = await GetCommunityPredictionsAsync(query.MatchId, ct);
+        var homeStats = await GetPlayerStatsAsync(match.HomeTeamId, match.SeasonId, ct);
+        var awayStats = await GetPlayerStatsAsync(match.AwayTeamId, match.SeasonId, ct);
 
         return ScoreCastResponse<MatchExtrasResult>.Ok(new MatchExtrasResult(
-            await h2hTask, await homeFormTask, await awayFormTask,
-            await predictionTask, await communityTask,
-            await homeStatsTask, await awayStatsTask));
+            h2h, homeForm, awayForm, prediction, community, homeStats, awayStats));
     }
 
     private async Task<List<H2HMatch>> GetH2HAsync(long homeTeamId, long awayTeamId, long excludeMatchId, CancellationToken ct)
