@@ -213,22 +213,24 @@
                                 var awayRows = _match.AwayFormation is not null
                                     ? GetFormationRows(_match.AwayLineup, _match.AwayFormation, true, mirrorRows: true)
                                     : [];
-                                var maxRows = Math.Max(homeRows.Count, awayRows.Count);
-                                var rowHeight = maxRows > 0 ? 100.0 / (maxRows * 2) : 10;
                             }
-                            <div style="display:grid;grid-template-rows:repeat(@(maxRows * 2), 1fr);min-height:480px;align-items:center;">
-                                @foreach (var row in homeRows)
-                                {
-                                    <div style="display:flex;justify-content:space-evenly;">
-                                        @foreach (var p in row) { @RenderPlayerCard(p, 36) }
-                                    </div>
-                                }
-                                @foreach (var row in awayRows)
-                                {
-                                    <div style="display:flex;justify-content:space-evenly;">
-                                        @foreach (var p in row) { @RenderPlayerCard(p, 36) }
-                                    </div>
-                                }
+                            <div style="display:flex;flex-direction:column;min-height:520px;">
+                                <div style="height:50%;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:6px 0;">
+                                    @foreach (var row in homeRows)
+                                    {
+                                        <div style="display:flex;justify-content:space-evenly;">
+                                            @foreach (var p in row) { @RenderPlayerCard(p, 34) }
+                                        </div>
+                                    }
+                                </div>
+                                <div style="height:50%;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:6px 0;">
+                                    @foreach (var row in awayRows)
+                                    {
+                                        <div style="display:flex;justify-content:space-evenly;">
+                                            @foreach (var p in row) { @RenderPlayerCard(p, 34) }
+                                        </div>
+                                    }
+                                </div>
                             </div>
                         </MudPaper>
 
