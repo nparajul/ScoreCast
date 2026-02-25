@@ -174,98 +174,68 @@
 }
 
 /* ── Side Drawer (Facebook-style) ── */
-.side-drawer-overlay {
+.more-menu-overlay {
     position: fixed;
     inset: 0;
     z-index: 1200;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    animation: fadeIn 0.25s ease;
+    background: rgba(0, 0, 0, 0.3);
 }
 
-.side-drawer {
+.more-menu {
     position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 280px;
+    bottom: 64px;
+    right: 8px;
     z-index: 1300;
-    background: #111;
-    transform: translateX(-100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    flex-direction: column;
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+    background: #1e1e1e;
+    border-radius: 12px;
+    padding: 6px 0;
+    min-width: 160px;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+    animation: menuPop 0.15s ease-out;
 }
 
-.side-drawer.open {
-    transform: translateX(0);
-}
-
-.side-drawer-header {
+.more-menu-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.side-drawer-menu {
-    display: flex;
-    flex-direction: column;
-    padding: 8px 0;
-    flex: 1;
-}
-
-.side-drawer-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 20px;
+    gap: 12px;
+    padding: 12px 18px;
+    width: 100%;
     border: none;
     background: transparent;
     color: rgba(255, 255, 255, 0.85);
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.2s ease;
 }
 
-.side-drawer-item:active {
+.more-menu-item:active {
     background: rgba(255, 255, 255, 0.08);
 }
 
-.side-drawer-item .mud-icon-root {
+.more-menu-item .mud-icon-root {
     color: rgba(255, 255, 255, 0.6);
 }
 
-.side-drawer-divider {
-    height: 1px;
-    background: rgba(255, 255, 255, 0.08);
-    margin: 8px 20px;
-}
-
-.side-drawer-logout {
+.more-menu-logout {
     color: #ef5350;
 }
 
-.side-drawer-logout .mud-icon-root {
+.more-menu-logout .mud-icon-root {
     color: #ef5350;
 }
 
 @media (min-width: 960px) {
-    .side-drawer,
-    .side-drawer-overlay {
+    .more-menu,
+    .more-menu-overlay {
         display: none !important;
     }
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+@keyframes menuPop {
+    from { opacity: 0; transform: translateY(8px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes popIn {

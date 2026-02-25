@@ -21,6 +21,19 @@
             }
         </div>
 
-        <SideDrawer IsOpen="_drawerOpen" OnClose="@(() => { _drawerOpen = false; StateHasChanged(); })" />
+        @if (_menuOpen)
+        {
+            <div class="more-menu-overlay" @onclick="@(() => { _menuOpen = false; })"></div>
+            <div class="more-menu">
+                <button class="more-menu-item" @onclick='() => Navigate("/settings")'>
+                    <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                    <span>Profile</span>
+                </button>
+                <button class="more-menu-item more-menu-logout" @onclick='() => Navigate("/logout")'>
+                    <MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small" />
+                    <span>Log Out</span>
+                </button>
+            </div>
+        }
     </Authorized>
 </AuthorizeView>
