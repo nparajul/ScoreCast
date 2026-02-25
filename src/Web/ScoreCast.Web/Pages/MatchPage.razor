@@ -214,20 +214,25 @@
                                     ? GetFormationRows(_match.AwayLineup, _match.AwayFormation, true, mirrorRows: true)
                                     : [];
                             }
-                            <div style="display:flex;flex-direction:column;height:560px;">
-                                <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:6px 0;">
+                            @{
+                                var maxRows = Math.Max(homeRows.Count, awayRows.Count);
+                                var pitchHeight = Math.Max(520, maxRows * 100);
+                                var avatarSize = maxRows > 5 ? 30 : 34;
+                            }
+                            <div style="display:flex;flex-direction:column;height:@(pitchHeight)px;">
+                                <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:4px 0;">
                                     @foreach (var row in homeRows)
                                     {
                                         <div style="display:flex;justify-content:space-evenly;">
-                                            @foreach (var p in row) { @RenderPlayerCard(p, 34) }
+                                            @foreach (var p in row) { @RenderPlayerCard(p, avatarSize) }
                                         </div>
                                     }
                                 </div>
-                                <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:6px 0;">
+                                <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:4px 0;">
                                     @foreach (var row in awayRows)
                                     {
                                         <div style="display:flex;justify-content:space-evenly;">
-                                            @foreach (var p in row) { @RenderPlayerCard(p, 34) }
+                                            @foreach (var p in row) { @RenderPlayerCard(p, avatarSize) }
                                         </div>
                                     }
                                 </div>
