@@ -102,10 +102,33 @@
         @if (_activeTab == "Events")
         {
             <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;">
-                @if (OrderedEvents.Count > 0)
+                @if (OrderedEvents.Count > 0 || _match.Status != nameof(MatchStatus.Scheduled))
                 {
-                    @foreach (var evt in OrderedEvents)
+                    @* Kick Off marker *@
+                    @if (_match.Status is nameof(MatchStatus.Live) or nameof(MatchStatus.Finished))
                     {
+                        <div style="display:flex;align-items:center;padding:6px 14px;gap:8px;">
+                            <div style="flex:1;height:1px;background:var(--mud-palette-divider);"></div>
+                            <span style="font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);">⏱️ Kick Off</span>
+                            <div style="flex:1;height:1px;background:var(--mud-palette-divider);"></div>
+                        </div>
+                    }
+
+                    var events = OrderedEvents;
+                    var htShown = false;
+                    @foreach (var evt in events)
+                    {
+                        @* Half Time divider — insert before first 2nd-half event *@
+                        if (!htShown && IsSecondHalf(evt.Minute))
+                        {
+                            htShown = true;
+                            <div style="display:flex;align-items:center;padding:6px 14px;gap:8px;">
+                                <div style="flex:1;height:1px;background:var(--mud-palette-divider);"></div>
+                                <span style="font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);">HT @(_match.HalfTimeHomeScore is not null ? $"{_match.HalfTimeHomeScore} - {_match.HalfTimeAwayScore}" : "")</span>
+                                <div style="flex:1;height:1px;background:var(--mud-palette-divider);"></div>
+                            </div>
+                        }
+
                         var isSub = evt.EventType == EventTypes.SubIn;
                         <div style="display:flex;align-items:center;padding:6px 8px;gap:0;border-bottom:1px solid var(--mud-palette-divider);">
                             @* Left side (home) *@
@@ -157,6 +180,16 @@
                                     }
                                 }
                             </div>
+                        </div>
+                    }
+
+                    @* Full Time marker *@
+                    @if (_match.Status == nameof(MatchStatus.Finished))
+                    {
+                        <div style="display:flex;align-items:center;padding:6px 14px;gap:8px;">
+                            <div style="flex:1;height:1px;background:var(--mud-palette-divider);"></div>
+                            <span style="font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);">FT @_match.HomeScore - @_match.AwayScore</span>
+                            <div style="flex:1;height:1px;background:var(--mud-palette-divider);"></div>
                         </div>
                     }
                 }
