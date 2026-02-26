@@ -179,26 +179,28 @@
     inset: 0;
     z-index: 1200;
     background: rgba(0, 0, 0, 0.3);
+    animation: overlayFade 0.2s ease-out;
 }
 
 .more-menu {
     position: fixed;
-    bottom: 64px;
-    right: 8px;
+    bottom: 72px;
+    right: 12px;
     z-index: 1300;
     background: #1e1e1e;
-    border-radius: 12px;
-    padding: 6px 0;
-    min-width: 160px;
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
-    animation: menuPop 0.15s ease-out;
+    border-radius: 14px;
+    padding: 8px 0;
+    min-width: 180px;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+    animation: menuSlideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: bottom right;
 }
 
 .more-menu-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 18px;
+    gap: 14px;
+    padding: 14px 20px;
     width: 100%;
     border: none;
     background: transparent;
@@ -208,6 +210,7 @@
     font-weight: 500;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s ease;
 }
 
 .more-menu-item:active {
@@ -215,15 +218,7 @@
 }
 
 .more-menu-item .mud-icon-root {
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.more-menu-logout {
-    color: #ef5350;
-}
-
-.more-menu-logout .mud-icon-root {
-    color: #ef5350;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 @media (min-width: 960px) {
@@ -233,9 +228,14 @@
     }
 }
 
-@keyframes menuPop {
-    from { opacity: 0; transform: translateY(8px) scale(0.95); }
+@keyframes menuSlideUp {
+    from { opacity: 0; transform: translateY(16px) scale(0.9); }
     to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes overlayFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 @keyframes popIn {
