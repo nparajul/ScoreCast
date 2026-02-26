@@ -186,65 +186,46 @@
                 {
                     @if (IsMobile)
                     {
-                        @* Home formation header *@
-                        <MudPaper Elevation="1" Style="border-radius:8px 8px 0 0;padding:8px 10px;text-align:center;">
-                            <div class="d-flex align-center justify-center gap-2">
-                                <MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Small" Style="color:var(--mud-palette-text-secondary);font-size:16px;" />
+                        var showHome = _lineupTab == "home";
+                        var activeRows = showHome
+                            ? (_match.HomeFormation is not null ? GetFormationRows(_match.HomeLineup, _match.HomeFormation, false) : new List<List<MatchPageLineupPlayer>>())
+                            : (_match.AwayFormation is not null ? GetFormationRows(_match.AwayLineup, _match.AwayFormation, true, mirrorRows: true) : new List<List<MatchPageLineupPlayer>>());
+                        var activeFormation = showHome ? _match.HomeFormation : _match.AwayFormation;
+
+                        @* Team toggle *@
+                        <div class="d-flex" style="gap:4px;margin-bottom:4px;">
+                            <button @onclick='() => { _lineupTab = "home"; }'
+                                    style="flex:1;padding:8px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+                                           background:@(showHome ? "var(--mud-palette-primary)" : "var(--mud-palette-surface)");
+                                           color:@(showHome ? "white" : "inherit");font-family:inherit;font-weight:700;font-size:13px;">
                                 @if (_match.HomeTeamLogo is not null) { <img src="@_match.HomeTeamLogo" alt="" style="width:18px;height:18px;" /> }
-                                <span style="font-size:13px;font-weight:700;">@_match.HomeTeamShortName</span>
-                                <span style="font-size:12px;color:var(--mud-palette-text-secondary);font-weight:600;">@_match.HomeFormation</span>
-                            </div>
-                        </MudPaper>
-
-                        @* Pitch *@
-                        <MudPaper Elevation="1" Style="border-radius:0;overflow:hidden;background:linear-gradient(180deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);position:relative;">
-                            <div style="position:absolute;inset:0;pointer-events:none;">
-                                <div style="position:absolute;top:50%;left:8%;right:8%;height:1px;background:rgba(255,255,255,0.15);"></div>
-                                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border:1px solid rgba(255,255,255,0.15);border-radius:50%;"></div>
-                                <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:55%;height:36px;border:1px solid rgba(255,255,255,0.15);border-top:none;"></div>
-                                <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:22%;height:14px;border:1px solid rgba(255,255,255,0.25);border-top:none;"></div>
-                                <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:55%;height:36px;border:1px solid rgba(255,255,255,0.15);border-bottom:none;"></div>
-                                <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:22%;height:14px;border:1px solid rgba(255,255,255,0.25);border-bottom:none;"></div>
-                            </div>
-                            @{
-                                var homeRows = _match.HomeFormation is not null
-                                    ? GetFormationRows(_match.HomeLineup, _match.HomeFormation, false)
-                                    : [];
-                                var awayRows = _match.AwayFormation is not null
-                                    ? GetFormationRows(_match.AwayLineup, _match.AwayFormation, true, mirrorRows: true)
-                                    : [];
-                            }
-                            @{
-                                var maxRows = Math.Max(homeRows.Count, awayRows.Count);
-                                var pitchHeight = Math.Max(560, maxRows * 110);
-                            }
-                            <div style="display:flex;flex-direction:column;height:@(pitchHeight)px;">
-                                <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:8px 0;">
-                                    @foreach (var row in homeRows)
-                                    {
-                                        <div style="display:flex;justify-content:space-evenly;">
-                                            @foreach (var p in row) { @RenderPlayerCard(p, 30) }
-                                        </div>
-                                    }
-                                </div>
-                                <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:8px 0;">
-                                    @foreach (var row in awayRows)
-                                    {
-                                        <div style="display:flex;justify-content:space-evenly;">
-                                            @foreach (var p in row) { @RenderPlayerCard(p, 30) }
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </MudPaper>
-
-                        @* Away formation header *@
-                        <MudPaper Elevation="1" Style="border-radius:0 0 8px 8px;padding:8px 10px;text-align:center;">
-                            <div class="d-flex align-center justify-center gap-2">
-                                <MudIcon Icon="@Icons.Material.Filled.Flight" Size="Size.Small" Style="color:var(--mud-palette-text-secondary);font-size:16px;" />
+                                @_match.HomeTeamShortName
+                            </button>
+                            <button @onclick='() => { _lineupTab = "away"; }'
+                                    style="flex:1;padding:8px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+                                           background:@(!showHome ? "var(--mud-palette-primary)" : "var(--mud-palette-surface)");
+                                           color:@(!showHome ? "white" : "inherit");font-family:inherit;font-weight:700;font-size:13px;">
                                 @if (_match.AwayTeamLogo is not null) { <img src="@_match.AwayTeamLogo" alt="" style="width:18px;height:18px;" /> }
-                                <span style="font-size:13px;font-weight:700;">@_match.AwayTeamShortName</span>
-                                <span style="font-size:12px;color:var(--mud-palette-text-secondary);font-weight:600;">@_match.AwayFormation</span>
+                                @_match.AwayTeamShortName
+                            </button>
+                        </div>
+
+                        @* Single-team pitch *@
+                        <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;background:linear-gradient(180deg, #1b5e20 0%, #2e7d32 100%);position:relative;">
+                            <div style="position:absolute;inset:0;pointer-events:none;">
+                                <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:55%;height:50px;border:1px solid rgba(255,255,255,0.15);border-bottom:none;"></div>
+                                <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:22%;height:20px;border:1px solid rgba(255,255,255,0.25);border-bottom:none;"></div>
+                            </div>
+                            <div style="padding:4px 0 0 0;text-align:center;">
+                                <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);">@activeFormation</span>
+                            </div>
+                            <div style="display:flex;flex-direction:column;justify-content:space-evenly;min-height:380px;padding:4px 0 12px 0;">
+                                @foreach (var row in activeRows)
+                                {
+                                    <div style="display:flex;justify-content:space-evenly;">
+                                        @foreach (var p in row) { @RenderPlayerCard(p, 38) }
+                                    </div>
+                                }
                             </div>
                         </MudPaper>
                     }
