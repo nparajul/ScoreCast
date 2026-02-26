@@ -234,20 +234,24 @@
                         @* Team toggle *@
                         <div class="d-flex" style="gap:4px;margin-bottom:4px;">
                             <button @onclick='() => { _lineupTab = "home"; }'
-                                    style="flex:1;padding:8px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+                                    style="flex:1;padding:8px 6px;border:none;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;
                                            background:@(showHome ? "var(--mud-palette-primary)" : "var(--mud-palette-surface)");
-                                           color:@(showHome ? "white" : "inherit");font-family:inherit;font-weight:700;font-size:13px;">
-                                @if (_match.HomeTeamLogo is not null) { <img src="@_match.HomeTeamLogo" alt="" style="width:18px;height:18px;" /> }
-                                @_match.HomeTeamShortName
-                                <span style="font-weight:500;font-size:11px;opacity:0.7;">@_match.HomeFormation</span>
+                                           color:@(showHome ? "white" : "inherit");font-family:inherit;">
+                                <span style="display:flex;align-items:center;gap:5px;font-weight:700;font-size:13px;">
+                                    @if (_match.HomeTeamLogo is not null) { <img src="@_match.HomeTeamLogo" alt="" style="width:16px;height:16px;" /> }
+                                    @_match.HomeTeamShortName
+                                </span>
+                                <span style="font-size:11px;font-weight:500;opacity:0.6;">@_match.HomeFormation</span>
                             </button>
                             <button @onclick='() => { _lineupTab = "away"; }'
-                                    style="flex:1;padding:8px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+                                    style="flex:1;padding:8px 6px;border:none;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;
                                            background:@(!showHome ? "var(--mud-palette-primary)" : "var(--mud-palette-surface)");
-                                           color:@(!showHome ? "white" : "inherit");font-family:inherit;font-weight:700;font-size:13px;">
-                                @if (_match.AwayTeamLogo is not null) { <img src="@_match.AwayTeamLogo" alt="" style="width:18px;height:18px;" /> }
-                                @_match.AwayTeamShortName
-                                <span style="font-weight:500;font-size:11px;opacity:0.7;">@_match.AwayFormation</span>
+                                           color:@(!showHome ? "white" : "inherit");font-family:inherit;">
+                                <span style="display:flex;align-items:center;gap:5px;font-weight:700;font-size:13px;">
+                                    @if (_match.AwayTeamLogo is not null) { <img src="@_match.AwayTeamLogo" alt="" style="width:16px;height:16px;" /> }
+                                    @_match.AwayTeamShortName
+                                </span>
+                                <span style="font-size:11px;font-weight:500;opacity:0.6;">@_match.AwayFormation</span>
                             </button>
                         </div>
 
