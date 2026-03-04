@@ -115,10 +115,10 @@
 
                     var events = OrderedEvents;
                     var htShown = false;
+                    var pastHalfTime = _match.Phase is PulseApi.Phase.HalfTime or PulseApi.Phase.SecondHalf || isFinished;
                     @foreach (var evt in events)
                     {
-                        @* HT divider: for chronological, before first 46+ min; for reverse, before first ≤45 min *@
-                        if (!htShown && (isLive ? !IsSecondHalf(evt.Minute) : IsSecondHalf(evt.Minute)))
+                        if (!htShown && pastHalfTime && (isLive ? !IsSecondHalf(evt.Minute) : IsSecondHalf(evt.Minute)))
                         {
                             htShown = true;
                             @RenderDivider($"HT {(_match.HalfTimeHomeScore is not null ? $"{_match.HalfTimeHomeScore} - {_match.HalfTimeAwayScore}" : "")}")
