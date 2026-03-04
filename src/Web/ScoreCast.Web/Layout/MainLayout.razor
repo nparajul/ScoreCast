@@ -56,16 +56,21 @@
             </NotAuthorized>
         </AuthorizeView>
 
-        <div class="d-none d-md-flex">
-            <MudButton Href="/how-to-play" Color="Color.Inherit">How to Play</MudButton>
+        <div class="d-none d-md-flex align-center" style="gap:2px;margin-left:8px;">
+            <a href="/how-to-play" class="desktop-nav-link @(IsActive("/how-to-play") ? "active" : "")">
+                <MudIcon Icon="@Icons.Material.Filled.HelpOutline" Size="Size.Small" />
+                <span>How to Play</span>
+            </a>
         </div>
 
         <AuthorizeView>
             <Authorized>
-                <div class="d-none d-md-flex">
+                <div class="d-none d-md-flex align-center" style="gap:2px;margin-left:4px;">
                     @foreach (var onePage in RoleNav.Pages.Where(p => p.ParentPageId is null).OrderBy(p => p.DisplayOrder))
                     {
-                        <MudButton Href="@onePage.PageUrl" Color="Color.Inherit">@onePage.PageName</MudButton>
+                        <a href="@onePage.PageUrl" class="desktop-nav-link @(IsActive(onePage.PageUrl) ? "active" : "")">
+                            <span>@onePage.PageName</span>
+                        </a>
                     }
                 </div>
             </Authorized>
