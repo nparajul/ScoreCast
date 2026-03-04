@@ -353,7 +353,7 @@ internal sealed record SyncMatchesCommandHandler(
 
             var status = MapFdStatus(apiMatch.Status);
             var minute = FormatFdMinute(apiMatch);
-            var referee = apiMatch.Referees?.FirstOrDefault(r => r.Type == SharedConstants.RefereeRole)?.Name;
+            var referee = apiMatch.Referees?.FirstOrDefault(r => r.Type == "REFEREE")?.Name;
 
             if (match is null)
             {
