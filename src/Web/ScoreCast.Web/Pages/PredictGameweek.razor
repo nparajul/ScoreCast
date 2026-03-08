@@ -196,6 +196,11 @@
                             @if (match.Status == nameof(MatchStatus.Finished)) { <text>FT @match.HomeScore-@match.AwayScore</text> }
                             else if (match.KickoffTime.HasValue) { @ClientTime.ToLocal(match.KickoffTime.Value).ToString("dd MMM HH:mm") }
                         </div>
+                        @{ var confidence = GetConfidenceText(match); }
+                        @if (confidence is not null)
+                        {
+                            <div style="text-align:center;font-size:10px;color:#FF6B35;font-weight:600;margin-top:2px;">@confidence</div>
+                        }
                     </div>
                 }
             </div>
