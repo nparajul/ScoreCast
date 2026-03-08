@@ -11,9 +11,9 @@ public partial class BottomNav : ComponentBase, IDisposable
     private static readonly (string? Icon, string? Emoji, string Label, string Url, string Color, bool IsDrawer)[] Tabs =
     [
         (null, "🏆", "Predict", "/dashboard", "", false),
+        (Icons.Material.Filled.Public, null, "Global", "/global", "#FF6B35", false),
         (Icons.Material.Filled.SportsSoccer, null, "Scores", "/scores", "#4CAF50", false),
         (Icons.Material.Filled.Leaderboard, null, "Tables", "/points-table", "#42A5F5", false),
-        (null, "🛡️", "Teams", "/teams", "", false),
         (Icons.Material.Filled.Menu, null, "More", "", "#BDBDBD", true),
     ];
 
