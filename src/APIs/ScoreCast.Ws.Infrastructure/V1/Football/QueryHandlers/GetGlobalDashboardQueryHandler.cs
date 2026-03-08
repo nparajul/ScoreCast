@@ -146,7 +146,58 @@ internal sealed record GetGlobalDashboardQueryHandler(
             hardest?.Label ?? "N/A", Math.Round(hardest?.Accuracy ?? 0, 1),
             teamAccuracy?.Team ?? "N/A", Math.Round(teamAccuracy?.Pct ?? 0, 1));
 
+        // 5. Last completed gameweek recap
+        GameweekRecap? recap = null;
+        var lastCompletedGw = await DbContext.Gameweeks
+            .Where(g => g.SeasonId == seasonId && g.Status == GameweekStatus.Completed)
+            .OrderByDescending(g => g.Number)
+            .FirstOrDefaultAsync(ct);
+
+        if (lastCompletedGw is not null)
+        {
+            var gwMatchIds = await DbContext.Matches
+                .Where(m => m.GameweekId == lastCompletedGw.Id)
+                .Select(m => m.Id).ToListAsync(ct);
+
+            var gwPreds2 = await DbContext.Predictions
+                .Where(p => p.SeasonId == seasonId && p.PredictionType == PredictionType.Score
+                            && p.Outcome != null && p.MatchId.HasValue && gwMatchIds.Contains(p.MatchId.Value))
+                .Select(p => new { p.UserId, Outcome = p.Outcome!.Value, p.PredictedHomeScore, p.PredictedAwayScore,
+                    HomeScore = p.Match!.HomeScore, AwayScore = p.Match.AwayScore,
+                    HomeName = p.Match.HomeTeam.ShortName ?? p.Match.HomeTeam.Name,
+                    AwayName = p.Match.AwayTeam.ShortName ?? p.Match.AwayTeam.Name })
+                .ToListAsync(ct);
+
+            if (gwPreds2.Count > 0)
+            {
+                var byUser = gwPreds2.GroupBy(p => p.UserId)
+                    .Select(g => new { g.Key, Pts = g.Sum(p => scoringRules.GetValueOrDefault(p.Outcome, 0)) })
+                    .OrderByDescending(u => u.Pts).First();
+                var bestName = userNames.GetValueOrDefault(byUser.Key, "Anonymous");
+                var gwExact = gwPreds2.Count(p => p.Outcome == PredictionOutcome.ExactScore);
+                var gwPredictors = gwPreds2.Select(p => p.UserId).Distinct().Count();
+
+                // Biggest upset: match where fewest predicted the correct result
+                var correctOutcomes2 = new[] { PredictionOutcome.ExactScore, PredictionOutcome.CorrectResultAndGoalDifference, PredictionOutcome.CorrectResult };
+                var upsetMatch = gwPreds2.GroupBy(p => $"{p.HomeName} {p.HomeScore}-{p.AwayScore} {p.AwayName}")
+                    .Where(g => g.Count() >= 2)
+                    .Select(g => new { Label = g.Key, CorrectPct = g.Count(p => correctOutcomes2.Contains(p.Outcome)) * 100.0 / g.Count() })
+                    .MinBy(m => m.CorrectPct);
+
+                // Boldest correct: exact score that fewest predicted
+                var boldest = gwPreds2
+                    .Where(p => p.Outcome == PredictionOutcome.ExactScore)
+                    .GroupBy(p => $"{p.HomeName} {p.PredictedHomeScore}-{p.PredictedAwayScore} {p.AwayName}")
+                    .OrderBy(g => g.Count())
+                    .Select(g => g.Key)
+                    .FirstOrDefault();
+
+                recap = new GameweekRecap(lastCompletedGw.Number, bestName, byUser.Pts, gwExact, gwPredictors,
+                    upsetMatch?.Label, boldest);
+            }
+        }
+
         return ScoreCastResponse<GlobalDashboardResult>.Ok(
-            new GlobalDashboardResult(countdown, upcomingPredictions, topPredictors, community));
+            new GlobalDashboardResult(countdown, upcomingPredictions, topPredictors, community, recap));
     }
 }
