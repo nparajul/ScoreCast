@@ -24,7 +24,11 @@ public sealed class PredictionMatchViewModel
     public bool HasSavedPrediction { get; set; }
     public bool IsLocked => Status == nameof(MatchStatus.Finished)
                             || Status == nameof(MatchStatus.Live)
+                            || Status == nameof(MatchStatus.Postponed)
+                            || Status == nameof(MatchStatus.Cancelled)
                             || (KickoffTime.HasValue && KickoffTime.Value.ToUniversalTime() <= ScoreCastDateTime.Now.Value);
+
+    public bool IsPostponed => Status == nameof(MatchStatus.Postponed) || Status == nameof(MatchStatus.Cancelled);
 
     public static PredictionMatchViewModel FromMatch(MatchDetail match) => new()
     {

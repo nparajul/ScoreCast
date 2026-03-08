@@ -215,7 +215,7 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
             if (pulseData is null || !dbMatches.TryGetValue(matchId, out var dbMatch)) continue;
 
             updatedCount++;
-            var pulseStatus = MapPulseStatus(pulseData.Status);
+            var pulseStatus = MapPulseStatus(pulseData.Status, pulseData.Phase);
             dbMatch.Status = pulseStatus;
 
             if (pulseStatus == MatchStatus.Live)
@@ -313,10 +313,12 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
         return (liveMatchIds, updatedCount);
     }
 
-    private static MatchStatus MapPulseStatus(string? status) => status switch
+    private static MatchStatus MapPulseStatus(string? status, string? phase = null) => status switch
     {
         PulseApi.Status.Live => MatchStatus.Live,
         PulseApi.Status.Complete => MatchStatus.Finished,
+        PulseApi.Status.Postponed => MatchStatus.Postponed,
+        _ when phase == PulseApi.Phase.Postponed => MatchStatus.Postponed,
         _ => MatchStatus.Scheduled
     };
 
