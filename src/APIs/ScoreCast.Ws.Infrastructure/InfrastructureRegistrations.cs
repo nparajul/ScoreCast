@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ScoreCast.Shared.Constants;
 using ScoreCast.Ws.Application.Interfaces;
 using ScoreCast.Ws.Infrastructure.Internal;
 using ScoreCast.Ws.Infrastructure.V1.Shared;
@@ -17,18 +18,20 @@ public static class InfrastructureRegistrations
         services.AddHttpContextAccessor();
         services.AddScoped<ScoreCastSaveChangesInterceptor>();
 
-        services.AddDbContext<ScoreCastDbContext>((sp, opt) =>
+        services.AddDbContext<IScoreCastDbContext, ScoreCastDbContext>((sp, opt) =>
         {
             var configuration = sp.GetRequiredService<IConfiguration>();
             var connectionString = configuration.GetConnectionString(ConnectionName);
-
             ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
 
             opt.UseNpgsql(connectionString, npgsql =>
             {
+                npgsql.SetPostgresVersion(new Version(17,5));
+                npgsql.MigrationsHistoryTable("sc_db_migrations_history", SharedConstants.DefaultSchema);
                 npgsql.MigrationsAssembly("ScoreCast.Ws.Migrations");
             });
 
+            using var scope = sp.CreateScope();
             var interceptor = sp.GetRequiredService<ScoreCastSaveChangesInterceptor>();
             opt.AddInterceptors(interceptor);
 
@@ -44,7 +47,5 @@ public static class InfrastructureRegistrations
                 opt.EnableSensitiveDataLogging();
             }
         });
-
-        services.AddScoped<IScoreCastDbContext>(sp => sp.GetRequiredService<ScoreCastDbContext>());
     }
 }
