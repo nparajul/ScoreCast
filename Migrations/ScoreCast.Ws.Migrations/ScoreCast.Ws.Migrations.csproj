@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <!-- Only build when explicitly targeted: dotnet build Migrations/ScoreCast.Ws.Migrations -->
-    <DefaultItemExcludes>$(DefaultItemExcludes);Migrations/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>

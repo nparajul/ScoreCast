@@ -7,6 +7,7 @@
     <PackageReference Include="FastEndpoints.Security" />
     <PackageReference Include="FastEndpoints.Swagger" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.File" />
@@ -15,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ScoreCast.Ws.Endpoints\ScoreCast.Ws.Endpoints.csproj" />
     <ProjectReference Include="..\ScoreCast.Ws.Infrastructure\ScoreCast.Ws.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Migrations\ScoreCast.Ws.Migrations\ScoreCast.Ws.Migrations.csproj" />
     <ProjectReference Include="..\ScoreCast.Ws.Services\ScoreCast.Ws.Services.csproj" />
     <ProjectReference Include="..\..\Shared\ScoreCast.Shared\ScoreCast.Shared.csproj" />
   </ItemGroup>
