@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ScoreCast.Ws.Domain\ScoreCast.Ws.Domain.csproj" />
     <ProjectReference Include="..\..\Shared\ScoreCast.Models\ScoreCast.Models.csproj" />
   </ItemGroup>
