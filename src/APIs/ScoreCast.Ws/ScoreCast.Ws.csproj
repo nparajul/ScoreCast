@@ -2,13 +2,18 @@
 
   <ItemGroup>
     <PackageReference Include="FastEndpoints" />
+    <PackageReference Include="FastEndpoints.AspVersioning" />
     <PackageReference Include="FastEndpoints.Swagger" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Sinks.File" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ScoreCast.Ws.Endpoints\ScoreCast.Ws.Endpoints.csproj" />
     <ProjectReference Include="..\ScoreCast.Ws.Infrastructure\ScoreCast.Ws.Infrastructure.csproj" />
     <ProjectReference Include="..\ScoreCast.Ws.Services\ScoreCast.Ws.Services.csproj" />
+    <ProjectReference Include="..\..\Shared\ScoreCast.Shared\ScoreCast.Shared.csproj" />
   </ItemGroup>
 
 </Project>
