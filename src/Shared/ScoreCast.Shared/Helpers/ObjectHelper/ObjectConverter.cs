@@ -220,7 +220,6 @@ public static class ObjectConverter
         catch (Exception exp)
         {
             var message = exp.Message;
-            //OlpLoggerHelper.Log(OlpLoggerScopes.Api, LogEventLevel.Error, message);
             return (T?)Convert.ChangeType(jsonContent, typeof(T?));
         }
     }
