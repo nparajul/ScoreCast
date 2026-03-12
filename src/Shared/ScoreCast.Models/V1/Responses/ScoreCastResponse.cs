@@ -1,4 +1,6 @@
-namespace ScoreCast.Shared.Responses;
+using ScoreCast.Shared.Enums;
+
+namespace ScoreCast.Models.V1.Responses;
 
 public record ScoreCastResponse
 {

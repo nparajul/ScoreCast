@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics;
-using ScoreCast.Shared.Responses;
+using ScoreCast.Models.V1.Responses;
 
 namespace ScoreCast.Ws.Extensions;
 

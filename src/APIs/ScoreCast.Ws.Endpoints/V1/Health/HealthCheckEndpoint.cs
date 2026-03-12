@@ -1,3 +1,5 @@
+using ScoreCast.Models.V1.Responses;
+
 namespace ScoreCast.Ws.Endpoints.V1.Health;
 
 public sealed class HealthCheckEndpoint : EndpointWithoutRequest<ScoreCastResponse>

@@ -3,7 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ScoreCast.Ws.Application.Interfaces;
-using ScoreCast.Ws.Infrastructure.Data;
+using ScoreCast.Ws.Infrastructure.Internal;
+using ScoreCast.Ws.Infrastructure.V1.Shared;
 
 namespace ScoreCast.Ws.Infrastructure;
 
@@ -13,7 +14,10 @@ public static class InfrastructureRegistrations
 
     public static void AddScoreCastInfrastructure(this IServiceCollection services, string environmentName)
     {
-        services.AddDbContext<IScoreCastDbContext, ScoreCastDbContext>((sp, opt) =>
+        services.AddHttpContextAccessor();
+        services.AddScoped<ScoreCastSaveChangesInterceptor>();
+
+        services.AddDbContext<ScoreCastDbContext>((sp, opt) =>
         {
             var configuration = sp.GetRequiredService<IConfiguration>();
             var connectionString = configuration.GetConnectionString(ConnectionName);
@@ -24,6 +28,9 @@ public static class InfrastructureRegistrations
             {
                 npgsql.MigrationsAssembly("ScoreCast.Ws.Migrations");
             });
+
+            var interceptor = sp.GetRequiredService<ScoreCastSaveChangesInterceptor>();
+            opt.AddInterceptors(interceptor);
 
             if (environmentName.Equals("PRODUCTION", StringComparison.OrdinalIgnoreCase))
             {
@@ -38,6 +45,6 @@ public static class InfrastructureRegistrations
             }
         });
 
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ScoreCastDbContext>());
+        services.AddScoped<IScoreCastDbContext>(sp => sp.GetRequiredService<ScoreCastDbContext>());
     }
 }

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ScoreCast.Ws.Domain.V1.Entities.Common;
-using ScoreCast.Ws.Infrastructure.Data.Converters;
+using ScoreCast.Ws.Infrastructure.V1.Shared.Converters;
 
-namespace ScoreCast.Ws.Infrastructure.Data.Configurations.Common;
+namespace ScoreCast.Ws.Infrastructure.V1.Shared;
 
 internal abstract class BaseEntityConfiguration<T> : IEntityTypeConfiguration<T> where T : ScoreCastEntity
 {
