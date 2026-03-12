@@ -23,6 +23,7 @@
 - Use `Send.OkAsync()` for sending responses — NOT `SendAsync()` or `SendOkAsync()`
 - Endpoints inherit `EndpointWithoutRequest<TResponse>` or `Endpoint<TRequest, TResponse>`
 - Commands are `public`, handlers are `internal sealed`
+- `AllowAnonymous()` is ONLY permitted on public-facing endpoints: health check, landing page, login, sign up, about, contact us. All other endpoints must require authentication.
 
 ## Code Style
 - **Records everywhere** for commands, queries, handlers, DTOs, and value objects
