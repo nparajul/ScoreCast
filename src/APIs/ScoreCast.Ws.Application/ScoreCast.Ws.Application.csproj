@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\ScoreCast.Ws.Domain\ScoreCast.Ws.Domain.csproj" />
+    <ProjectReference Include="..\..\Shared\ScoreCast.Models\ScoreCast.Models.csproj" />
+  </ItemGroup>
+
+</Project>

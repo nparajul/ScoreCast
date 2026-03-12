@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\ScoreCast.Ws.Application\ScoreCast.Ws.Application.csproj" />
+  </ItemGroup>
+
+</Project>

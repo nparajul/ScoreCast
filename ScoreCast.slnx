@@ -1,0 +1,24 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="nuget.config" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/APIs/">
+    <Project Path="src/APIs/ScoreCast.Ws.Application/ScoreCast.Ws.Application.csproj" />
+    <Project Path="src/APIs/ScoreCast.Ws.Domain/ScoreCast.Ws.Domain.csproj" />
+    <Project Path="src/APIs/ScoreCast.Ws.Endpoints/ScoreCast.Ws.Endpoints.csproj" />
+    <Project Path="src/APIs/ScoreCast.Ws.Infrastructure/ScoreCast.Ws.Infrastructure.csproj" />
+    <Project Path="src/APIs/ScoreCast.Ws.Services/ScoreCast.Ws.Services.csproj" />
+    <Project Path="src/APIs/ScoreCast.Ws/ScoreCast.Ws.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/ScoreCast.ApiClient/ScoreCast.ApiClient.csproj" />
+    <Project Path="src/Shared/ScoreCast.Models/ScoreCast.Models.csproj" />
+    <Project Path="src/Shared/ScoreCast.Shared/ScoreCast.Shared.csproj" />
+  </Folder>
+</Solution>
