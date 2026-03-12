@@ -22,5 +22,8 @@ Thumbs.db
 ## Logs
 logs/
 
+## Docker
+.env
+
 ## User secrets
 secrets.json

@@ -26,6 +26,7 @@ try
     });
 
     builder.AddApiCommonServices();
+    builder.AddScoreCastAuthentication();
     builder.Services.AddScoreCastInfrastructure(builder.Environment.EnvironmentName);
 
     builder.Services.AddApiVersioning(o =>
