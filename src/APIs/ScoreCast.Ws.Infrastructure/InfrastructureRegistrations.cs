@@ -47,5 +47,7 @@ public static class InfrastructureRegistrations
                 opt.EnableSensitiveDataLogging();
             }
         });
+
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
     }
 }

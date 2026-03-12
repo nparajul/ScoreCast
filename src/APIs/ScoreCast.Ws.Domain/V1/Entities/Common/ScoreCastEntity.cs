@@ -6,10 +6,10 @@ public abstract record ScoreCastEntity : IAuditable
 {
     public long Id { get; init; }
     public bool IsDeleted { get; set; } = false;
-    public required string CreatedByApp { get; set; }
+    public string? CreatedByApp { get; set; }
     public ScoreCastDateTime CreatedDate { get; set; } = ScoreCastDateTime.Now;
-    public required string CreatedBy { get; set; }
-    public required string ModifiedBy { get; set; }
+    public string? CreatedBy { get; set; }
+    public string? ModifiedBy { get; set; }
     public ScoreCastDateTime ModifiedDate { get; set; } = ScoreCastDateTime.Now;
     public string? ModifiedByApp { get; set; }
 }

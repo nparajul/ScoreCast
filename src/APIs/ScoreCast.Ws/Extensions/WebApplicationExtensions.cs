@@ -22,6 +22,10 @@ public static class WebApplicationExtensions
             c.Errors.UseProblemDetails();
             c.Binding.UsePropertyNamingPolicy = true;
             c.Endpoints.ShortNames = true;
+            c.Endpoints.Configurator = ep =>
+            {
+                ep.PreProcessor<KeycloakUserPreprocessor>(Order.Before);
+            };
             c.Binding.UseDefaultValuesForNullableProps = false;
         }).UseSwaggerGen(opt => { }, uiConfig =>
         {

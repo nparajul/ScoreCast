@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -27,10 +28,11 @@ public static class AuthenticationExtensions
                     ValidIssuer = keycloakSection["Authority"],
                     ValidAudience = keycloakSection["Audience"],
                     NameClaimType = "preferred_username",
-                    RoleClaimType = "realm_access.roles"
+                    RoleClaimType = "roles"
                 };
             });
 
+        builder.Services.AddTransient<IClaimsTransformation, KeycloakRoleClaimTransformation>();
         builder.Services.AddAuthorization();
     }
 }
