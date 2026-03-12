@@ -1,4 +1,4 @@
-namespace ScoreCast.Shared.Responses;
+namespace ScoreCast.Shared.Enums;
 
 public enum ScoreCastResultType
 {

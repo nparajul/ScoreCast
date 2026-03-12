@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ScoreCast.Ws.Domain.V1.Entities.UserManagement;
-using ScoreCast.Ws.Infrastructure.Data.Configurations.Common;
+using ScoreCast.Ws.Infrastructure.V1.Shared;
 
-namespace ScoreCast.Ws.Infrastructure.Data.Configurations.UserManagement;
+namespace ScoreCast.Ws.Infrastructure.V1.UserManagement.EntityConfigurations;
 
 internal sealed class UserEntityConfiguration : BaseEntityConfiguration<UserMaster>
 {

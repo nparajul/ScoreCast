@@ -1,4 +1,4 @@
-namespace ScoreCast.Shared.Requests;
+namespace ScoreCast.Models.V1.Requests;
 
 public record ScoreCastRequest
 {
