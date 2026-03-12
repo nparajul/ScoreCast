@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ScoreCast.Ws.Application\ScoreCast.Ws.Application.csproj" />
+    <ProjectReference Include="..\..\Shared\ScoreCast.Shared\ScoreCast.Shared.csproj" />
   </ItemGroup>
 
 </Project>
