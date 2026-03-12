@@ -8,4 +8,10 @@ public sealed class ScoreCastDbContext(DbContextOptions<ScoreCastDbContext> opti
     : DbContext(options), IScoreCastDbContext
 {
     public DbSet<UserMaster> UserMasters => Set<UserMaster>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.HasDefaultSchema("scorecast");
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ScoreCastDbContext).Assembly);
+    }
 }
