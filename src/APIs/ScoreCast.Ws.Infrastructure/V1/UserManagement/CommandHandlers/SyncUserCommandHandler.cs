@@ -24,7 +24,7 @@ internal sealed record SyncUserCommandHandler(
             existingUser.Email = request.Email;
             existingUser.DisplayName = request.DisplayName ?? existingUser.DisplayName;
 
-            await UnitOfWork.SaveChangesAsync(nameof(SyncUserCommand), ct);
+            await UnitOfWork.SaveChangesAsync(request.AppName ?? nameof(SyncUserCommand), ct);
 
             return ScoreCastResponse<SyncUserResult>.Ok(
                 new SyncUserResult(existingUser.Id, existingUser.UserId, existingUser.Email, existingUser.DisplayName, false));
@@ -32,8 +32,8 @@ internal sealed record SyncUserCommandHandler(
 
         var newUser = new UserMaster
         {
-            KeycloakUserId = request.KeycloakUserId,
-            UserId = request.UserId ?? request.KeycloakUserId,
+            KeycloakUserId = request.KeycloakUserId!,
+            UserId = request.ChosenUsername,
             Email = request.Email,
             DisplayName = request.DisplayName,
         };

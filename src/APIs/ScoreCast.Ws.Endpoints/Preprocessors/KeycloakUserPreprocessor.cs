@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ScoreCast.Models.V1.Requests;
+using ScoreCast.Models.V1.Requests.UserManagement;
 using ScoreCast.Ws.Application.Interfaces;
 
 namespace ScoreCast.Ws.Endpoints.Preprocessors;
@@ -27,6 +28,9 @@ public sealed class KeycloakUserPreprocessor : IGlobalPreProcessor
 
         if (ctx.Request is ScoreCastRequest request)
         {
+            if (request is SyncUserRequest syncRequest)
+                syncRequest.KeycloakUserId = keycloakUserId;
+
             var dbContext = ctx.HttpContext.RequestServices.GetRequiredService<IScoreCastDbContext>();
             var userId = await dbContext.UserMasters
                 .AsNoTracking()
