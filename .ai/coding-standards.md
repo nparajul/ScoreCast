@@ -19,6 +19,11 @@
 - **Endpoints** are thin — delegate to commands/queries, no business logic
 - Entity configurations (EF Fluent API) go in `Infrastructure/Data/Configurations/`
 
+## FastEndpoints Conventions
+- Use `Send.OkAsync()` for sending responses — NOT `SendAsync()` or `SendOkAsync()`
+- Endpoints inherit `EndpointWithoutRequest<TResponse>` or `Endpoint<TRequest, TResponse>`
+- Commands are `public`, handlers are `internal sealed`
+
 ## Code Style
 - **Records everywhere** for commands, queries, handlers, DTOs, and value objects
 - Use primary constructors for dependency injection via record syntax
