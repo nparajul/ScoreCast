@@ -72,7 +72,7 @@ internal sealed record SyncMatchesCommandHandler(
             foreach (var (season, matches) in allMatches)
                 totalMatches += await UpsertMatchesForSeasonAsync(season, competition.Country, matches, teamCache, ct);
 
-            await UnitOfWork.SaveChangesAsync(nameof(SyncMatchesCommand), ct);
+            await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(SyncMatchesCommand), ct);
             await transaction.CommitAsync(ct);
             return ScoreCastResponse.Ok($"Synced {totalMatches} matches across {allMatches.Count} seasons for {competition.Name}");
         }

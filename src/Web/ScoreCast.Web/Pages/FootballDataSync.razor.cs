@@ -14,6 +14,7 @@ public partial class FootballDataSync
 
     private List<CompetitionResult> _competitions = [];
     private string? _newCompetitionCode;
+    private const string AppName = "DATA SYNC";
 
     private bool _loaded;
 
@@ -45,7 +46,7 @@ public partial class FootballDataSync
             var code = _newCompetitionCode.Trim();
             await Loading.While(async () =>
             {
-                var result = await Api.SyncCompetitionAsync(new SyncCompetitionRequest { CompetitionCode = code }, CancellationToken.None);
+                var result = await Api.SyncCompetitionAsync(new SyncCompetitionRequest { CompetitionCode = code, AppName = AppName }, CancellationToken.None);
                 if (result.Success)
                     Alert.Add(result.Message ?? $"Synced {code} successfully", Severity.Success);
                 else
@@ -67,7 +68,7 @@ public partial class FootballDataSync
         {
             await Loading.While(async () =>
             {
-                var result = await Api.SyncCompetitionAsync(new SyncCompetitionRequest { CompetitionCode = competition.Code }, CancellationToken.None);
+                var result = await Api.SyncCompetitionAsync(new SyncCompetitionRequest { CompetitionCode = competition.Code, AppName = AppName }, CancellationToken.None);
                 if (result.Success)
                     Alert.Add(result.Message ?? $"Synced {competition.Name} successfully", Severity.Success);
                 else
@@ -86,7 +87,7 @@ public partial class FootballDataSync
         {
             await Loading.While(async () =>
             {
-                var result = await Api.SyncTeamsAsync(new SyncCompetitionRequest { CompetitionCode = competition.Code }, CancellationToken.None);
+                var result = await Api.SyncTeamsAsync(new SyncCompetitionRequest { CompetitionCode = competition.Code, AppName = AppName }, CancellationToken.None);
                 if (result.Success)
                     Alert.Add(result.Message ?? $"Synced teams for {competition.Name}", Severity.Success);
                 else
@@ -105,7 +106,7 @@ public partial class FootballDataSync
         {
             await Loading.While(async () =>
             {
-                var result = await Api.SyncMatchesAsync(new SyncCompetitionRequest { CompetitionCode = competition.Code }, CancellationToken.None);
+                var result = await Api.SyncMatchesAsync(new SyncCompetitionRequest { CompetitionCode = competition.Code, AppName = AppName }, CancellationToken.None);
                 if (result.Success)
                     Alert.Add(result.Message ?? $"Synced matches for {competition.Name}", Severity.Success);
                 else
