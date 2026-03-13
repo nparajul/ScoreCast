@@ -1,5 +1,10 @@
 @page "/"
 
+@code {
+    [CascadingParameter(Name = "IsDarkMode")]
+    private bool IsDarkMode { get; set; }
+}
+
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
 
     <AuthorizeView>
@@ -7,12 +12,11 @@
             @* Hero *@
             <MudGrid Justify="Justify.Center" Class="mb-10">
                 <MudItem xs="12" sm="10" md="8" Class="d-flex flex-column align-center">
-                    <MudIcon Icon="@Icons.Material.Filled.SportsSoccer" Size="Size.Large" Color="Color.Secondary" Class="mb-2" />
-                    <MudText Typo="Typo.h2" Align="Align.Center" Class="fw-bold">ScoreCast</MudText>
+                    <MudImage Src="@(IsDarkMode ? "scorecast-logo-dark.svg" : "scorecast-logo.svg")" Alt="ScoreCast" Width="360" Class="mb-2" />
                     <MudText Typo="Typo.h5" Color="Color.Secondary" Align="Align.Center" Class="mt-2">
                         Premier League Predictions
                     </MudText>
-                    <MudText Typo="Typo.body1" Align="Align.Center" Class="mt-3" Style="max-width:500px;">
+                    <MudText Typo="Typo.body1" Align="Align.Center" Class="mt-3" Style="max-width:500px;" Color="Color.Inherit">
                         Predict match scores, compete with friends, and climb the leaderboard — all season long.
                     </MudText>
                     <MudButton Variant="Variant.Filled"
@@ -80,22 +84,22 @@
             @* How it works *@
             <MudGrid Justify="Justify.Center" Class="mt-10">
                 <MudItem xs="12" Class="d-flex flex-column align-center mb-4">
-                    <MudText Typo="Typo.h4" Align="Align.Center">How It Works</MudText>
+                    <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Inherit">How It Works</MudText>
                 </MudItem>
                 <MudItem xs="12" sm="4" Class="d-flex flex-column align-center">
                     <MudAvatar Color="Color.Secondary" Size="Size.Large"><MudText Typo="Typo.h5">1</MudText></MudAvatar>
-                    <MudText Typo="Typo.subtitle1" Class="mt-2">Sign Up</MudText>
-                    <MudText Typo="Typo.body2" Align="Align.Center">Create your free account in seconds.</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="mt-2" Color="Color.Inherit">Sign Up</MudText>
+                    <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Inherit">Create your free account in seconds.</MudText>
                 </MudItem>
                 <MudItem xs="12" sm="4" Class="d-flex flex-column align-center">
                     <MudAvatar Color="Color.Tertiary" Size="Size.Large"><MudText Typo="Typo.h5">2</MudText></MudAvatar>
-                    <MudText Typo="Typo.subtitle1" Class="mt-2">Predict</MudText>
-                    <MudText Typo="Typo.body2" Align="Align.Center">Pick your scores for each gameweek.</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="mt-2" Color="Color.Inherit">Predict</MudText>
+                    <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Inherit">Pick your scores for each gameweek.</MudText>
                 </MudItem>
                 <MudItem xs="12" sm="4" Class="d-flex flex-column align-center">
                     <MudAvatar Color="Color.Secondary" Size="Size.Large"><MudText Typo="Typo.h5">3</MudText></MudAvatar>
-                    <MudText Typo="Typo.subtitle1" Class="mt-2">Win</MudText>
-                    <MudText Typo="Typo.body2" Align="Align.Center">Earn points and top the leaderboard.</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="mt-2" Color="Color.Inherit">Win</MudText>
+                    <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Inherit">Earn points and top the leaderboard.</MudText>
                 </MudItem>
             </MudGrid>
         </NotAuthorized>

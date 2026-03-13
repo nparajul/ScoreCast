@@ -11,15 +11,27 @@ public static class ApiClientExtensions
     {
         var apiBaseUrl = builder.Configuration["Api:BaseUrl"]!;
 
+        builder.Services.AddTransient<ApiAuthHandler>();
+
         builder.Services
             .AddRefitClient<IUserManagementApi>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-            .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+            .AddHttpMessageHandler<ApiAuthHandler>();
 
         builder.Services
             .AddRefitClient<IHealthApi>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
+    }
+}
 
-        builder.Services.AddScoped<BaseAddressAuthorizationMessageHandler>();
+internal sealed class ApiAuthHandler(IAccessTokenProvider tokenProvider) : DelegatingHandler
+{
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        var result = await tokenProvider.RequestAccessToken();
+        if (result.TryGetToken(out var token))
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token.Value);
+
+        return await base.SendAsync(request, cancellationToken);
     }
 }

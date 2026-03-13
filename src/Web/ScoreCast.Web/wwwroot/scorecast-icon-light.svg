@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <!-- Clean football circle -->
+  <circle cx="60" cy="52" r="28" fill="none" stroke="#FFFFFF" stroke-width="2.5"/>
+
+  <!-- Classic football panel lines -->
+  <path d="M60 24 L60 36 M60 68 L60 80
+           M33.7 39 L43 46 M77 46 L86.3 39
+           M43 58 L33.7 65 M86.3 65 L77 58"
+        fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- Center pentagon -->
+  <polygon points="60,38 51,44.5 54,55 66,55 69,44.5"
+           fill="#8B1A9E" stroke="#8B1A9E" stroke-width="1" opacity="0.9"/>
+
+  <!-- Target dot -->
+  <circle cx="60" cy="48" r="2.5" fill="#FF6B35"/>
+
+  <!-- "SC" letters -->
+  <text x="60" y="106" text-anchor="middle" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="16" font-weight="700" fill="#FFFFFF" letter-spacing="5" opacity="0.9">
+    SC
+  </text>
+</svg>
