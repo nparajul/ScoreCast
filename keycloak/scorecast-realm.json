@@ -1,6 +1,7 @@
 {
   "realm": "scorecast",
   "enabled": true,
+  "sslRequired": "none",
   "registrationAllowed": true,
   "registrationEmailAsUsername": false,
   "loginWithEmailAllowed": true,
