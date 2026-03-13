@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Ws.Application.Interfaces;
-using ScoreCast.Ws.Domain.V1.Entities.League;
+using ScoreCast.Ws.Domain.V1.Entities.Football;
 using ScoreCast.Ws.Domain.V1.Entities.UserManagement;
 
 namespace ScoreCast.Ws.Infrastructure.V1.Shared;
@@ -9,9 +9,14 @@ public sealed class ScoreCastDbContext(DbContextOptions<ScoreCastDbContext> opti
     : DbContext(options), IScoreCastDbContext
 {
     public DbSet<UserMaster> UserMasters => Set<UserMaster>();
-    public DbSet<CountryMaster> CountryMasters => Set<CountryMaster>();
-    public DbSet<LeagueMaster> LeagueMasters => Set<LeagueMaster>();
-    public DbSet<TeamMaster> TeamMasters => Set<TeamMaster>();
+    public DbSet<Country> Countries => Set<Country>();
+    public DbSet<Competition> Competitions => Set<Competition>();
+    public DbSet<Team> Teams => Set<Team>();
+    public DbSet<Season> Seasons => Set<Season>();
+    public DbSet<SeasonTeam> SeasonTeams => Set<SeasonTeam>();
+    public DbSet<Gameweek> Gameweeks => Set<Gameweek>();
+    public DbSet<Match> Matches => Set<Match>();
+    public DbSet<Prediction> Predictions => Set<Prediction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
