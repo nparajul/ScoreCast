@@ -7,7 +7,7 @@ public partial class WelcomeDialog
 {
     [CascadingParameter] public IMudDialogInstance Dialog { get; set; } = default!;
     [Parameter] public string? Username { get; set; }
-    [Inject] private ILeagueApi LeagueApi { get; set; } = default!;
+    [Inject] private IFootballApi FootballApi { get; set; } = default!;
 
     private string? DisplayName { get; set; }
     private string? FavoriteTeam { get; set; }
@@ -15,7 +15,7 @@ public partial class WelcomeDialog
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await LeagueApi.GetTeamsAsync("Premier League", CancellationToken.None);
+        var response = await FootballApi.GetTeamsAsync("Premier League", CancellationToken.None);
         if (response.Success && response.Data is not null)
             _teams = response.Data;
     }
