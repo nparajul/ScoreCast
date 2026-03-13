@@ -21,6 +21,10 @@ public static class ApiClientExtensions
         builder.Services
             .AddRefitClient<IHealthApi>()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
+
+        builder.Services
+            .AddRefitClient<ILeagueApi>()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
     }
 }
 
