@@ -28,7 +28,19 @@
         <MudMainContent Style="flex:1; padding-bottom:2rem;">
             <CascadingValue Value="_isDarkMode" Name="IsDarkMode">
                 <UserSync />
-                @Body
+                @if (Loading.IsLoading)
+                {
+                    <div class="d-flex flex-column align-center justify-center" style="min-height:60vh;">
+                        <MudProgressCircular Color="Color.Secondary" Size="Size.Large" Indeterminate="true" />
+                        <MudText Typo="Typo.body1" Class="mt-4" Color="Color.Inherit">
+                            @(Loading.LoadingMessage ?? "Loading...")
+                        </MudText>
+                    </div>
+                }
+                else
+                {
+                    @Body
+                }
             </CascadingValue>
         </MudMainContent>
         <footer class="d-flex flex-column align-center justify-center pa-4" style="background:var(--mud-palette-primary);color:var(--mud-palette-primary-text);height:80px;">
