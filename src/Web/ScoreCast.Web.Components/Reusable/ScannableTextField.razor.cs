@@ -20,8 +20,6 @@ public partial class ScannableTextField<T> : MudTextField<T>
     {
         base.OnInitialized();
         Variant = Variant.Outlined;
-        Adornment = Adornment.End;
-        AdornmentIcon = Icons.Material.Filled.KeyboardReturn;
         OnKeyDown = new EventCallback<KeyboardEventArgs>(this, WrapTab);
         KeyDownPreventDefault = PreventDefault;
         OnKeyUp = new EventCallback<KeyboardEventArgs>(this, WrapEnter);
@@ -56,7 +54,7 @@ public partial class ScannableTextField<T> : MudTextField<T>
             await WrapHandler();
     }
 
-    protected virtual async Task WrapHandler()
+    private async Task WrapHandler()
     {
         if (Handler is not null)
         {
