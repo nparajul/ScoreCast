@@ -8,11 +8,11 @@ namespace ScoreCast.ApiClient.V1.Apis;
 public partial interface IUserManagementApi
 {
     [Post("/api/v1/users/sync")]
-    Task<ScoreCastResponse<SyncUserResult>> SyncUserAsync([Body] SyncUserRequest request);
+    Task<ScoreCastResponse<SyncUserResult>> SyncUserAsync([Body] SyncUserRequest request, CancellationToken ct);
 
     [Get("/api/v1/users/me")]
-    Task<ScoreCastResponse<UserProfileResult>> GetMyProfileAsync();
+    Task<ScoreCastResponse<UserProfileResult>> GetMyProfileAsync(CancellationToken ct);
 
     [Put("/api/v1/users/me")]
-    Task<ScoreCastResponse<UserProfileResult>> UpdateMyProfileAsync([Body] UpdateUserProfileRequest request);
+    Task<ScoreCastResponse<UserProfileResult>> UpdateMyProfileAsync([Body] UpdateUserProfileRequest request, CancellationToken ct);
 }
