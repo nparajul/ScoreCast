@@ -5,9 +5,9 @@ namespace ScoreCast.Ws.Domain.V1.Entities.Football;
 
 public sealed record Match : ScoreCastEntity
 {
-    public required long GameweekId { get; set; }
-    public required long HomeTeamId { get; set; }
-    public required long AwayTeamId { get; set; }
+    public long GameweekId { get; set; }
+    public long HomeTeamId { get; set; }
+    public long AwayTeamId { get; set; }
     public string? ExternalId { get; set; }
     public DateTime? KickoffTime { get; set; }
     public int? HomeScore { get; set; }
