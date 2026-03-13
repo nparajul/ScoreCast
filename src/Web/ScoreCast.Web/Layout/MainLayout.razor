@@ -1,0 +1,50 @@
+@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.WebAssembly.Hosting
+@using ScoreCast.Web.Components.Helpers
+@using ScoreCast.Web.Theme
+@implements ScoreCast.Web.Components.Helpers.IAlertablePage
+@inject IWebAssemblyHostEnvironment HostEnvironment
+@inject INotifyService Notify
+@inject IAlertService Alert
+@inject ILoadingService Loading
+
+<PageTitle>ScoreCast</PageTitle>
+<MudThemeProvider @ref="_themeProvider" @bind-IsDarkMode="_isDarkMode" Theme="AppTheme.Theme" />
+<MudDialogProvider FullWidth="true" MaxWidth="MaxWidth.Medium" CloseButton="true"/>
+<MudPopoverProvider />
+<MudSnackbarProvider />
+
+<MudBreakpointProvider>
+<MudLayout Style="min-height:100vh; display:flex; flex-direction:column;">
+    <MudAppBar Elevation="2" Color="Color.Primary">
+            <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="36" Height="36" Class="mr-2" />
+            <MudText Typo="Typo.h6" Class="mr-4">ScoreCast</MudText>
+            <MudSpacer />
+            <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                           Color="Color.Inherit"
+                           OnClick="ToggleDarkMode" />
+            <LoginDisplay />
+        </MudAppBar>
+        <MudMainContent Style="flex:1; padding-bottom:2rem;">
+            <CascadingValue Value="_isDarkMode" Name="IsDarkMode">
+                <UserSync />
+                @Body
+            </CascadingValue>
+        </MudMainContent>
+        <footer class="d-flex flex-column align-center justify-center pa-4" style="background:var(--mud-palette-primary);color:var(--mud-palette-primary-text);height:80px;">
+            <MudText Typo="Typo.body2">© @DateTime.Now.Year ScoreCast. All rights reserved.</MudText>
+            <MudText Typo="Typo.caption" Style="opacity:0.6;">Premier League Predictions</MudText>
+        </footer>
+    </MudLayout>
+</MudBreakpointProvider>
+
+<script>
+    window.downLoadFile = (filename, bytesBase64, contentType) => {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = `data:${contentType};base64,${bytesBase64}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>

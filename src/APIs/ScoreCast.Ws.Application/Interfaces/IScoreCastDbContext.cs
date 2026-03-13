@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using ScoreCast.Ws.Domain.V1.Entities.UserManagement;
 
 namespace ScoreCast.Ws.Application.Interfaces;
 
 public interface IScoreCastDbContext
 {
-    DbSet<T> Set<T>() where T : class;
+    DbSet<UserMaster> UserMasters { get; }
 }

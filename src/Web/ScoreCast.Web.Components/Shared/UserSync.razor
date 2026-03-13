@@ -1,0 +1,5 @@
+@inject IUserManagementApi UserApi
+
+<AuthorizeView>
+    <Authorized>@{ _ = EnsureUserSynced(context); }</Authorized>
+</AuthorizeView>
