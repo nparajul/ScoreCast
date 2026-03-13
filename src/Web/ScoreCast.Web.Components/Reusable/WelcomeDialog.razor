@@ -1,0 +1,64 @@
+@using ScoreCast.Web.Components.Reusable
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column align-center">
+            <div class="d-flex flex-column align-center pa-6 rounded-t-lg" style="background:linear-gradient(135deg, #0A1929 0%, #37003C 100%); width:100%; margin:-24px -24px 0 -24px; padding:2rem;">
+                <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="56" Height="56" Class="mb-2" />
+                <MudText Typo="Typo.h4" Style="color:#FFFFFF; font-weight:700;">Welcome, @Username!</MudText>
+                <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.7);">Let's set up your profile</MudText>
+            </div>
+
+            <div class="pa-6" style="width:100%;">
+                <MudText Typo="Typo.body1" Color="Color.Inherit" Align="Align.Center" Class="mb-6">
+                    Choose a display name and pick your favourite team.
+                </MudText>
+
+                <MudPaper Elevation="0" Class="pa-4 mb-4 rounded-lg" Style="border:1px solid;">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2" Style="font-weight:600; letter-spacing:0.5px;">
+                        DISPLAY NAME
+                    </MudText>
+                    <ScannableTextField @bind-Value="DisplayName"
+                                  Placeholder="What should other players call you?"
+                                  Variant="Variant.Outlined"
+                                  Immediate="true"
+                                  Handler="HandleDisplayName"
+                                  @ref="_displayNameRef"
+                                  MaxLength="30"
+                                  Counter="30"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Person"
+                                  AutoFocus="true"
+                                  Margin="Margin.Dense"
+                                  FullWidth="true"
+                                  OnSuccess="FocusNext"/>
+                </MudPaper>
+
+                <MudPaper Elevation="0" Class="pa-4 rounded-lg" Style="border:1px solid;">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2" Style="font-weight:600; letter-spacing:0.5px;">
+                        FAVOURITE TEAM
+                    </MudText>
+                    <MudAutocomplete T="string"
+                                     @bind-Value="FavoriteTeam"
+                                     Placeholder="Start typing to search..."
+                                     Variant="Variant.Outlined"
+                                     Adornment="Adornment.Start"
+                                     AdornmentIcon="@Icons.Material.Filled.Shield"
+                                     SearchFunc="SearchTeams"
+                                     Clearable="true"
+                                     CoerceValue="true"
+                                     Margin="Margin.Dense"
+                                     FullWidth="true" />
+                </MudPaper>
+            </div>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Skip" Variant="Variant.Text" Color="Color.Default" Size="Size.Large">Skip for now</MudButton>
+        <MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Tertiary" Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.RocketLaunch"
+                   Disabled="@(string.IsNullOrWhiteSpace(DisplayName) && string.IsNullOrWhiteSpace(FavoriteTeam))">
+            Let's Go!
+        </MudButton>
+    </DialogActions>
+</MudDialog>

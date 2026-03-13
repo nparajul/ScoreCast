@@ -1,26 +1,73 @@
 @using Microsoft.JSInterop
-@using MudBlazor
 @inject IJSRuntime JS
 
+<MudDialog>
+    <TitleContent>
+        <div class="d-flex align-center gap-2">
+            <MudIcon Icon="@GetIcon()" Color="@GetColor()" />
+            <MudText Typo="Typo.h6">@GetTitle()</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <MudAlert Severity="Severity" Variant="Variant.Filled" Class="mb-4">
+            @GetUserFriendlyMessage()
+        </MudAlert>
+
+        @if (ShowDetails)
+        {
+            <MudExpansionPanels MultiExpansion="true">
+                @if (!string.IsNullOrEmpty(Exception.StackTrace))
+                {
+                    <MudExpansionPanel Text="Stack Trace">
+                        <div style="position:relative;">
+                            <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
+                                           Size="Size.Small"
+                                           Style="position:absolute;right:8px;top:8px;z-index:1;"
+                                           OnClick="CopyStackTrace" />
+                            <pre class="sc-stacktrace">@Exception.StackTrace</pre>
+                        </div>
+                    </MudExpansionPanel>
+                }
+                @if (Exception.InnerException is not null)
+                {
+                    <MudExpansionPanel Text="Inner Exception">
+                        <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Dense="true" Class="mb-2">
+                            @Exception.InnerException.Message
+                        </MudAlert>
+                        @if (!string.IsNullOrEmpty(Exception.InnerException.StackTrace))
+                        {
+                            <pre class="sc-stacktrace" style="font-size:0.7rem;">@Exception.InnerException.StackTrace</pre>
+                        }
+                    </MudExpansionPanel>
+                }
+            </MudExpansionPanels>
+        }
+    </DialogContent>
+    <DialogActions>
+        @if (!ShowDetails)
+        {
+            <MudButton OnClick="@(() => ShowDetails = true)"
+                       StartIcon="@Icons.Material.Filled.BugReport"
+                       Color="Color.Default" Size="Size.Small">
+                Show Details
+            </MudButton>
+        }
+        <MudSpacer />
+        <MudButton OnClick="CopyAllDetails"
+                   StartIcon="@Icons.Material.Filled.ContentCopy"
+                   Color="Color.Default" Size="Size.Small">
+            Copy
+        </MudButton>
+        <MudButton OnClick="Close" Variant="Variant.Filled" Color="@GetColor()">
+            OK
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
 <style>
-    .exception-dialog-content {
-        max-height: 70vh;
-        overflow-y: auto;
-    }
-
-    .stacktrace-container {
-        position: relative;
-    }
-
-    .copy-button {
-        position: absolute;
-        right: 8px;
-        top: 8px;
-        z-index: 1;
-    }
-
-    .stacktrace {
-        background-color: #f5f5f5;
+    .sc-stacktrace {
+        background: var(--mud-palette-background);
+        color: var(--mud-palette-text-primary);
         padding: 1rem;
         padding-top: 2.5rem;
         border-radius: 4px;
@@ -31,236 +78,7 @@
         overflow-x: auto;
         font-family: 'Courier New', Courier, monospace;
         margin: 0;
-    }
-
-    .inner-stacktrace {
-        font-size: 0.7rem;
-        padding: 0.75rem;
-    }
-
-    .inner-exception {
-        padding: 0.5rem;
-    }
-
-    .nested-inner-exception {
-        margin-left: 1rem;
-        margin-top: 0.5rem;
-        padding-left: 1rem;
-        border-left: 2px solid #e0e0e0;
-    }
-
-    .data-table {
-        font-size: 0.875rem;
-    }
-
-    /* Scrollbar styling */
-    .exception-dialog-content::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    .exception-dialog-content::-webkit-scrollbar-track {
-        background: #f1f1f1;
-    }
-
-    .exception-dialog-content::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 4px;
-    }
-
-        .exception-dialog-content::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-    .stacktrace::-webkit-scrollbar {
-        height: 6px;
-    }
-
-    .stacktrace::-webkit-scrollbar-track {
-        background: #e0e0e0;
-    }
-
-    .stacktrace::-webkit-scrollbar-thumb {
-        background: #999;
-        border-radius: 3px;
+        max-height: 300px;
+        overflow-y: auto;
     }
 </style>
-
-<MudDialog>
-    <DialogContent>
-        <div class="exception-dialog-content">
-            <MudAlert Severity="Severity" Variant="Variant.Filled" Class="mb-4">
-                @Exception.Message
-            </MudAlert>
-
-            @if (!string.IsNullOrEmpty(Exception.StackTrace))
-            {
-                <MudExpansionPanels>
-                    <MudExpansionPanel Text="Stack Trace" Expanded="false">
-                        <div class="stacktrace-container">
-                            <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
-                                           Size="Size.Small"
-                                           Class="copy-button"
-                                           OnClick="CopyStackTrace">Copy to clipboard</MudIconButton>
-                            <pre class="stacktrace">@Exception.StackTrace</pre>
-                        </div>
-                    </MudExpansionPanel>
-                </MudExpansionPanels>
-            }
-
-            @if (Exception.InnerException != null)
-            {
-                <MudExpansionPanels Class="mt-4">
-                    <MudExpansionPanel Text="Inner Exception" Expanded="false">
-                        <div class="inner-exception">
-                            @RenderInnerException(Exception.InnerException, 1)
-                        </div>
-                    </MudExpansionPanel>
-                </MudExpansionPanels>
-            }
-
-            @if (Exception.Data.Count > 0)
-            {
-                <MudExpansionPanels Class="mt-4">
-                    <MudExpansionPanel Text="Additional Data" Expanded="false">
-                        <MudSimpleTable Dense="true" Hover="true" Class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Key</th>
-                                    <th>Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (System.Collections.DictionaryEntry entry in Exception.Data)
-                                {
-                                    <tr>
-                                        <td>@entry.Key</td>
-                                        <td>@entry.Value</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </MudSimpleTable>
-                    </MudExpansionPanel>
-                </MudExpansionPanels>
-            }
-        </div>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="CopyAllDetails" StartIcon="@Icons.Material.Filled.ContentCopy" Color="Color.Primary">
-            Copy All
-        </MudButton>
-        <MudButton OnClick="Close" Color="Color.Default">Close</MudButton>
-    </DialogActions>
-</MudDialog>
-
-@code {
-    [CascadingParameter]
-    IMudDialogInstance MudDialog { get; set; } = null!;
-
-    [Parameter]
-    public Exception Exception { get; set; } = null!;
-
-    [Parameter]
-    public Severity Severity { get; set; }
-
-    [Inject]
-    private ISnackbar Snackbar { get; set; } = null!;
-
-    private void Close() => MudDialog.Close(DialogResult.Ok(true));
-
-    private async Task CopyStackTrace()
-    {
-        if (!string.IsNullOrEmpty(Exception.StackTrace))
-        {
-            await CopyToClipboard(Exception.StackTrace);
-            Snackbar.Add("Stack trace copied to clipboard", Severity.Success);
-        }
-    }
-
-    private async Task CopyAllDetails()
-    {
-        var details = FormatExceptionDetails(Exception);
-        await CopyToClipboard(details);
-        Snackbar.Add("Exception details copied to clipboard", Severity.Success);
-    }
-
-    private async Task CopyToClipboard(string text)
-    {
-        try
-        {
-            await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
-        }
-        catch
-        {
-            Snackbar.Add("Could not copy to clipboard", Severity.Warning);
-        }
-    }
-
-    private string FormatExceptionDetails(Exception ex, int level = 0)
-    {
-        var indent = new string(' ', level * 2);
-        var sb = new System.Text.StringBuilder();
-
-        sb.AppendLine($"{indent}Exception Type: {ex.GetType().FullName}");
-        sb.AppendLine($"{indent}Message: {ex.Message}");
-
-        if (!string.IsNullOrEmpty(ex.StackTrace))
-        {
-            sb.AppendLine($"{indent}Stack Trace:");
-            sb.AppendLine(ex.StackTrace);
-        }
-
-        if (ex.Data.Count > 0)
-        {
-            sb.AppendLine($"{indent}Additional Data:");
-            foreach (System.Collections.DictionaryEntry entry in ex.Data)
-            {
-                sb.AppendLine($"{indent}  {entry.Key}: {entry.Value}");
-            }
-        }
-
-        if (ex.InnerException != null)
-        {
-            sb.AppendLine($"{indent}Inner Exception:");
-            sb.AppendLine(FormatExceptionDetails(ex.InnerException, level + 1));
-        }
-
-        return sb.ToString();
-    }
-
-    private RenderFragment RenderInnerException(Exception exception, int level)
-    {
-        return builder =>
-        {
-            int seq = 0;
-
-            builder.OpenComponent<MudAlert>(seq++);
-            builder.AddAttribute(seq++, "Severity", Severity.Error);
-            builder.AddAttribute(seq++, "Variant", Variant.Outlined);
-            builder.AddAttribute(seq++, "Class", "mb-2");
-            builder.AddAttribute(seq++, "ChildContent", (RenderFragment)(b =>
-            {
-                b.AddContent(0, exception.Message);
-            }));
-            builder.CloseComponent();
-
-            if (!string.IsNullOrEmpty(exception.StackTrace))
-            {
-                builder.OpenElement(seq++, "pre");
-                builder.AddAttribute(seq++, "class", "stacktrace inner-stacktrace");
-                builder.AddContent(seq++, exception.StackTrace);
-                builder.CloseElement();
-            }
-
-            if (exception.InnerException != null)
-            {
-                builder.OpenElement(seq++, "div");
-                builder.AddAttribute(seq++, "class", "nested-inner-exception");
-                builder.OpenElement(seq++, "strong");
-                builder.AddContent(seq++, "Nested Inner Exception:");
-                builder.CloseElement();
-                builder.AddContent(seq++, RenderInnerException(exception.InnerException, level + 1));
-                builder.CloseElement();
-            }
-        };
-    }
-}
