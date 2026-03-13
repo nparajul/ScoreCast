@@ -36,13 +36,13 @@ body {
 }
 
 .sc-navbar-brand:hover {
-    color: #00E5FF;
+    color: #37003C;
 }
 
 .sc-navbar-brand .sc-icon {
     width: 28px;
     height: 28px;
-    color: #00E5FF;
+    color: #37003C;
 }
 
 .sc-container {
@@ -113,8 +113,8 @@ body {
 }
 
 .sc-input:focus {
-    border-color: #00E5FF;
-    box-shadow: 0 0 0 3px rgba(0,229,255,0.15);
+    border-color: #37003C;
+    box-shadow: 0 0 0 3px rgba(55,0,60,0.15);
 }
 
 .sc-input::placeholder {
@@ -128,7 +128,7 @@ body {
 }
 
 .sc-remember input[type="checkbox"] {
-    accent-color: #00E5FF;
+    accent-color: #37003C;
     margin-right: 4px;
 }
 
@@ -164,7 +164,7 @@ body {
 }
 
 .sc-links a:hover {
-    color: #00E5FF;
+    color: #37003C;
 }
 
 .sc-register {
