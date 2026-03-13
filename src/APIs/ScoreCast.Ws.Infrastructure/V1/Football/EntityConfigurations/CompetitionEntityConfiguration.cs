@@ -16,7 +16,7 @@ internal sealed class CompetitionEntityConfiguration : BaseEntityConfiguration<C
         var order = 1;
 
         builder.Property(c => c.Name).HasColumnName("name").HasColumnOrder(order++).IsRequired().HasMaxLength(200);
-        builder.Property(c => c.Code).HasColumnName("code").HasColumnOrder(order++).HasMaxLength(20);
+        builder.Property(c => c.Code).HasColumnName("code").HasColumnOrder(order++).IsRequired().HasMaxLength(20);
         builder.Property(c => c.CountryId).HasColumnName("country_id").HasColumnOrder(order++).IsRequired();
         builder.Property(c => c.LogoUrl).HasColumnName("logo_url").HasColumnOrder(order++).HasMaxLength(500);
         builder.Property(c => c.ExternalId).HasColumnName("external_id").HasColumnOrder(order++).HasMaxLength(50);
@@ -26,7 +26,7 @@ internal sealed class CompetitionEntityConfiguration : BaseEntityConfiguration<C
 
         builder.HasOne(c => c.Country).WithMany().HasForeignKey(c => c.CountryId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(c => c.Name).IsUnique();
-        builder.HasIndex(c => c.Code).IsUnique().HasFilter("code IS NOT NULL");
+        builder.HasIndex(c => c.Code).IsUnique();
         builder.HasIndex(c => c.ExternalId).IsUnique().HasFilter("external_id IS NOT NULL");
     }
 }
