@@ -8,7 +8,7 @@ public sealed record Team : ScoreCastEntity
     public string? ShortName { get; set; }
     public string? LogoUrl { get; set; }
     public string? ExternalId { get; set; }
-    public required long CountryId { get; set; }
+    public long CountryId { get; set; }
     public int? Founded { get; set; }
     public string? Venue { get; set; }
     public string? ClubColors { get; set; }

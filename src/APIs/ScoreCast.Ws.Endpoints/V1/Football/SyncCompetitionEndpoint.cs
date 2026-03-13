@@ -8,9 +8,8 @@ public sealed class SyncCompetitionEndpoint : Endpoint<SyncCompetitionRequest, S
 {
     public override void Configure()
     {
-        Post("/sync/competition/{competitionCode}");
+        Post("/sync/competition");
         Group<FootballGroup>();
-        AllowAnonymous();
         Summary(s =>
         {
             s.Summary = "Sync Competition";

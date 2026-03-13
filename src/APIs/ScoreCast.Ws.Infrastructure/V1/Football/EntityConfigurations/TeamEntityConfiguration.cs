@@ -15,7 +15,7 @@ internal sealed class TeamEntityConfiguration : BaseEntityConfiguration<Team>
         var order = 1;
 
         builder.Property(t => t.Name).HasColumnName("name").HasColumnOrder(order++).IsRequired().HasMaxLength(200);
-        builder.Property(t => t.ShortName).HasColumnName("short_name").HasColumnOrder(order++).HasMaxLength(10);
+        builder.Property(t => t.ShortName).HasColumnName("short_name").HasColumnOrder(order++).HasMaxLength(50);
         builder.Property(t => t.LogoUrl).HasColumnName("logo_url").HasColumnOrder(order++).HasMaxLength(500);
         builder.Property(t => t.ExternalId).HasColumnName("external_id").HasColumnOrder(order++).HasMaxLength(50);
         builder.Property(t => t.CountryId).HasColumnName("country_id").HasColumnOrder(order++).IsRequired();

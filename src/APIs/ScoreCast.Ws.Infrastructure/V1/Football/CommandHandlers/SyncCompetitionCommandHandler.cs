@@ -19,18 +19,37 @@ internal sealed record SyncCompetitionCommandHandler(
     public async Task<ScoreCastResponse> ExecuteAsync(SyncCompetitionCommand command, CancellationToken ct)
     {
         var client = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FootballDataClient));
-        var apiResponse = await client.GetFromJsonAsync<FootballDataCompetition>(
-            $"competitions/{command.Request.CompetitionCode}", ct);
+
+        FootballDataCompetition? apiResponse;
+        try
+        {
+            apiResponse = await client.GetFromJsonAsync<FootballDataCompetition>(
+                $"competitions/{command.Request.CompetitionCode}", ct);
+        }
+        catch (Exception ex)
+        {
+            return ScoreCastResponse.Error($"Failed to fetch competition {command.Request.CompetitionCode}: {ex.Message}");
+        }
 
         if (apiResponse is null)
             return ScoreCastResponse.Error($"No data returned for competition {command.Request.CompetitionCode}");
 
-        var country = await UpsertCountryAsync(apiResponse.Area, ct);
-        var competition = await UpsertCompetitionAsync(apiResponse, country.Id, ct);
-        await UpsertSeasonsAsync(apiResponse, competition.Id, country.Id, ct);
+        await using var transaction = await UnitOfWork.BeginTransactionAsync(ct);
+        try
+        {
+            var country = await UpsertCountryAsync(apiResponse.Area, ct);
+            var competition = await UpsertCompetitionAsync(apiResponse, country, ct);
+            await UpsertSeasonsAsync(apiResponse, competition, country, ct);
 
-        await UnitOfWork.SaveChangesAsync(nameof(SyncCompetitionCommand), ct);
-        return ScoreCastResponse.Ok($"Synced {apiResponse.Name} with {apiResponse.Seasons.Count} seasons");
+            await UnitOfWork.SaveChangesAsync(nameof(SyncCompetitionCommand), ct);
+            await transaction.CommitAsync(ct);
+            return ScoreCastResponse.Ok($"Synced {apiResponse.Name} with {apiResponse.Seasons.Count} seasons");
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync(ct);
+            return ScoreCastResponse.Error($"Failed to sync competition {command.Request.CompetitionCode}: {ex.Message}");
+        }
     }
 
     private async Task<Country> UpsertCountryAsync(FootballDataArea area, CancellationToken ct)
@@ -61,7 +80,7 @@ internal sealed record SyncCompetitionCommandHandler(
     }
 
     private async Task<Competition> UpsertCompetitionAsync(
-        FootballDataCompetition api, long countryId, CancellationToken ct)
+        FootballDataCompetition api, Country country, CancellationToken ct)
     {
         var externalId = api.Id.ToString();
         var competition = await DbContext.Competitions
@@ -73,10 +92,10 @@ internal sealed record SyncCompetitionCommandHandler(
             {
                 Name = api.Name,
                 Code = api.Code,
-                CountryId = countryId,
+                Country = country,
                 LogoUrl = api.Emblem,
                 ExternalId = externalId,
-                Type = api.Type.Equals("CUP", StringComparison.OrdinalIgnoreCase) ? LeagueType.Cup : LeagueType.League
+                Type = api.Type.Equals(nameof(LeagueType.Cup).ToUpper(), StringComparison.OrdinalIgnoreCase) ? LeagueType.Cup : LeagueType.League
             };
             DbContext.Competitions.Add(competition);
         }
@@ -84,21 +103,21 @@ internal sealed record SyncCompetitionCommandHandler(
         {
             competition.Name = api.Name;
             competition.Code = api.Code;
-            competition.CountryId = countryId;
+            competition.CountryId = country.Id;
             competition.LogoUrl = api.Emblem;
-            competition.Type = api.Type.Equals("CUP", StringComparison.OrdinalIgnoreCase) ? LeagueType.Cup : LeagueType.League;
+            competition.Type = api.Type.Equals(nameof(LeagueType.Cup).ToUpper(), StringComparison.OrdinalIgnoreCase) ? LeagueType.Cup : LeagueType.League;
         }
 
         return competition;
     }
 
     private async Task UpsertSeasonsAsync(
-        FootballDataCompetition api, long competitionId, long countryId, CancellationToken ct)
+        FootballDataCompetition api, Competition competition, Country country, CancellationToken ct)
     {
         var currentSeasonExternalId = api.CurrentSeason?.Id.ToString();
 
         var existingSeasons = await DbContext.Seasons
-            .Where(s => s.CompetitionId == competitionId)
+            .Where(s => s.CompetitionId == competition.Id)
             .ToDictionaryAsync(s => s.ExternalId!, ct);
 
         foreach (var apiSeason in api.Seasons)
@@ -108,12 +127,9 @@ internal sealed record SyncCompetitionCommandHandler(
             var endDate = DateOnly.Parse(apiSeason.EndDate);
             var name = $"{startDate.Year}/{endDate.Year % 100:D2}";
 
-            long? winnerTeamId = null;
-            if (apiSeason.Winner is not null)
-            {
-                var winnerTeam = await UpsertTeamAsync(apiSeason.Winner, countryId, ct);
-                winnerTeamId = winnerTeam.Id;
-            }
+            var winnerTeam = apiSeason.Winner is not null
+                ? await UpsertTeamAsync(apiSeason.Winner, country, ct)
+                : null;
 
             if (existingSeasons.TryGetValue(externalId, out var season))
             {
@@ -121,7 +137,7 @@ internal sealed record SyncCompetitionCommandHandler(
                 season.StartDate = startDate;
                 season.EndDate = endDate;
                 season.CurrentMatchday = apiSeason.CurrentMatchday;
-                season.WinnerTeamId = winnerTeamId;
+                season.WinnerTeam = winnerTeam;
                 season.IsCurrent = externalId == currentSeasonExternalId;
             }
             else
@@ -129,19 +145,19 @@ internal sealed record SyncCompetitionCommandHandler(
                 DbContext.Seasons.Add(new Season
                 {
                     Name = name,
-                    CompetitionId = competitionId,
+                    Competition = competition,
                     ExternalId = externalId,
                     StartDate = startDate,
                     EndDate = endDate,
                     CurrentMatchday = apiSeason.CurrentMatchday,
-                    WinnerTeamId = winnerTeamId,
+                    WinnerTeam = winnerTeam,
                     IsCurrent = externalId == currentSeasonExternalId
                 });
             }
         }
     }
 
-    private async Task<Team> UpsertTeamAsync(FootballDataTeam api, long countryId, CancellationToken ct)
+    private async Task<Team> UpsertTeamAsync(FootballDataTeam api, Country country, CancellationToken ct)
     {
         var externalId = api.Id.ToString();
         var team = await DbContext.Teams
@@ -155,7 +171,7 @@ internal sealed record SyncCompetitionCommandHandler(
                 ShortName = api.ShortName,
                 LogoUrl = api.Crest,
                 ExternalId = externalId,
-                CountryId = countryId,
+                Country = country,
                 Founded = api.Founded,
                 Venue = api.Venue,
                 ClubColors = api.ClubColors,
