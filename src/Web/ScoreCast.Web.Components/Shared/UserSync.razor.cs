@@ -2,14 +2,16 @@ using ScoreCast.Models.V1.Requests.UserManagement;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.UserManagement;
 using ScoreCast.Web.Components.Helpers;
+using ScoreCast.Web.Components.Reusable;
 
 namespace ScoreCast.Web.Components.Shared;
 
 public partial class UserSync
 {
     private bool _checked;
-    [Inject]public required ILoadingService Loading { get; set; }
-    [Inject]public required IAlertService Alert { get; set; }
+    [Inject] public required ILoadingService Loading { get; set; }
+    [Inject] public required IAlertService Alert { get; set; }
+    [Inject] public required IDialogService DialogService { get; set; }
 
     private async Task EnsureUserSynced(AuthenticationState state)
     {
@@ -23,15 +25,33 @@ public partial class UserSync
             if (profile is not null && profile.Success) return;
 
             var user = state.User;
-            await Loading.While(async() =>await UserApi.SyncUserAsync(new SyncUserRequest
+            await Loading.While(async () => await UserApi.SyncUserAsync(new SyncUserRequest
             {
                 ChosenUsername = user.Identity?.Name ?? "",
                 Email = user.FindFirst("email")?.Value ?? ""
             }, CancellationToken.None));
+
+            await ShowWelcomeDialog(user.Identity?.Name ?? "");
         }
         catch (Exception ex)
         {
             await Alert.ShowDialogForException(ex, Severity.Error);
+        }
+    }
+
+    private async Task ShowWelcomeDialog(string username)
+    {
+        var parameters = new DialogParameters<WelcomeDialog> { { x => x.Username, username } };
+        var options = new DialogOptions { CloseOnEscapeKey = false, BackdropClick = false, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<WelcomeDialog>("Welcome", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false, Data: WelcomeDialogResult data }
+            && (!string.IsNullOrWhiteSpace(data.DisplayName) || !string.IsNullOrWhiteSpace(data.FavoriteTeam)))
+        {
+            await Loading.While(async () => await UserApi.UpdateMyProfileAsync(
+                new UpdateUserProfileRequest { DisplayName = data.DisplayName, FavoriteTeam = data.FavoriteTeam },
+                CancellationToken.None));
         }
     }
 }

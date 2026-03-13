@@ -28,7 +28,21 @@
         <MudMainContent Style="flex:1; padding-bottom:2rem;">
             <CascadingValue Value="_isDarkMode" Name="IsDarkMode">
                 <UserSync />
-                @Body
+                @if (Loading.IsLoading)
+                {
+                    <div class="d-flex flex-column align-center justify-center" style="min-height:60vh;">
+                        <img src="scorecast-icon.svg" alt="ScoreCast" width="80" height="80" style="animation:pulse 1.5s ease-in-out infinite;" />
+                        <img src="@(_isDarkMode ? "scorecast-logo-dark.svg" : "scorecast-logo.svg")" alt="ScoreCast" width="280" style="margin-top:1rem;" />
+                        <MudText Typo="Typo.body2" Class="mt-4" Color="Color.Inherit" Style="opacity:0.6;">
+                            @(Loading.LoadingMessage ?? "Loading...")
+                        </MudText>
+                    </div>
+                    <style>@@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(.95)}}</style>
+                }
+                else
+                {
+                    @Body
+                }
             </CascadingValue>
         </MudMainContent>
         <footer class="d-flex flex-column align-center justify-center pa-4" style="background:var(--mud-palette-primary);color:var(--mud-palette-primary-text);height:80px;">
