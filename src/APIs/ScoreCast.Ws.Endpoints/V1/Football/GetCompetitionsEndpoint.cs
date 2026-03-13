@@ -4,24 +4,23 @@ using ScoreCast.Ws.Application.V1.Football.Queries;
 
 namespace ScoreCast.Ws.Endpoints.V1.Football;
 
-public sealed class GetTeamsEndpoint : EndpointWithoutRequest<ScoreCastResponse<List<TeamResult>>>
+public sealed class GetCompetitionsEndpoint : EndpointWithoutRequest<ScoreCastResponse<List<CompetitionResult>>>
 {
     public override void Configure()
     {
-        Get("/competitions/{competitionName}/teams");
+        Get("/competitions");
         Group<FootballGroup>();
         AllowAnonymous();
         Summary(s =>
         {
-            s.Summary = "Get Teams by Competition";
-            s.Description = "Returns all active teams for the current season of a given competition";
+            s.Summary = "Get Competitions";
+            s.Description = "Returns all active competitions";
         });
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var competitionName = Route<string>("competitionName")!;
-        var result = await new GetTeamsQuery(competitionName).ExecuteAsync(ct);
+        var result = await new GetCompetitionsQuery().ExecuteAsync(ct);
         await Send.OkAsync(result, ct);
     }
 }
