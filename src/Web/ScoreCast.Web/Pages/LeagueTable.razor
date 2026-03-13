@@ -1,6 +1,8 @@
 @page "/league-table"
 @using ScoreCast.Models.V1.Responses.Football
 
+<PageGuard>
+
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">League Table</MudText>
 
@@ -120,3 +122,4 @@
         <MudAlert Severity="Severity.Info">No match data available for this season. Sync matches first.</MudAlert>
     }
 </MudContainer>
+</PageGuard>

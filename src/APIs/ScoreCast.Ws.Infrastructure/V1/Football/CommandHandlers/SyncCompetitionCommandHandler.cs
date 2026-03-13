@@ -42,7 +42,7 @@ internal sealed record SyncCompetitionCommandHandler(
             var competition = await UpsertCompetitionAsync(apiResponse, country, ct);
             await UpsertSeasonsAsync(apiResponse, competition, country, ct);
 
-            await UnitOfWork.SaveChangesAsync(nameof(SyncCompetitionCommand), ct);
+            await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(SyncCompetitionCommand), ct);
             await transaction.CommitAsync(ct);
             return ScoreCastResponse.Ok($"Synced {apiResponse.Name} with {apiResponse.Seasons.Count} seasons");
         }
