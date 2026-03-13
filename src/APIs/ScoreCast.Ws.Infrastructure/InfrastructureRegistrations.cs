@@ -2,8 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ScoreCast.Shared.Constants;
 using ScoreCast.Ws.Application.Interfaces;
-using ScoreCast.Ws.Infrastructure.Data;
+using ScoreCast.Ws.Infrastructure.Internal;
+using ScoreCast.Ws.Infrastructure.V1.Shared;
 
 namespace ScoreCast.Ws.Infrastructure;
 
@@ -13,17 +15,25 @@ public static class InfrastructureRegistrations
 
     public static void AddScoreCastInfrastructure(this IServiceCollection services, string environmentName)
     {
+        services.AddHttpContextAccessor();
+        services.AddScoped<ScoreCastSaveChangesInterceptor>();
+
         services.AddDbContext<IScoreCastDbContext, ScoreCastDbContext>((sp, opt) =>
         {
             var configuration = sp.GetRequiredService<IConfiguration>();
             var connectionString = configuration.GetConnectionString(ConnectionName);
-
             ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
 
             opt.UseNpgsql(connectionString, npgsql =>
             {
+                npgsql.SetPostgresVersion(new Version(17,5));
+                npgsql.MigrationsHistoryTable("sc_db_migrations_history", SharedConstants.DefaultSchema);
                 npgsql.MigrationsAssembly("ScoreCast.Ws.Migrations");
             });
+
+            using var scope = sp.CreateScope();
+            var interceptor = sp.GetRequiredService<ScoreCastSaveChangesInterceptor>();
+            opt.AddInterceptors(interceptor);
 
             if (environmentName.Equals("PRODUCTION", StringComparison.OrdinalIgnoreCase))
             {
@@ -38,6 +48,6 @@ public static class InfrastructureRegistrations
             }
         });
 
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ScoreCastDbContext>());
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
     }
 }

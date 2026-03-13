@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics;
-using ScoreCast.Shared.Responses;
+using ScoreCast.Models.V1.Responses;
 
 namespace ScoreCast.Ws.Extensions;
 
@@ -22,6 +22,10 @@ public static class WebApplicationExtensions
             c.Errors.UseProblemDetails();
             c.Binding.UsePropertyNamingPolicy = true;
             c.Endpoints.ShortNames = true;
+            c.Endpoints.Configurator = ep =>
+            {
+                ep.PreProcessor<KeycloakUserPreprocessor>(Order.Before);
+            };
             c.Binding.UseDefaultValuesForNullableProps = false;
         }).UseSwaggerGen(opt => { }, uiConfig =>
         {
