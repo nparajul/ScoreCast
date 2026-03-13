@@ -1,82 +1,124 @@
 @page "/"
-@attribute [Authorize]
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
 
-    <MudGrid Justify="Justify.Center">
-        <MudItem xs="12" Class="d-flex flex-column align-center mb-6">
-            <MudIcon Icon="@Icons.Material.Filled.SportsSoccer" Size="Size.Large" Color="Color.Secondary" />
-            <MudText Typo="Typo.h3" Class="mt-2" Align="Align.Center">Welcome to ScoreCast</MudText>
-            <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Align="Align.Center">
-                Premier League Predictions
-            </MudText>
-        </MudItem>
-    </MudGrid>
-
-    <MudGrid Spacing="4" Justify="Justify.Center">
-        <MudItem xs="12" sm="6" md="4">
-            <MudCard Elevation="3" Class="rounded-lg" Style="height:100%;">
-                <MudCardHeader>
-                    <CardHeaderAvatar>
-                        <MudAvatar Color="Color.Primary"><MudIcon Icon="@Icons.Material.Filled.EmojiEvents" /></MudAvatar>
-                    </CardHeaderAvatar>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">Predict</MudText>
-                    </CardHeaderContent>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudText Typo="Typo.body2">Submit your match predictions before kickoff and earn points for correct results.</MudText>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="4">
-            <MudCard Elevation="3" Class="rounded-lg" Style="height:100%;">
-                <MudCardHeader>
-                    <CardHeaderAvatar>
-                        <MudAvatar Color="Color.Secondary"><MudIcon Icon="@Icons.Material.Filled.Leaderboard" /></MudAvatar>
-                    </CardHeaderAvatar>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">Compete</MudText>
-                    </CardHeaderContent>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudText Typo="Typo.body2">Climb the leaderboard and compete against friends in private leagues.</MudText>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="4">
-            <MudCard Elevation="3" Class="rounded-lg" Style="height:100%;">
-                <MudCardHeader>
-                    <CardHeaderAvatar>
-                        <MudAvatar Color="Color.Tertiary"><MudIcon Icon="@Icons.Material.Filled.TrendingUp" /></MudAvatar>
-                    </CardHeaderAvatar>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">Track</MudText>
-                    </CardHeaderContent>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudText Typo="Typo.body2">Track your streaks, accuracy, and performance across the season.</MudText>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-    </MudGrid>
-
     <AuthorizeView>
+        <NotAuthorized>
+            @* Hero *@
+            <MudGrid Justify="Justify.Center" Class="mb-10">
+                <MudItem xs="12" sm="10" md="8" Class="d-flex flex-column align-center">
+                    <MudIcon Icon="@Icons.Material.Filled.SportsSoccer" Size="Size.Large" Color="Color.Secondary" Class="mb-2" />
+                    <MudText Typo="Typo.h2" Align="Align.Center" Class="fw-bold">ScoreCast</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Secondary" Align="Align.Center" Class="mt-2">
+                        Premier League Predictions
+                    </MudText>
+                    <MudText Typo="Typo.body1" Align="Align.Center" Class="mt-3" Style="max-width:500px;">
+                        Predict match scores, compete with friends, and climb the leaderboard — all season long.
+                    </MudText>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Tertiary"
+                               Size="Size.Large"
+                               Class="mt-6"
+                               StartIcon="@Icons.Material.Filled.Login"
+                               Href="authentication/login">
+                        Get Started
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+
+            @* Feature cards *@
+            <MudGrid Spacing="4" Justify="Justify.Center">
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Elevation="3" Class="rounded-lg" Style="height:100%;">
+                        <MudCardHeader>
+                            <CardHeaderAvatar>
+                                <MudAvatar Color="Color.Secondary"><MudIcon Icon="@Icons.Material.Filled.EmojiEvents" /></MudAvatar>
+                            </CardHeaderAvatar>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Predict</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.body2">Submit your match predictions before kickoff and earn points for correct results.</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Elevation="3" Class="rounded-lg" Style="height:100%;">
+                        <MudCardHeader>
+                            <CardHeaderAvatar>
+                                <MudAvatar Color="Color.Tertiary"><MudIcon Icon="@Icons.Material.Filled.Leaderboard" /></MudAvatar>
+                            </CardHeaderAvatar>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Compete</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.body2">Climb the leaderboard and compete against friends in private leagues.</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Elevation="3" Class="rounded-lg" Style="height:100%;">
+                        <MudCardHeader>
+                            <CardHeaderAvatar>
+                                <MudAvatar Color="Color.Primary"><MudIcon Icon="@Icons.Material.Filled.TrendingUp" /></MudAvatar>
+                            </CardHeaderAvatar>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Track</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.body2">Track your streaks, accuracy, and performance across the season.</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+
+            @* How it works *@
+            <MudGrid Justify="Justify.Center" Class="mt-10">
+                <MudItem xs="12" Class="d-flex flex-column align-center mb-4">
+                    <MudText Typo="Typo.h4" Align="Align.Center">How It Works</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="4" Class="d-flex flex-column align-center">
+                    <MudAvatar Color="Color.Secondary" Size="Size.Large"><MudText Typo="Typo.h5">1</MudText></MudAvatar>
+                    <MudText Typo="Typo.subtitle1" Class="mt-2">Sign Up</MudText>
+                    <MudText Typo="Typo.body2" Align="Align.Center">Create your free account in seconds.</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="4" Class="d-flex flex-column align-center">
+                    <MudAvatar Color="Color.Tertiary" Size="Size.Large"><MudText Typo="Typo.h5">2</MudText></MudAvatar>
+                    <MudText Typo="Typo.subtitle1" Class="mt-2">Predict</MudText>
+                    <MudText Typo="Typo.body2" Align="Align.Center">Pick your scores for each gameweek.</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="4" Class="d-flex flex-column align-center">
+                    <MudAvatar Color="Color.Secondary" Size="Size.Large"><MudText Typo="Typo.h5">3</MudText></MudAvatar>
+                    <MudText Typo="Typo.subtitle1" Class="mt-2">Win</MudText>
+                    <MudText Typo="Typo.body2" Align="Align.Center">Earn points and top the leaderboard.</MudText>
+                </MudItem>
+            </MudGrid>
+        </NotAuthorized>
+
         <Authorized>
-            <MudGrid Justify="Justify.Center" Class="mt-8">
-                <MudItem xs="12" sm="8" md="6">
-                    <MudPaper Elevation="0" Class="d-flex flex-column align-center pa-6 rounded-lg mud-theme-primary" Style="opacity:0.9;">
-                        <MudText Typo="Typo.h6" Color="Color.Surface">Ready, @context.User.Identity?.Name?</MudText>
-                        <MudButton Variant="Variant.Filled"
-                                   Color="Color.Secondary"
-                                   Size="Size.Large"
-                                   Class="mt-4"
-                                   StartIcon="@Icons.Material.Filled.PlayArrow">
-                            Start Predicting
-                        </MudButton>
-                    </MudPaper>
+            <MudGrid Justify="Justify.Center" Class="mb-6">
+                <MudItem xs="12" Class="d-flex flex-column align-center">
+                    <MudIcon Icon="@Icons.Material.Filled.SportsSoccer" Size="Size.Large" Color="Color.Secondary" />
+                    <MudText Typo="Typo.h4" Class="mt-2" Align="Align.Center">
+                        Welcome back, @context.User.Identity?.Name!
+                    </MudText>
+                    <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Align="Align.Center">
+                        Ready to make your predictions?
+                    </MudText>
+                </MudItem>
+            </MudGrid>
+
+            <MudGrid Spacing="4" Justify="Justify.Center">
+                <MudItem xs="12" sm="6" md="4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Tertiary" FullWidth="true"
+                               Size="Size.Large" StartIcon="@Icons.Material.Filled.PlayArrow">
+                        Start Predicting
+                    </MudButton>
                 </MudItem>
             </MudGrid>
         </Authorized>
