@@ -7,7 +7,6 @@
 @inject INotifyService Notify
 @inject IAlertService Alert
 @inject ILoadingService Loading
-
 @inject IRoleNavigationService RoleNav
 
 <PageTitle>ScoreCast</PageTitle>
@@ -19,63 +18,93 @@
 <MudBreakpointProvider>
 <MudLayout Style="min-height:100vh; display:flex; flex-direction:column;">
     <MudAppBar Elevation="2" Color="Color.Primary">
-            <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="36" Height="36" Class="mr-2" />
-            <MudText Typo="Typo.h6" Class="mr-4">ScoreCast</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="ToggleDrawer"
+                       Class="d-flex d-md-none" />
+        <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="36" Height="36" Class="mr-2" />
+        <MudText Typo="Typo.h6" Class="mr-4 d-none d-sm-flex">ScoreCast</MudText>
 
+        <div class="d-none d-md-flex">
             @foreach (var onePage in RoleNav.Pages)
             {
                 <MudButton Href="@onePage.PageUrl" Color="Color.Inherit">@onePage.PageName</MudButton>
             }
+        </div>
 
-            <MudSpacer />
+        <MudSpacer />
 
+        @if (RoleNav.Roles.Count > 1)
+        {
+            <select @onchange="OnRoleChangedFromSelect" class="d-none d-sm-inline" style="background:transparent; color:inherit; border:1px solid rgba(255,255,255,0.3); border-radius:4px; padding:4px 8px; margin-right:8px;">
+                @foreach (var role in RoleNav.Roles)
+                {
+                    <option value="@role.Id" selected="@(role.Id == _selectedRoleId)">@role.Name</option>
+                }
+            </select>
+        }
+        <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                       Color="Color.Inherit"
+                       OnClick="ToggleDarkMode" />
+        <LoginDisplay />
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Temporary">
+        <MudNavMenu>
+            @foreach (var onePage in RoleNav.Pages)
+            {
+                <MudNavLink Href="@onePage.PageUrl" Match="NavLinkMatch.All" OnClick="@(() => _drawerOpen = false)">
+                    @onePage.PageName
+                </MudNavLink>
+            }
             @if (RoleNav.Roles.Count > 1)
             {
-                <select @onchange="OnRoleChangedFromSelect" style="background:transparent; color:inherit; border:1px solid rgba(255,255,255,0.3); border-radius:4px; padding:4px 8px; margin-right:8px;">
-                    @foreach (var role in RoleNav.Roles)
-                    {
-                        <option value="@role.Id" selected="@(role.Id == _selectedRoleId)">@role.Name</option>
-                    }
-                </select>
+                <MudDivider Class="my-2" />
+                @foreach (var role in RoleNav.Roles)
+                {
+                    <MudNavLink OnClick="@(async () => { await OnRoleChanged(role.Id); _drawerOpen = false; })">
+                        @role.Name
+                    </MudNavLink>
+                }
             }
-            <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
-                           Color="Color.Inherit"
-                           OnClick="ToggleDarkMode" />
-            <LoginDisplay />
-        </MudAppBar>
-        <MudContainer Class="main-container" MaxWidth="MaxWidth.ExtraExtraLarge" Style="flex:1;">
-            <CascadingValue Value="_isDarkMode" Name="IsDarkMode">
-                <UserSync />
-                <MudContainer MaxWidth="Alert.Width" Class="d-flex flex-column gap-4">
-                    @foreach (var alert in Alert.Alerts.ToList())
-                    {
-                        <MudAlert Severity="@alert.Severity" Dense="true"
-                                  ShowCloseIcon="true" Variant="Variant.Filled"
-                                  CloseIconClicked="@(() => Alert.Remove(alert.Key))">
-                            @if (alert.Content.TryPickT0(out var markup, out var renderFragment))
-                            {
-                                @markup
-                            }
-                            else
-                            {
-                                @renderFragment
-                            }
-                        </MudAlert>
-                    }
-                </MudContainer>
-                @Body
-            </CascadingValue>
-        </MudContainer>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudContainer Class="main-container" MaxWidth="MaxWidth.ExtraExtraLarge" Style="flex:1;">
+        <CascadingValue Value="_isDarkMode" Name="IsDarkMode">
+            <UserSync />
+            <MudContainer MaxWidth="Alert.Width" Class="d-flex flex-column gap-4">
+                @foreach (var alert in Alert.Alerts.ToList())
+                {
+                    <MudAlert Severity="@alert.Severity" Dense="true"
+                              ShowCloseIcon="true" Variant="Variant.Filled"
+                              CloseIconClicked="@(() => Alert.Remove(alert.Key))">
+                        @if (alert.Content.TryPickT0(out var markup, out var renderFragment))
+                        {
+                            @markup
+                        }
+                        else
+                        {
+                            @renderFragment
+                        }
+                    </MudAlert>
+                }
+            </MudContainer>
+            @Body
+        </CascadingValue>
+    </MudContainer>
+
     <footer class="d-flex flex-column align-center justify-center pa-4" style="background:var(--mud-palette-primary);color:var(--mud-palette-primary-text);height:80px;">
         <MudText Typo="Typo.body2">© @DateTime.Now.Year ScoreCast. All rights reserved.</MudText>
         <MudText Typo="Typo.caption" Style="opacity:0.6;">Premier League Predictions</MudText>
     </footer>
 
     <MudOverlay Visible="Loading.IsLoading" DarkBackground="true" ZIndex="9999">
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-            <MudText Typo="Typo.body1" Class="mt-4" Color="Color.Surface">
-                @(Loading.LoadingMessage ?? "Loading...")
-            </MudText>
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        <MudText Typo="Typo.body1" Class="mt-4" Color="Color.Surface">
+            @(Loading.LoadingMessage ?? "Loading...")
+        </MudText>
     </MudOverlay>
 </MudLayout>
 </MudBreakpointProvider>
@@ -90,14 +119,3 @@
         document.body.removeChild(link);
     }
 </script>
-
-<style>
-    ::deep .main-container{
-        min-height:700px;
-        margin-top:var(--mud-appbar-height);
-        padding-top:24px;
-        padding-bottom:48px;
-        padding-left: 0;
-        padding-right: 0;
-    }
-</style>

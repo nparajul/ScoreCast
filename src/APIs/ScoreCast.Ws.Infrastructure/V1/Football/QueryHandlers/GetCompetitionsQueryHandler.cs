@@ -16,7 +16,7 @@ internal sealed record GetCompetitionsQueryHandler(
             .AsNoTracking()
             .Where(c => c.IsActive)
             .OrderBy(c => c.SortOrder)
-            .Select(c => new CompetitionResult(c.Id, c.Name, c.Code, c.LogoUrl))
+            .Select(c => new CompetitionResult(c.Id, c.Name, c.Code, c.LogoUrl, c.Country.Name, c.Country.FlagUrl))
             .ToListAsync(ct);
 
         return ScoreCastResponse<List<CompetitionResult>>.Ok(competitions);
