@@ -20,6 +20,7 @@ internal sealed record SyncMatchesCommandHandler(
     public async Task<ScoreCastResponse> ExecuteAsync(SyncMatchesCommand command, CancellationToken ct)
     {
         var competition = await DbContext.Competitions
+            .Include(c => c.Country)
             .FirstOrDefaultAsync(c => c.Code == command.Request.CompetitionCode, ct);
 
         if (competition is null)
@@ -34,59 +35,57 @@ internal sealed record SyncMatchesCommandHandler(
             return ScoreCastResponse.Error("No seasons found. Sync the competition first.");
 
         var client = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FootballDataClient));
-        var totalMatches = 0;
-        var seasonsSynced = 0;
-        var errors = new List<string>();
+        var allMatches = new List<(Season Season, List<FootballDataMatch> Matches)>();
 
         foreach (var season in seasons)
         {
             var seasonYear = season.StartDate.Year;
-            FootballDataMatchesResponse? apiResponse;
             try
             {
-                apiResponse = await client.GetFromJsonAsync<FootballDataMatchesResponse>(
+                var apiResponse = await client.GetFromJsonAsync<FootballDataMatchesResponse>(
                     string.Format(FootballDataApi.Routes.Matches, command.Request.CompetitionCode, seasonYear), ct);
+
+                if (apiResponse?.Matches is { Count: > 0 })
+                    allMatches.Add((season, apiResponse.Matches));
             }
             catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
-                break; // hit the free-tier limit, stop trying older seasons
+                break;
             }
             catch (Exception ex)
             {
-                errors.Add($"{seasonYear}: {ex.Message}");
-                continue;
-            }
-
-            if (apiResponse?.Matches is null or { Count: 0 })
-                continue;
-
-            await using var transaction = await UnitOfWork.BeginTransactionAsync(ct);
-            try
-            {
-                var matchCount = await UpsertMatchesForSeasonAsync(season, apiResponse.Matches, ct);
-                await UnitOfWork.SaveChangesAsync(nameof(SyncMatchesCommand), ct);
-                await transaction.CommitAsync(ct);
-                totalMatches += matchCount;
-                seasonsSynced++;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync(ct);
-                errors.Add($"{seasonYear}: {ex.Message}");
+                return ScoreCastResponse.Error($"Failed to fetch {seasonYear}: {ex.Message}");
             }
         }
 
-        var msg = $"Synced {totalMatches} matches across {seasonsSynced} seasons for {competition.Name}";
-        if (errors.Count > 0)
-            msg += $". Errors: {string.Join("; ", errors)}";
+        if (allMatches.Count == 0)
+            return ScoreCastResponse.Error($"No matches returned for {competition.Name}");
 
-        return totalMatches > 0 || seasonsSynced > 0
-            ? ScoreCastResponse.Ok(msg)
-            : ScoreCastResponse.Error(msg);
+        await using var transaction = await UnitOfWork.BeginTransactionAsync(ct);
+        try
+        {
+            var teamCache = await DbContext.Teams
+                .Where(t => t.ExternalId != null)
+                .ToDictionaryAsync(t => t.ExternalId!, ct);
+
+            var totalMatches = 0;
+            foreach (var (season, matches) in allMatches)
+                totalMatches += await UpsertMatchesForSeasonAsync(season, competition.Country, matches, teamCache, ct);
+
+            await UnitOfWork.SaveChangesAsync(nameof(SyncMatchesCommand), ct);
+            await transaction.CommitAsync(ct);
+            return ScoreCastResponse.Ok($"Synced {totalMatches} matches across {allMatches.Count} seasons for {competition.Name}");
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync(ct);
+            return ScoreCastResponse.Error($"Failed to sync matches for {competition.Name}: {ex.InnerException?.Message ?? ex.Message}");
+        }
     }
 
     private async Task<int> UpsertMatchesForSeasonAsync(
-        Season season, List<FootballDataMatch> apiMatches, CancellationToken ct)
+        Season season, Country country, List<FootballDataMatch> apiMatches,
+        Dictionary<string, Team> teamCache, CancellationToken ct)
     {
         var gameweekCache = new Dictionary<int, Gameweek>();
         var existingGameweeks = await DbContext.Gameweeks
@@ -95,11 +94,6 @@ internal sealed record SyncMatchesCommandHandler(
 
         foreach (var kvp in existingGameweeks)
             gameweekCache[kvp.Key] = kvp.Value;
-
-        // pre-load team external_id → id map
-        var teamMap = await DbContext.Teams
-            .Where(t => t.ExternalId != null)
-            .ToDictionaryAsync(t => t.ExternalId!, t => t.Id, ct);
 
         var count = 0;
         foreach (var apiMatch in apiMatches)
@@ -112,12 +106,8 @@ internal sealed record SyncMatchesCommandHandler(
                 gameweekCache[matchday] = gameweek;
             }
 
-            var homeExtId = apiMatch.HomeTeam.Id.ToString();
-            var awayExtId = apiMatch.AwayTeam.Id.ToString();
-
-            if (!teamMap.TryGetValue(homeExtId, out var homeTeamId) ||
-                !teamMap.TryGetValue(awayExtId, out var awayTeamId))
-                continue; // skip if teams not synced yet
+            var homeTeam = EnsureTeam(teamCache, apiMatch.HomeTeam, country);
+            var awayTeam = EnsureTeam(teamCache, apiMatch.AwayTeam, country);
 
             var externalId = apiMatch.Id.ToString();
             var match = await DbContext.Matches
@@ -134,9 +124,8 @@ internal sealed record SyncMatchesCommandHandler(
                 match = new Match
                 {
                     Gameweek = gameweek,
-                    GameweekId = gameweek.Id,
-                    HomeTeamId = homeTeamId,
-                    AwayTeamId = awayTeamId,
+                    HomeTeam = homeTeam,
+                    AwayTeam = awayTeam,
                     ExternalId = externalId,
                     KickoffTime = kickoff,
                     HomeScore = apiMatch.Score.FullTime?.Home,
@@ -190,4 +179,23 @@ internal sealed record SyncMatchesCommandHandler(
         FootballDataApi.Status.Cancelled => MatchStatus.Cancelled,
         _ => MatchStatus.Scheduled
     };
+
+    private Team EnsureTeam(Dictionary<string, Team> teamCache, FootballDataMatchTeam apiTeam, Country country)
+    {
+        var externalId = apiTeam.Id.ToString();
+        if (teamCache.TryGetValue(externalId, out var team))
+            return team;
+
+        team = new Team
+        {
+            Name = apiTeam.Name,
+            ShortName = apiTeam.ShortName,
+            LogoUrl = apiTeam.Crest,
+            ExternalId = externalId,
+            Country = country
+        };
+        DbContext.Teams.Add(team);
+        teamCache[externalId] = team;
+        return team;
+    }
 }

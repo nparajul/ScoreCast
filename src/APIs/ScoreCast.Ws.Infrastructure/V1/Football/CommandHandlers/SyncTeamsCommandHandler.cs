@@ -155,13 +155,19 @@ internal sealed record SyncTeamsCommandHandler(
                 player.Nationality = apiPlayer.Nationality;
             }
 
-            DbContext.TeamPlayers.Add(new TeamPlayer
+            var exists = await DbContext.TeamPlayers
+                .AnyAsync(tp => tp.Player == player && tp.Team == team && tp.Season == season, ct);
+
+            if (!exists)
             {
-                Team = team,
-                Player = player,
-                Season = season
-            });
-            count++;
+                DbContext.TeamPlayers.Add(new TeamPlayer
+                {
+                    Team = team,
+                    Player = player,
+                    Season = season
+                });
+                count++;
+            }
         }
 
         return count;
