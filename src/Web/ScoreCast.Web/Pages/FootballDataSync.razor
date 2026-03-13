@@ -1,0 +1,78 @@
+@page "/data-sync"
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudText Typo="Typo.h4" Class="mb-1">Football Data Sync</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Sync football data from football-data.org</MudText>
+
+    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true" Class="mb-6">
+        Sync a competition to import its country, seasons, and season winners.
+        Then sync teams to import all teams and players for the current season.
+        Finally, sync matches to import all match results for all accessible seasons.
+    </MudAlert>
+
+    <MudText Typo="Typo.h6" Class="mb-3">Add New Competition</MudText>
+    <MudPaper Elevation="1" Class="pa-4 mb-6 rounded-lg">
+        <div class="d-flex align-center gap-3">
+            <MudTextField @bind-Value="_newCompetitionCode"
+                          Placeholder="e.g. PL, BL1, SA, PD..."
+                          Label="Competition Code"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true" />
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Tertiary"
+                       Size="Size.Small"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Disabled="@(string.IsNullOrWhiteSpace(_newCompetitionCode))"
+                       OnClick="SyncNewCompetitionAsync">
+                Sync
+            </MudButton>
+        </div>
+    </MudPaper>
+
+    <MudText Typo="Typo.h6" Class="mb-3">Synced Competitions</MudText>
+
+    @if (_competitions.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">No competitions synced yet.</MudAlert>
+    }
+    else
+    {
+        <MudStack Spacing="3">
+            @foreach (var competition in _competitions)
+            {
+                <MudPaper Elevation="1" Class="pa-4 rounded-lg">
+                    <div class="d-flex align-center justify-space-between">
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:600;">@competition.Name</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Code: @competition.Code</MudText>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Tertiary"
+                                       Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.Sync"
+                                       OnClick="@(() => SyncCompetitionAsync(competition))">
+                                Sync Competition
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.Groups"
+                                       OnClick="@(() => SyncTeamsAsync(competition))">
+                                Sync Teams
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Secondary"
+                                       Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.SportsSoccer"
+                                       OnClick="@(() => SyncMatchesAsync(competition))">
+                                Sync Matches
+                            </MudButton>
+                        </div>
+                    </div>
+                </MudPaper>
+            }
+        </MudStack>
+    }
+</MudContainer>

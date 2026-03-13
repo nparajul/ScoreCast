@@ -17,4 +17,5 @@ public sealed record Team : ScoreCastEntity
 
     public Country Country { get; init; } = default!;
     public ICollection<SeasonTeam> SeasonTeams { get; init; } = [];
+    public ICollection<TeamPlayer> TeamPlayers { get; init; } = [];
 }
