@@ -7,7 +7,7 @@ public partial class WelcomeDialog
 {
     [CascadingParameter] public IMudDialogInstance Dialog { get; set; } = default!;
     [Parameter] public string? Username { get; set; }
-    [Inject] private IFootballApi FootballApi { get; set; } = default!;
+    [Inject] private IScoreCastApiClient Api { get; set; } = default!;
 
     private string? DisplayName { get; set; }
     private string? FavoriteTeam { get; set; }
@@ -29,7 +29,7 @@ public partial class WelcomeDialog
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await FootballApi.GetCompetitionsAsync(CancellationToken.None);
+        var response = await Api.GetCompetitionsAsync(CancellationToken.None);
         if (response.Success && response.Data is not null)
             _competitions = response.Data;
     }
@@ -39,7 +39,7 @@ public partial class WelcomeDialog
         _teams = [];
         if (string.IsNullOrWhiteSpace(competitionName)) return;
 
-        var response = await FootballApi.GetTeamsAsync(competitionName, CancellationToken.None);
+        var response = await Api.GetTeamsAsync(competitionName, CancellationToken.None);
         if (response.Success && response.Data is not null)
             _teams = response.Data;
 

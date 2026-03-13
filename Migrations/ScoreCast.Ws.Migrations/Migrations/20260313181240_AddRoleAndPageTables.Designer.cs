@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ScoreCast.Ws.Infrastructure.V1.Shared;
@@ -11,9 +12,11 @@ using ScoreCast.Ws.Infrastructure.V1.Shared;
 namespace ScoreCast.Ws.Migrations.Migrations
 {
     [DbContext(typeof(ScoreCastDbContext))]
-    partial class ScoreCastDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260313181240_AddRoleAndPageTables")]
+    partial class AddRoleAndPageTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -895,8 +898,8 @@ namespace ScoreCast.Ws.Migrations.Migrations
                         .HasColumnOrder(1);
 
                     b.Property<string>("ShortName")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
                         .HasColumnName("short_name")
                         .HasColumnOrder(2);
 

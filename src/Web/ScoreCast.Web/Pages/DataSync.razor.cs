@@ -1,4 +1,6 @@
 using ScoreCast.ApiClient.V1.Apis;
+using ScoreCast.Models.V1.Requests.Football;
+using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Web.Components.Helpers;
 
@@ -6,23 +8,32 @@ namespace ScoreCast.Web.Pages;
 
 public partial class DataSync
 {
-    [Inject] private IFootballApi FootballApi { get; set; } = default!;
+    [Inject] private IScoreCastApiClient Api { get; set; } = default!;
     [Inject] private ILoadingService Loading { get; set; } = default!;
     [Inject] private IAlertService Alert { get; set; } = default!;
 
     private List<CompetitionResult> _competitions = [];
     private string? _newCompetitionCode;
 
-    protected override async Task OnInitializedAsync() => await LoadCompetitionsAsync();
+    private bool _loaded;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _loaded) return;
+        _loaded = true;
+        await InvokeAsync(LoadCompetitionsAsync);
+    }
 
     private async Task LoadCompetitionsAsync()
     {
-        await Loading.While(async () =>
-        {
-            var response = await FootballApi.GetCompetitionsAsync(CancellationToken.None);
-            if (response.Success && response.Data is not null)
-                _competitions = response.Data;
-        });
+        ScoreCastResponse<List<CompetitionResult>>? response = null;
+        await Loading.While(async () => response = await Api.GetCompetitionsAsync(CancellationToken.None));
+        if (response is { Success: true, Data: not null })
+            _competitions = response.Data;
+        else
+            Alert.Add("No competitions found", Severity.Error);
+
+        StateHasChanged();
     }
 
     private async Task SyncNewCompetitionAsync()
@@ -34,7 +45,7 @@ public partial class DataSync
             var code = _newCompetitionCode.Trim();
             await Loading.While(async () =>
             {
-                var result = await FootballApi.SyncCompetitionAsync(code, CancellationToken.None);
+                var result = await Api.SyncCompetitionAsync(new SyncCompetitionRequest { CompetitionCode = code }, CancellationToken.None);
                 if (result.Success)
                     Alert.Add(result.Message ?? $"Synced {code} successfully", Severity.Success);
                 else
@@ -56,7 +67,7 @@ public partial class DataSync
         {
             await Loading.While(async () =>
             {
-                var result = await FootballApi.SyncCompetitionAsync(competition.Code, CancellationToken.None);
+                var result = await Api.SyncCompetitionAsync(new SyncCompetitionRequest { CompetitionCode = competition.Code }, CancellationToken.None);
                 if (result.Success)
                     Alert.Add(result.Message ?? $"Synced {competition.Name} successfully", Severity.Success);
                 else

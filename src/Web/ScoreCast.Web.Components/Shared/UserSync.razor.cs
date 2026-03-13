@@ -12,6 +12,17 @@ public partial class UserSync
     [Inject] public required ILoadingService Loading { get; set; }
     [Inject] public required IAlertService Alert { get; set; }
     [Inject] public required IDialogService DialogService { get; set; }
+    [Inject] public required IRoleNavigationService RoleNav { get; set; }
+    [CascadingParameter] private Task<AuthenticationState>? AuthStateTask { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _checked || AuthStateTask is null) return;
+
+        var state = await AuthStateTask;
+        if (state.User.Identity?.IsAuthenticated == true)
+            await EnsureUserSynced(state);
+    }
 
     private async Task EnsureUserSynced(AuthenticationState state)
     {
@@ -21,15 +32,20 @@ public partial class UserSync
         try
         {
             ScoreCastResponse<UserProfileResult>? profile = null;
-            await Loading.While(async () => profile = await UserApi.GetMyProfileAsync(CancellationToken.None));
-            if (profile is not null && profile.Success) return;
+            await Loading.While(async () => profile = await Api.GetMyProfileAsync(CancellationToken.None));
+
+            if (profile is { Success: true })
+            {
+                await RoleNav.LoadRolesAsync();
+                return;
+            }
 
             var user = state.User;
-            await Loading.While(async () => await UserApi.SyncUserAsync(new SyncUserRequest
+            await Api.SyncUserAsync(new SyncUserRequest
             {
                 ChosenUsername = user.Identity?.Name ?? "",
                 Email = user.FindFirst("email")?.Value ?? ""
-            }, CancellationToken.None));
+            }, CancellationToken.None);
 
             await ShowWelcomeDialog(user.Identity?.Name ?? "");
         }
@@ -49,7 +65,7 @@ public partial class UserSync
         if (result is { Canceled: false, Data: WelcomeDialogResult data }
             && (!string.IsNullOrWhiteSpace(data.DisplayName) || !string.IsNullOrWhiteSpace(data.FavoriteTeam)))
         {
-            await Loading.While(async () => await UserApi.UpdateMyProfileAsync(
+            await Loading.While(async () => await Api.UpdateMyProfileAsync(
                 new UpdateUserProfileRequest { DisplayName = data.DisplayName, FavoriteTeam = data.FavoriteTeam },
                 CancellationToken.None));
         }

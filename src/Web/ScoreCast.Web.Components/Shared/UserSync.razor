@@ -1,5 +1,7 @@
-@inject IUserManagementApi UserApi
+@inject IScoreCastApiClient Api
 
-<AuthorizeView>
-    <Authorized>@{ _ = EnsureUserSynced(context); }</Authorized>
-</AuthorizeView>
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized></Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
