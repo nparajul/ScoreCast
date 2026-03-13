@@ -18,20 +18,17 @@
                     <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2" Style="font-weight:600; letter-spacing:0.5px;">
                         DISPLAY NAME
                     </MudText>
-                    <ScannableTextField @bind-Value="DisplayName"
+                    <MudTextField @bind-Value="DisplayName"
                                   Placeholder="What should other players call you?"
                                   Variant="Variant.Outlined"
                                   Immediate="true"
-                                  Handler="HandleDisplayName"
-                                  @ref="_displayNameRef"
                                   MaxLength="30"
                                   Counter="30"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Person"
                                   AutoFocus="true"
                                   Margin="Margin.Dense"
-                                  FullWidth="true"
-                                  OnSuccess="FocusNext"/>
+                                  FullWidth="true" />
                 </MudPaper>
 
                 <MudPaper Elevation="0" Class="pa-4 rounded-lg" Style="border:1px solid;">
