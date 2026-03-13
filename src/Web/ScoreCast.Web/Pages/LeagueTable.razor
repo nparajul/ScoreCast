@@ -1,21 +1,55 @@
 @page "/league-table"
 @using ScoreCast.Models.V1.Responses.Football
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">League Table</MudText>
 
-    <div class="d-flex gap-4 mb-6">
-        <MudAutocomplete T="CompetitionResult"
-                         Label="Competition"
-                         Value="_selectedCompetition"
-                         SearchFunc="SearchCompetitions"
-                         ToStringFunc="@(c => c?.Name ?? string.Empty)"
-                         Variant="Variant.Outlined"
-                         Dense="true"
-                         Margin="Margin.Dense"
-                         Style="max-width:350px;"
-                         ResetValueOnEmptyText="true"
-                         ValueChanged="OnCompetitionChanged" />
+    <div class="d-flex gap-4 mb-6 flex-wrap">
+        <MudSelect T="string"
+                   Label="Country"
+                   Value="_selectedCountry"
+                   Variant="Variant.Outlined"
+                   Dense="true"
+                   Margin="Margin.Dense"
+                   Style="min-width:200px;flex:1;max-width:300px;"
+                   ValueChanged="OnCountryChanged">
+            @foreach (var country in _countries)
+            {
+                <MudSelectItem T="string" Value="@country.Name">
+                    <div class="d-flex align-center gap-2">
+                        @if (!string.IsNullOrEmpty(country.FlagUrl))
+                        {
+                            <img src="@country.FlagUrl" alt="" style="width:20px;height:14px;" />
+                        }
+                        @country.Name
+                    </div>
+                </MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudSelect T="CompetitionResult"
+                   Label="Competition"
+                   Value="_selectedCompetition"
+                   ToStringFunc="@(c => c?.Name ?? string.Empty)"
+                   Variant="Variant.Outlined"
+                   Dense="true"
+                   Margin="Margin.Dense"
+                   Style="min-width:200px;flex:1;max-width:350px;"
+                   Disabled="@(_filteredCompetitions.Count == 0)"
+                   ValueChanged="OnCompetitionChanged">
+            @foreach (var comp in _filteredCompetitions)
+            {
+                <MudSelectItem T="CompetitionResult" Value="comp">
+                    <div class="d-flex align-center gap-2">
+                        @if (!string.IsNullOrEmpty(comp.LogoUrl))
+                        {
+                            <img src="@comp.LogoUrl" alt="" style="width:20px;height:20px;" />
+                        }
+                        @comp.Name
+                    </div>
+                </MudSelectItem>
+            }
+        </MudSelect>
 
         <MudSelect T="SeasonResult"
                    Label="Season"
@@ -23,7 +57,7 @@
                    Variant="Variant.Outlined"
                    Dense="true"
                    Margin="Margin.Dense"
-                   Style="max-width:250px;"
+                   Style="min-width:180px;flex:1;max-width:250px;"
                    Disabled="@(_seasons.Count == 0)"
                    ValueChanged="OnSeasonChanged"
                    ToStringFunc="@(s => s?.Name ?? string.Empty)">
@@ -46,7 +80,7 @@
             }
         </div>
 
-        <MudTable Items="_table" Dense="true" Hover="true" Elevation="1" RowStyleFunc="RowStyleFunc">
+        <MudTable Items="_table" Dense="true" Hover="true" Elevation="1" RowStyleFunc="RowStyleFunc" Breakpoint="Breakpoint.Sm" FixedHeader="true">
             <HeaderContent>
                 <MudTh Style="width:50px;">#</MudTh>
                 <MudTh>Team</MudTh>

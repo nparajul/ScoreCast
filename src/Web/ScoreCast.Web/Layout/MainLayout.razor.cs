@@ -7,6 +7,7 @@ public partial class MainLayout
 {
     private MudThemeProvider _themeProvider = default!;
     private bool _isDarkMode = false;
+    private bool _drawerOpen = false;
     private long _selectedRoleId;
 
     private string? WrapperClass { get; set; }
@@ -60,6 +61,7 @@ public partial class MainLayout
     }
 
     private void ToggleDarkMode() => _isDarkMode = !_isDarkMode;
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
 
     public void AlertChanged() => StateHasChanged();
 }
