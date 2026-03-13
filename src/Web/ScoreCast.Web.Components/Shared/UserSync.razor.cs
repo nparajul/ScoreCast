@@ -31,7 +31,7 @@ public partial class UserSync
                 Email = user.FindFirst("email")?.Value ?? ""
             }, CancellationToken.None));
 
-            await ShowWelcomeDialog();
+            await ShowWelcomeDialog(user.Identity?.Name ?? "");
         }
         catch (Exception ex)
         {
@@ -39,16 +39,19 @@ public partial class UserSync
         }
     }
 
-    private async Task ShowWelcomeDialog()
+    private async Task ShowWelcomeDialog(string username)
     {
+        var parameters = new DialogParameters<WelcomeDialog> { { x => x.Username, username } };
         var options = new DialogOptions { CloseOnEscapeKey = false, BackdropClick = false, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<WelcomeDialog>("Welcome", options);
+        var dialog = await DialogService.ShowAsync<WelcomeDialog>("Welcome", parameters, options);
         var result = await dialog.Result;
 
-        if (result is { Canceled: false, Data: string displayName } && !string.IsNullOrWhiteSpace(displayName))
+        if (result is { Canceled: false, Data: WelcomeDialogResult data }
+            && (!string.IsNullOrWhiteSpace(data.DisplayName) || !string.IsNullOrWhiteSpace(data.FavoriteTeam)))
         {
             await Loading.While(async () => await UserApi.UpdateMyProfileAsync(
-                new UpdateUserProfileRequest { DisplayName = displayName }, CancellationToken.None));
+                new UpdateUserProfileRequest { DisplayName = data.DisplayName, FavoriteTeam = data.FavoriteTeam },
+                CancellationToken.None));
         }
     }
 }
