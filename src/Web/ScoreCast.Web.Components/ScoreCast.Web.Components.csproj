@@ -3,6 +3,7 @@
   <ItemGroup>
     <PackageReference Include="MudBlazor" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" />
+    <PackageReference Include="OneOf" />
   </ItemGroup>
 
   <ItemGroup>

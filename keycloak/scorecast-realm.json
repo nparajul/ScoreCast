@@ -177,5 +177,6 @@
         "sc_user"
       ]
     }
-  ]
+  ],
+  "loginTheme": "scorecast"
 }
