@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
+using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
 using ScoreCast.Ws.Application.Interfaces;
 using ScoreCast.Ws.Application.V1.Football.Commands;
@@ -24,7 +25,7 @@ internal sealed record SyncCompetitionCommandHandler(
         try
         {
             apiResponse = await client.GetFromJsonAsync<FootballDataCompetition>(
-                $"competitions/{command.Request.CompetitionCode}", ct);
+                string.Format(FootballDataApi.Routes.Competition, command.Request.CompetitionCode), ct);
         }
         catch (Exception ex)
         {
@@ -120,6 +121,8 @@ internal sealed record SyncCompetitionCommandHandler(
             .Where(s => s.CompetitionId == competition.Id)
             .ToDictionaryAsync(s => s.ExternalId!, ct);
 
+        var teamCache = new Dictionary<string, Team>();
+
         foreach (var apiSeason in api.Seasons)
         {
             var externalId = apiSeason.Id.ToString();
@@ -127,9 +130,16 @@ internal sealed record SyncCompetitionCommandHandler(
             var endDate = DateOnly.Parse(apiSeason.EndDate);
             var name = $"{startDate.Year}/{endDate.Year % 100:D2}";
 
-            var winnerTeam = apiSeason.Winner is not null
-                ? await UpsertTeamAsync(apiSeason.Winner, country, ct)
-                : null;
+            Team? winnerTeam = null;
+            if (apiSeason.Winner is not null)
+            {
+                var teamExtId = apiSeason.Winner.Id.ToString();
+                if (!teamCache.TryGetValue(teamExtId, out winnerTeam))
+                {
+                    winnerTeam = await UpsertTeamAsync(apiSeason.Winner, country, ct);
+                    teamCache[teamExtId] = winnerTeam;
+                }
+            }
 
             if (existingSeasons.TryGetValue(externalId, out var season))
             {

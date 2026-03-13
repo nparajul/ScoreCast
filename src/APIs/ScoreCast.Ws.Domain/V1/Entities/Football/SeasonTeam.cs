@@ -4,8 +4,8 @@ namespace ScoreCast.Ws.Domain.V1.Entities.Football;
 
 public sealed record SeasonTeam : ScoreCastEntity
 {
-    public required long SeasonId { get; set; }
-    public required long TeamId { get; set; }
+    public long SeasonId { get; set; }
+    public long TeamId { get; set; }
 
     public Season Season { get; init; } = default!;
     public Team Team { get; init; } = default!;

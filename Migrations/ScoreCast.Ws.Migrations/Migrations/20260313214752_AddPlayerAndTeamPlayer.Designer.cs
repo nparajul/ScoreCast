@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ScoreCast.Ws.Infrastructure.V1.Shared;
@@ -11,9 +12,11 @@ using ScoreCast.Ws.Infrastructure.V1.Shared;
 namespace ScoreCast.Ws.Migrations.Migrations
 {
     [DbContext(typeof(ScoreCastDbContext))]
-    partial class ScoreCastDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260313214752_AddPlayerAndTeamPlayer")]
+    partial class AddPlayerAndTeamPlayer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -154,112 +157,6 @@ namespace ScoreCast.Ws.Migrations.Migrations
                         .IsUnique();
 
                     b.ToTable("competition", "scorecast");
-                });
-
-            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.CompetitionZone", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id")
-                        .HasColumnOrder(0);
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Color")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("color")
-                        .HasColumnOrder(3);
-
-                    b.Property<long>("CompetitionId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("competition_id")
-                        .HasColumnOrder(1);
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("created_by")
-                        .HasColumnOrder(991)
-                        .HasDefaultValueSql("current_user");
-
-                    b.Property<string>("CreatedByApp")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("created_by_app")
-                        .HasColumnOrder(993);
-
-                    b.Property<DateTime>("CreatedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date")
-                        .HasColumnOrder(992)
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<int>("EndPosition")
-                        .HasColumnType("integer")
-                        .HasColumnName("end_position")
-                        .HasColumnOrder(5);
-
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted")
-                        .HasColumnOrder(999);
-
-                    b.Property<string>("ModifiedBy")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("modified_by")
-                        .HasColumnOrder(995)
-                        .HasDefaultValueSql("current_user");
-
-                    b.Property<string>("ModifiedByApp")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("modified_by_app")
-                        .HasColumnOrder(997);
-
-                    b.Property<DateTime>("ModifiedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("modified_date")
-                        .HasColumnOrder(996)
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("name")
-                        .HasColumnOrder(2);
-
-                    b.Property<int>("SortOrder")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("sort_order")
-                        .HasColumnOrder(6);
-
-                    b.Property<int>("StartPosition")
-                        .HasColumnType("integer")
-                        .HasColumnName("start_position")
-                        .HasColumnOrder(4);
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompetitionId", "StartPosition")
-                        .IsUnique();
-
-                    b.ToTable("competition_zone", "scorecast");
                 });
 
             modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Country", b =>
@@ -1731,17 +1628,6 @@ namespace ScoreCast.Ws.Migrations.Migrations
                         .IsRequired();
 
                     b.Navigation("Country");
-                });
-
-            modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.CompetitionZone", b =>
-                {
-                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Competition", "Competition")
-                        .WithMany()
-                        .HasForeignKey("CompetitionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Competition");
                 });
 
             modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Gameweek", b =>
