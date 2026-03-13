@@ -27,6 +27,16 @@
                 <label for="password">Password</label>
                 <input id="password" name="password" type="password"
                        class="sc-input" placeholder="Create a password" autocomplete="new-password" />
+                <div class="sc-password-requirements">
+                    <p>Password must contain:</p>
+                    <ul>
+                        <li>At least 8 characters</li>
+                        <li>1 uppercase letter</li>
+                        <li>1 lowercase letter</li>
+                        <li>1 number</li>
+                        <li>1 special character</li>
+                    </ul>
+                </div>
                 <#if messagesPerField.existsError('password')>
                     <span class="sc-error">${kcSanitize(messagesPerField.getFirstError('password'))?no_esc}</span>
                 </#if>
