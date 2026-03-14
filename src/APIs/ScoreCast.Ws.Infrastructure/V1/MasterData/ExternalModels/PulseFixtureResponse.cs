@@ -5,7 +5,15 @@ namespace ScoreCast.Ws.Infrastructure.V1.MasterData.ExternalModels;
 internal sealed record PulseFixtureResponse(
     List<PulseTeamList>? TeamLists,
     List<PulseEvent>? Events,
-    PulseGround? Ground);
+    PulseGround? Ground,
+    PulseClock? Clock,
+    string? Phase,
+    List<PulseTeamScore>? Teams,
+    string? Status);
+
+internal sealed record PulseTeamScore(
+    PulseTeamRef? Team,
+    int? Score);
 
 internal sealed record PulseTeamList(
     PulseTeamRef? Team,

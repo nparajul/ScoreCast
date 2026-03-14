@@ -5,6 +5,8 @@ internal sealed record FootballDataMatch(
     string? Stage, string? Group,
     FootballDataMatchTeam HomeTeam, FootballDataMatchTeam AwayTeam,
     FootballDataScore Score,
+    int? Minute = null,
+    int? InjuryTime = null,
     List<FootballDataReferee>? Referees = null);
 
 internal sealed record FootballDataReferee(int Id, string Name, string? Type);
