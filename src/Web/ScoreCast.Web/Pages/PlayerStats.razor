@@ -61,12 +61,16 @@
                 <MudTd>@(SortedRows.ToList().IndexOf(context) + 1)</MudTd>
                 <MudTd Style="font-weight:600;">
                     <div class="d-flex align-center gap-2">
-                        @if (context.PlayerImageUrl is not null)
-                        {
-                            <MudAvatar Size="Size.Small">
+                        <MudAvatar Size="Size.Medium">
+                            @if (context.PlayerImageUrl is not null)
+                            {
                                 <MudImage Src="@context.PlayerImageUrl" />
-                            </MudAvatar>
-                        }
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Person" />
+                            }
+                        </MudAvatar>
                         @context.PlayerName
                     </div>
                 </MudTd>
