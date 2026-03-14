@@ -103,15 +103,17 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
     {
         var liveMatchIds = new List<long>();
 
-        // FPL mappings only exist for started fixtures — use those as candidates
-        var seasonMatchIds = await DbContext.Matches
-            .Where(m => m.Gameweek.SeasonId == season.Id)
+        // Only fetch non-finished matches — no need to re-fetch completed ones
+        var candidateMatches = await DbContext.Matches
+            .Where(m => m.Gameweek.SeasonId == season.Id && m.Status != MatchStatus.Finished)
             .Select(m => m.Id)
             .ToListAsync(ct);
 
+        if (candidateMatches.Count == 0) return liveMatchIds;
+
         var pulseMappings = await DbContext.ExternalMappings
             .Where(m => m.Source == ExternalSource.Fpl && m.EntityType == EntityType.Match
-                        && seasonMatchIds.Contains(m.EntityId))
+                        && candidateMatches.Contains(m.EntityId))
             .ToDictionaryAsync(m => m.EntityId, m => int.Parse(m.ExternalCode), ct);
 
         if (pulseMappings.Count == 0) return liveMatchIds;

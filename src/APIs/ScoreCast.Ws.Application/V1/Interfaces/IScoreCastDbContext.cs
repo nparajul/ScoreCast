@@ -20,6 +20,8 @@ public interface IScoreCastDbContext
     DbSet<Season> Seasons { get; }
     DbSet<SeasonTeam> SeasonTeams { get; }
     DbSet<Gameweek> Gameweeks { get; }
+    DbSet<Stage> Stages { get; }
+    DbSet<MatchGroup> MatchGroups { get; }
     DbSet<Match> Matches { get; }
     DbSet<PredictionScoringRule> PredictionScoringRules { get; }
     DbSet<PredictionLeague> PredictionLeagues { get; }
