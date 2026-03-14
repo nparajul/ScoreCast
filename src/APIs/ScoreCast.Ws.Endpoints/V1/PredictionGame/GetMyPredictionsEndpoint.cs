@@ -9,13 +9,13 @@ public sealed class GetMyPredictionsEndpoint : Endpoint<GetMyPredictionsRequest,
 {
     public override void Configure()
     {
-        Get("/leagues/{PredictionLeagueId}/predictions/{GameweekId}");
+        Get("/predictions/{SeasonId}/{GameweekId}");
         Group<PredictionGroup>();
     }
 
     public override async Task HandleAsync(GetMyPredictionsRequest request, CancellationToken ct)
     {
-        var result = await new GetMyPredictionsQuery(request.PredictionLeagueId, request.GameweekId, request.UserId!).ExecuteAsync(ct);
+        var result = await new GetMyPredictionsQuery(request.SeasonId, request.GameweekId, request.UserId!).ExecuteAsync(ct);
         await Send.OkAsync(result, ct);
     }
 }

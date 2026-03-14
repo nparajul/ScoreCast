@@ -24,24 +24,21 @@ public partial class PlayerStats
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        await InvokeAsync(async () =>
+        var response = await Api.GetCompetitionsAsync(CancellationToken.None);
+        if (response is { Success: true, Data: not null })
+            _competitions = response.Data;
+
+        StateHasChanged();
+        await Task.Yield();
+
+        var pl = _competitions.FirstOrDefault(c => c.Code == CompetitionCodes.PremierLeague);
+        if (pl is not null)
         {
-            var response = await Api.GetCompetitionsAsync(CancellationToken.None);
-            if (response is { Success: true, Data: not null })
-                _competitions = response.Data;
+            _selectedCompetition = pl;
+            await LoadSeasonsAsync(pl);
+        }
 
-            StateHasChanged();
-            await Task.Yield();
-
-            var pl = _competitions.FirstOrDefault(c => c.Code == CompetitionCodes.PremierLeague);
-            if (pl is not null)
-            {
-                _selectedCompetition = pl;
-                await LoadSeasonsAsync(pl);
-            }
-
-            StateHasChanged();
-        });
+        StateHasChanged();
     }
 
     private async Task LoadSeasonsAsync(CompetitionResult competition)

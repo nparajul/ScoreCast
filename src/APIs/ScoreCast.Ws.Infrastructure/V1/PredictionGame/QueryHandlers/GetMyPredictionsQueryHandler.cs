@@ -27,10 +27,10 @@ internal sealed record GetMyPredictionsQueryHandler(
 
         var predictions = await DbContext.Predictions
             .AsNoTracking()
-            .Where(p => p.PredictionLeagueId == query.PredictionLeagueId
+            .Where(p => p.SeasonId == query.SeasonId
                         && p.UserId == user.Id
                         && matchIds.Contains(p.MatchId))
-            .Select(p => new MyPredictionResult(p.MatchId, p.PredictedHomeScore, p.PredictedAwayScore))
+            .Select(p => new MyPredictionResult(p.MatchId, p.PredictedHomeScore, p.PredictedAwayScore, p.Outcome))
             .ToListAsync(ct);
 
         return ScoreCastResponse<List<MyPredictionResult>>.Ok(predictions);

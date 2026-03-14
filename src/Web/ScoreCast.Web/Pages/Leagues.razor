@@ -2,6 +2,26 @@
 
 <PageGuard>
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
+
+    @if (_currentGameweek > 0 && _leagues.Count > 0)
+    {
+        <MudText Typo="Typo.h5" Style="font-weight:700;text-align:center;" Class="mb-3">Predictions</MudText>
+        <div class="d-flex justify-center mb-6">
+            <MudPaper Elevation="3" Class="pa-6 rounded-xl"
+                      Style="max-width:280px;text-align:center;background:linear-gradient(135deg, var(--mud-palette-tertiary) 0%, var(--mud-palette-primary) 100%);color:white;">
+            <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Style="font-size:40px;opacity:0.9;" Class="mb-2" />
+            <MudText Typo="Typo.h6" Style="font-weight:800;color:white;">Gameweek @_currentGameweek</MudText>
+            <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.8);" Class="mb-3">Make your predictions before kickoff!</MudText>
+            <MudButton Variant="Variant.Filled" Size="Size.Small"
+                       Style="background:white;color:var(--mud-palette-tertiary);font-weight:700;"
+                       StartIcon="@Icons.Material.Filled.Edit"
+                       OnClick="@(() => Nav.NavigateTo("/predict"))">
+                Predict Now
+            </MudButton>
+        </MudPaper>
+        </div>
+    }
+
     <div class="d-flex justify-space-between align-center mb-4">
         <MudText Typo="Typo.h5" Style="font-weight:700;">My Leagues</MudText>
         <div class="d-flex gap-2">

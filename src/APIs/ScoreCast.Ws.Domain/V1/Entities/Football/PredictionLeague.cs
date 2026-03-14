@@ -13,5 +13,4 @@ public sealed record PredictionLeague : ScoreCastEntity
     public Season Season { get; init; } = default!;
     public UserMaster CreatedByUser { get; init; } = default!;
     public ICollection<PredictionLeagueMember> Members { get; init; } = [];
-    public ICollection<Prediction> Predictions { get; init; } = [];
 }

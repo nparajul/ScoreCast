@@ -19,12 +19,15 @@ public partial interface IScoreCastApiClient
     [Post("/api/v1/prediction/predictions")]
     Task<ScoreCastResponse> SubmitPredictionsAsync([Body] SubmitPredictionsRequest request, CancellationToken ct);
 
-    [Post("/api/v1/prediction/predictions/calculate")]
-    Task<ScoreCastResponse> CalculatePredictionPointsAsync([Body] CalculatePredictionPointsRequest request, CancellationToken ct);
+    [Post("/api/v1/prediction/calculate-outcomes")]
+    Task<ScoreCastResponse> CalculateOutcomesAsync([Body] CalculateOutcomesRequest request, CancellationToken ct);
 
     [Get("/api/v1/prediction/leagues/{predictionLeagueId}/standings")]
     Task<ScoreCastResponse<LeagueStandingsResult>> GetLeagueStandingsAsync(long predictionLeagueId, CancellationToken ct);
 
-    [Get("/api/v1/prediction/leagues/{predictionLeagueId}/predictions/{gameweekId}")]
-    Task<ScoreCastResponse<List<MyPredictionResult>>> GetMyPredictionsAsync(long predictionLeagueId, long gameweekId, CancellationToken ct);
+    [Get("/api/v1/prediction/predictions/{seasonId}/{gameweekId}")]
+    Task<ScoreCastResponse<List<MyPredictionResult>>> GetMyPredictionsAsync(long seasonId, long gameweekId, CancellationToken ct);
+
+    [Get("/api/v1/prediction/scoring-rules")]
+    Task<ScoreCastResponse<List<ScoringRuleResult>>> GetScoringRulesAsync(CancellationToken ct);
 }

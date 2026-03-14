@@ -1,4 +1,5 @@
 using ScoreCast.Models.V1.Responses.Football;
+using ScoreCast.Shared.Enums;
 
 namespace ScoreCast.Web.ViewModels;
 
@@ -15,8 +16,9 @@ public sealed class PredictionMatchViewModel
     public int? AwayScore { get; set; }
     public int? PredictedHomeScore { get; set; }
     public int? PredictedAwayScore { get; set; }
+    public string? Outcome { get; set; }
     public bool HasPrediction => PredictedHomeScore.HasValue && PredictedAwayScore.HasValue;
-    public bool IsLocked => Status == "Finished" || (KickoffTime.HasValue && KickoffTime.Value <= DateTime.UtcNow);
+    public bool IsLocked => Status == nameof(MatchStatus.Finished) || (KickoffTime.HasValue && KickoffTime.Value <= DateTime.UtcNow);
 
     public static PredictionMatchViewModel FromMatch(MatchDetail match) => new()
     {
@@ -33,19 +35,21 @@ public sealed class PredictionMatchViewModel
 
     public string GetRowClass()
     {
-        if (Status != "Finished" || HomeScore is null || AwayScore is null)
+        if (Status != nameof(MatchStatus.Finished) || HomeScore is null || AwayScore is null)
             return "";
 
         if (!HasPrediction)
             return "predict-none";
 
-        if (PredictedHomeScore == HomeScore && PredictedAwayScore == AwayScore)
-            return "predict-exact";
-
-        var predictedResult = Math.Sign(PredictedHomeScore!.Value - PredictedAwayScore!.Value);
-        var actualResult = Math.Sign(HomeScore.Value - AwayScore.Value);
-
-        return predictedResult == actualResult ? "predict-correct" : "predict-wrong";
+        return Outcome switch
+        {
+            "ExactScore" => "predict-exact",
+            "CorrectResultAndGoalDifference" => "predict-result-gd",
+            "CorrectResult" => "predict-correct",
+            "CorrectGoalDifference" => "predict-gd",
+            "Incorrect" => "predict-wrong",
+            _ => ""
+        };
     }
 
     public static string? Validate(List<PredictionMatchViewModel> matches)
