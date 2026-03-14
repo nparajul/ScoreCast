@@ -5,8 +5,9 @@ using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
 
-public partial class Scores
+public partial class Scores : IDisposable
 {
+    private CancellationTokenSource? _pollCts;
     [Inject] private IScoreCastApiClient Api { get; set; } = default!;
     [Inject] private ILoadingService Loading { get; set; } = default!;
     [Inject] private IAlertService Alert { get; set; } = default!;
@@ -110,6 +111,43 @@ public partial class Scores
             else
                 Alert.Add("Failed to load matches", Severity.Error);
         });
+        StartOrStopPolling();
+    }
+
+    private void StartOrStopPolling()
+    {
+        _pollCts?.Cancel();
+        _pollCts?.Dispose();
+        _pollCts = null;
+
+        if (_gameweek?.Matches.Any(m => m.Status == "Live") is not true || _selectedSeason is null) return;
+
+        _pollCts = new CancellationTokenSource();
+        var token = _pollCts.Token;
+        var seasonId = _selectedSeason.Id;
+        var gameweekNumber = _gameweek.GameweekNumber;
+
+        _ = Task.Run(async () =>
+        {
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+            while (await timer.WaitForNextTickAsync(token))
+            {
+                var response = await Api.GetGameweekMatchesAsync(seasonId, gameweekNumber, CancellationToken.None);
+                if (response is { Success: true, Data: not null })
+                {
+                    _gameweek = response.Data;
+                    await InvokeAsync(StateHasChanged);
+                    if (!_gameweek.Matches.Any(m => m.Status == "Live"))
+                        break;
+                }
+            }
+        }, token);
+    }
+
+    public void Dispose()
+    {
+        _pollCts?.Cancel();
+        _pollCts?.Dispose();
     }
 
     private async Task PreviousGameweek()
