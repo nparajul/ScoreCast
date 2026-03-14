@@ -77,8 +77,14 @@
         <div class="d-flex flex-wrap justify-center gap-3 mb-6">
             @foreach (var us in _userSeasons)
             {
-                <MudPaper Elevation="3" Class="rounded-xl overflow-hidden d-flex flex-column prediction-tile"
-                          Style="text-align:center;color:white;">
+                <MudPaper Elevation="@(_dragIndex == _userSeasons.IndexOf(us) ? 6 : 3)"
+                          Class="rounded-xl overflow-hidden d-flex flex-column prediction-tile"
+                          Style="@($"text-align:center;color:white;transition:transform 0.15s,box-shadow 0.15s;{(_dragIndex == _userSeasons.IndexOf(us) ? "transform:scale(1.05);opacity:0.7;" : "")}")"
+                          draggable="true"
+                          @ondragstart="@(() => _dragIndex = _userSeasons.IndexOf(us))"
+                          @ondragover:preventDefault
+                          @ondragenter="@(() => OnDragEnter(_userSeasons.IndexOf(us)))"
+                          @ondragend="OnDragEnd">
                     @if (us.CompetitionLogoUrl is not null)
                     {
                         <div style="background:rgba(255,255,255,0.95);padding:12px 0;display:flex;align-items:center;justify-content:center;">
