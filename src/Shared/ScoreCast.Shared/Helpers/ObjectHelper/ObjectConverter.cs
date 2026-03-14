@@ -34,6 +34,14 @@ public static class ObjectConverter
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
+    private static string ReadContentSync(HttpContent? content)
+    {
+        if (content is null) return string.Empty;
+        using var stream = content.ReadAsStream();
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
+
     public static string ToJsonString(this object? objInput)
     {
         if (objInput is null) return string.Empty;
@@ -54,7 +62,7 @@ public static class ObjectConverter
                             ? []
                             : httpReq.Content.Headers.SelectMany(hdr => hdr.Value.Select(v => $"{hdr.Key}:{v}"))),
                     RequestBody = httpReq.Content is not null
-                        ? Task.Run(async () => await httpReq.Content.ReadAsStringAsync()).Result
+                        ? ReadContentSync(httpReq.Content)
                         : string.Empty
                 }, SerializeOptions),
                 HttpResponseMessage httpResp => JsonSerializer.Serialize(new
@@ -62,7 +70,7 @@ public static class ObjectConverter
                     Message = httpResp.ReasonPhrase,
                     RequestUri = httpResp.RequestMessage?.RequestUri?.ToString(),
                     StatusCode = httpResp.StatusCode.ToString(),
-                    ResponseString = Task.Run(async () => await httpResp.Content.ReadAsStringAsync()).Result,
+                    ResponseString = ReadContentSync(httpResp.Content),
                     ResponseHeaderValues = string.Join(" | ",
                         httpResp.Headers.SelectMany(hdr => hdr.Value.Select(v => $"{hdr.Key}:{v}"))),
                     ContentHeaderValues = string.Join(" | ",
@@ -118,7 +126,7 @@ public static class ObjectConverter
                             ? []
                             : httpReq.Content.Headers.SelectMany(hdr => hdr.Value.Select(v => $"{hdr.Key}:{v}"))),
                     RequestBody = httpReq.Content is not null
-                        ? Task.Run(async () => await httpReq.Content.ReadAsStringAsync()).Result
+                        ? ReadContentSync(httpReq.Content)
                         : string.Empty
                 }),
                 HttpResponseMessage httpResp => ToXml(new
@@ -126,7 +134,7 @@ public static class ObjectConverter
                     Message = httpResp.ReasonPhrase,
                     RequestUri = httpResp.RequestMessage?.RequestUri?.ToString(),
                     StatusCode = httpResp.StatusCode.ToString(),
-                    ResponseString = Task.Run(async () => await httpResp.Content.ReadAsStringAsync()).Result,
+                    ResponseString = ReadContentSync(httpResp.Content),
                     ResponseHeaderValues = string.Join(" | ",
                         httpResp.Headers.SelectMany(hdr => hdr.Value.Select(v => $"{hdr.Key}:{v}"))),
                     ContentHeaderValues = string.Join(" | ",
@@ -169,7 +177,7 @@ public static class ObjectConverter
                             ? []
                             : httpReq.Content.Headers.SelectMany(hdr => hdr.Value.Select(v => $"{hdr.Key}:{v}"))),
                     RequestBody = httpReq.Content is not null
-                        ? Task.Run(async () => await httpReq.Content.ReadAsStringAsync()).Result
+                        ? ReadContentSync(httpReq.Content)
                         : string.Empty
                 }, SerializeOptions),
                 HttpResponseMessage httpResp => JsonSerializer.Serialize(new
@@ -178,7 +186,7 @@ public static class ObjectConverter
                     RequestUri = httpResp.RequestMessage?.RequestUri?.ToString(),
                     StatusCode = httpResp.StatusCode.ToString(),
                     ResponseString = httpResp.Content is not null
-                        ? Task.Run(async () => await httpResp.Content.ReadAsStringAsync()).Result
+                        ? ReadContentSync(httpResp.Content)
                         : string.Empty,
                     ResponseHeaderValues = string.Join(" | ",
                         httpResp.Headers is null

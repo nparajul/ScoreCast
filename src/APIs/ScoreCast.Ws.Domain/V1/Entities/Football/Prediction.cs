@@ -13,7 +13,7 @@ public sealed record Prediction : ScoreCastEntity
     public int PredictedAwayScore { get; set; }
     public PredictionOutcome? Outcome { get; set; }
 
-    public Season Season { get; init; } = default!;
-    public UserMaster User { get; init; } = default!;
-    public Match Match { get; init; } = default!;
+    public Season Season { get; init; } = null!;
+    public UserMaster User { get; init; } = null!;
+    public Match Match { get; init; } = null!;
 }

@@ -11,6 +11,6 @@ public sealed record MatchEvent : ScoreCastEntity
     public int Value { get; set; } = 1;
     public string? Minute { get; set; }
 
-    public Match Match { get; init; } = default!;
-    public Player Player { get; init; } = default!;
+    public Match Match { get; init; } = null!;
+    public Player Player { get; init; } = null!;
 }
