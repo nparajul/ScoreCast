@@ -1,0 +1,100 @@
+@page "/player-stats"
+
+<PageGuard>
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-4">
+    <MudText Typo="Typo.h5" Class="mb-3" Style="font-weight:700;">Player Stats</MudText>
+
+    <div class="d-flex gap-3 mb-4 flex-wrap">
+        <MudSelect T="CompetitionResult" Label="Competition" Value="_selectedCompetition" ValueChanged="OnCompetitionChanged" Variant="Variant.Outlined" Dense="true" Style="max-width:250px;" ToStringFunc="@(c => c?.Name ?? "")">
+            @foreach (var comp in _competitions)
+            {
+                <MudSelectItem Value="@comp">@comp.Name</MudSelectItem>
+            }
+        </MudSelect>
+        <MudSelect T="SeasonResult" Label="Season" Value="_selectedSeason" ValueChanged="OnSeasonChanged" Variant="Variant.Outlined" Dense="true" Style="max-width:180px;" ToStringFunc="@(s => s is null ? "" : $"{s.StartDate.Year}/{s.EndDate.Year}")">
+            @foreach (var season in _seasons)
+            {
+                <MudSelectItem Value="@season">@season.StartDate.Year/@season.EndDate.Year</MudSelectItem>
+            }
+        </MudSelect>
+        <MudTextField @bind-Value="_search" Placeholder="Search player or team..." Variant="Variant.Outlined"
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Style="max-width:250px;" Immediate="true" />
+    </div>
+
+    @if (_rows.Count > 0)
+    {
+        <MudTable Items="@SortedRows" Dense="true" Hover="true" Striped="true" Elevation="1" Style="border-radius:8px;">
+            <HeaderContent>
+                <MudTh Style="width:50px;">#</MudTh>
+                <MudTh>Player</MudTh>
+                <MudTh>Team</MudTh>
+                <MudTh Style="cursor:pointer;" @onclick="@(() => SortBy("Goals"))">
+                    ⚽ Goals
+                    @if (SortIcon("Goals") != "")
+                    {
+                        <MudIcon Icon="@SortIcon("Goals")" Size="Size.Small" />
+                    }
+                </MudTh>
+                <MudTh Style="cursor:pointer;" @onclick="@(() => SortBy("Assists"))">
+                    🅰️ Assists
+                    @if (SortIcon("Assists") != "")
+                    {
+                        <MudIcon Icon="@SortIcon("Assists")" Size="Size.Small" />
+                    }
+                </MudTh>
+                <MudTh Style="cursor:pointer;" @onclick="@(() => SortBy("YellowCards"))">
+                    🟨 Yellows
+                    @if (SortIcon("YellowCards") != "")
+                    {
+                        <MudIcon Icon="@SortIcon("YellowCards")" Size="Size.Small" />
+                    }
+                </MudTh>
+                <MudTh Style="cursor:pointer;" @onclick="@(() => SortBy("RedCards"))">
+                    🟥 Reds
+                    @if (SortIcon("RedCards") != "")
+                    {
+                        <MudIcon Icon="@SortIcon("RedCards")" Size="Size.Small" />
+                    }
+                </MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@(SortedRows.ToList().IndexOf(context) + 1)</MudTd>
+                <MudTd Style="font-weight:600;">
+                    <div class="d-flex align-center gap-2">
+                        @if (context.PlayerImageUrl is not null)
+                        {
+                            <MudAvatar Size="Size.Small">
+                                <MudImage Src="@context.PlayerImageUrl" />
+                            </MudAvatar>
+                        }
+                        @context.PlayerName
+                    </div>
+                </MudTd>
+                <MudTd>
+                    <div class="d-flex align-center gap-2">
+                        @if (context.TeamLogo is not null)
+                        {
+                            <MudImage Src="@context.TeamLogo" Width="20" Height="20" ObjectFit="ObjectFit.Contain" />
+                        }
+                        @context.TeamName
+                    </div>
+                </MudTd>
+                <MudTd Style="font-weight:700;">
+                    @(context.Goals + context.PenaltyGoals)
+                    @if (context.PenaltyGoals > 0)
+                    {
+                        <span style="font-size:12px;color:var(--mud-palette-text-secondary);"> (@context.PenaltyGoals pen)</span>
+                    }
+                </MudTd>
+                <MudTd>@context.Assists</MudTd>
+                <MudTd>@context.YellowCards</MudTd>
+                <MudTd>@context.RedCards</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else if (_selectedSeason is not null)
+    {
+        <MudAlert Severity="Severity.Info">No player stats available. Sync match events first.</MudAlert>
+    }
+</MudContainer>
+</PageGuard>
