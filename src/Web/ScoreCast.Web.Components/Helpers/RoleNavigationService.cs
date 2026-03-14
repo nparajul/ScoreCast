@@ -1,4 +1,3 @@
-using ScoreCast.ApiClient.V1.Apis;
 using ScoreCast.Models.V1.Responses.UserManagement;
 
 namespace ScoreCast.Web.Components.Helpers;

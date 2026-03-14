@@ -1,5 +1,3 @@
-using ScoreCast.Models.V1.Requests;
-
 namespace ScoreCast.Models.V1.Requests.MasterData;
 
 public record SyncCompetitionRequest : ScoreCastRequest

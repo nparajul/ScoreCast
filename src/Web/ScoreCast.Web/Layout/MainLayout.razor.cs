@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Layout;
 

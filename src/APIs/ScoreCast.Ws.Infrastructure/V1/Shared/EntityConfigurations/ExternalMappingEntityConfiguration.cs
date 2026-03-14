@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ScoreCast.Ws.Domain.V1.Entities;
-using ScoreCast.Ws.Infrastructure.V1.Shared;
 
 namespace ScoreCast.Ws.Infrastructure.V1.Shared.EntityConfigurations;
 
