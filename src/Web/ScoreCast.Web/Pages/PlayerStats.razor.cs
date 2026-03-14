@@ -7,6 +7,7 @@ namespace ScoreCast.Web.Pages;
 
 public partial class PlayerStats
 {
+    private const string AppName = "PLAYER STATS";
     [Inject] private IScoreCastApiClient Api { get; set; } = default!;
     [Inject] private ILoadingService Loading { get; set; } = default!;
     [Inject] private IAlertService Alert { get; set; } = default!;
@@ -19,12 +20,10 @@ public partial class PlayerStats
     private string _sortColumn = "Goals";
     private bool _sortDescending = true;
     private string _search = "";
-    private bool _loaded;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _loaded) return;
-        _loaded = true;
+        if (!firstRender) return;
         await InvokeAsync(async () =>
         {
             var response = await Api.GetCompetitionsAsync(CancellationToken.None);

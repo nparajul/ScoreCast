@@ -1,0 +1,58 @@
+@page "/leagues/{LeagueId:long}"
+
+<PageGuard>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
+    <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack"
+               OnClick="@(() => Nav.NavigateTo("/leagues"))" Class="mb-2">
+        Back to My Leagues
+    </MudButton>
+
+    @if (_standings is not null)
+    {
+        <div class="d-flex justify-space-between align-center mb-4">
+            <div>
+                <MudText Typo="Typo.h5" Style="font-weight:700;">@_standings.LeagueName</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@_standings.Standings.Count member@(_standings.Standings.Count != 1 ? "s" : "")</MudText>
+            </div>
+            <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Size="Size.Small"
+                       StartIcon="@Icons.Material.Filled.Edit"
+                       OnClick="NavigateToPredict">
+                Make Predictions
+            </MudButton>
+        </div>
+
+        <MudTable Items="@_standings.Standings" Hover="true" Elevation="1" Dense="true" Class="rounded-lg">
+            <HeaderContent>
+                <MudTh Style="width:50px;">#</MudTh>
+                <MudTh>Player</MudTh>
+                <MudTh Style="text-align:center;">Pts</MudTh>
+                <MudTh Style="text-align:center;">Exact</MudTh>
+                <MudTh Style="text-align:center;">Correct</MudTh>
+                <MudTh Style="text-align:center;">Played</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Style="font-weight:700;">@((_standings.Standings.IndexOf(context) + 1))</MudTd>
+                <MudTd>
+                    <div class="d-flex align-center gap-2">
+                        <MudAvatar Size="Size.Small">
+                            @if (context.AvatarUrl is not null)
+                            {
+                                <MudImage Src="@context.AvatarUrl" />
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Person" />
+                            }
+                        </MudAvatar>
+                        @context.DisplayName
+                    </div>
+                </MudTd>
+                <MudTd Style="text-align:center;font-weight:700;font-size:16px;">@context.TotalPoints</MudTd>
+                <MudTd Style="text-align:center;">@context.ExactScores</MudTd>
+                <MudTd Style="text-align:center;">@context.CorrectResults</MudTd>
+                <MudTd Style="text-align:center;">@context.PredictionCount</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</MudContainer>
+</PageGuard>

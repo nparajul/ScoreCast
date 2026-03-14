@@ -17,12 +17,9 @@ public partial class MasterDataSync
     private string? _newCompetitionCode;
     private const string AppName = "DATA SYNC";
 
-    private bool _loaded;
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _loaded) return;
-        _loaded = true;
+        if (!firstRender) return;
         await InvokeAsync(LoadCompetitionsAsync);
     }
 

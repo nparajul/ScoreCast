@@ -23,12 +23,10 @@ public partial class Scores : IDisposable
     private CompetitionResult? _selectedCompetition;
     private SeasonResult? _selectedSeason;
     private readonly HashSet<long> _expandedMatches = [];
-    private bool _loaded;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _loaded) return;
-        _loaded = true;
+        if (!firstRender) return;
         await InvokeAsync(async () =>
         {
             var response = await Api.GetCompetitionsAsync(CancellationToken.None);
@@ -67,7 +65,7 @@ public partial class Scores : IDisposable
 
         _selectedSeason = _seasons.FirstOrDefault(s => s.IsCurrent) ?? _seasons.FirstOrDefault();
         if (_selectedSeason is not null)
-            await LoadGameweekAsync(_selectedSeason.Id, 0);
+            await LoadGameweekAsync(_selectedSeason.Id, SharedConstants.CurrentGameweek);
     }
 
     private async Task OnCountryChanged(string? country)
@@ -97,7 +95,7 @@ public partial class Scores : IDisposable
         _selectedSeason = season;
         _gameweek = null;
         if (season is not null)
-            await LoadGameweekAsync(season.Id, 0);
+            await LoadGameweekAsync(season.Id, SharedConstants.CurrentGameweek);
     }
 
     private async Task LoadGameweekAsync(long seasonId, int gameweekNumber)

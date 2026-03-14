@@ -2,7 +2,7 @@ namespace ScoreCast.Models.V1.Responses.Football;
 
 public record GameweekMatchesResult(
     long GameweekId, int GameweekNumber, DateOnly? StartDate, DateOnly? EndDate,
-    int TotalGameweeks, List<MatchDetail> Matches);
+    int TotalGameweeks, int CurrentGameweek, List<MatchDetail> Matches);
 
 public record MatchDetail(
     long MatchId, DateTime? KickoffTime, string Status,

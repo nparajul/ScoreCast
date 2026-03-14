@@ -27,7 +27,7 @@
         <MudText Typo="Typo.h6" Class="mr-4 d-none d-sm-flex">ScoreCast</MudText>
 
         <div class="d-none d-md-flex">
-            @foreach (var onePage in RoleNav.Pages)
+            @foreach (var onePage in RoleNav.Pages.Where(p => p.ParentPageId is null))
             {
                 <MudButton Href="@onePage.PageUrl" Color="Color.Inherit">@onePage.PageName</MudButton>
             }
@@ -57,7 +57,7 @@
 
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Temporary">
         <MudNavMenu>
-            @foreach (var onePage in RoleNav.Pages)
+            @foreach (var onePage in RoleNav.Pages.Where(p => p.ParentPageId is null))
             {
                 <MudNavLink Href="@onePage.PageUrl" Match="NavLinkMatch.All" OnClick="@(() => _drawerOpen = false)">
                     @onePage.PageName

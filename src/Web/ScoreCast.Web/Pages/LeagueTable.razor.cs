@@ -7,6 +7,7 @@ namespace ScoreCast.Web.Pages;
 
 public partial class LeagueTable
 {
+    private const string AppName = "LEAGUE TABLE";
     [Inject] private IScoreCastApiClient Api { get; set; } = default!;
     [Inject] private ILoadingService Loading { get; set; } = default!;
     [Inject] private IAlertService Alert { get; set; } = default!;
@@ -20,12 +21,10 @@ public partial class LeagueTable
     private string? _selectedCountry;
     private CompetitionResult? _selectedCompetition;
     private SeasonResult? _selectedSeason;
-    private bool _loaded;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _loaded) return;
-        _loaded = true;
+        if (!firstRender) return;
         await InvokeAsync(async () =>
         {
             var response = await Api.GetCompetitionsAsync(CancellationToken.None);
