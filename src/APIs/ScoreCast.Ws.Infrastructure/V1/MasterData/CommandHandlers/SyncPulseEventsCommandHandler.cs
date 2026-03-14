@@ -66,16 +66,17 @@ internal sealed record SyncPulseEventsCommandHandler(
 
         // Load matches with their team IDs
         var matchDetails = await DbContext.Matches
-            .Where(m => m.Gameweek.SeasonId == currentSeason.Id && m.Status == MatchStatus.Finished)
-            .Select(m => new { m.Id, m.HomeTeamId, m.AwayTeamId })
+            .Where(m => m.Gameweek.SeasonId == currentSeason.Id
+                        && (m.Status == MatchStatus.Finished || m.Status == MatchStatus.Live))
+            .Select(m => new { m.Id, m.HomeTeamId, m.AwayTeamId, m.Status })
             .ToDictionaryAsync(m => m.Id, ct);
 
-        // Build pending list
+        // Build pending list — live matches always re-sync, finished only if not already processed
         var pendingMatches = new List<(int PulseId, long MatchId, long HomeTeamId, long AwayTeamId)>();
         foreach (var pm in pulseRefMappings)
         {
-            if (processedMatchIds.Contains(pm.MatchId)) continue;
             if (!matchDetails.TryGetValue(pm.MatchId, out var md)) continue;
+            if (md.Status == MatchStatus.Finished && processedMatchIds.Contains(pm.MatchId)) continue;
             pendingMatches.Add((pm.PulseId, pm.MatchId, md.HomeTeamId, md.AwayTeamId));
         }
 
@@ -125,13 +126,27 @@ internal sealed record SyncPulseEventsCommandHandler(
 
         var results = await Task.WhenAll(fetchTasks);
 
+        // Load existing match events for live matches (to avoid duplicates on re-sync)
+        var liveMatchIds = batch
+            .Where(b => matchDetails[b.MatchId].Status == MatchStatus.Live)
+            .Select(b => b.MatchId).ToHashSet();
+        var existingEvents = liveMatchIds.Count > 0
+            ? (await DbContext.MatchEvents
+                .Where(e => liveMatchIds.Contains(e.MatchId))
+                .Select(e => new { e.MatchId, e.PlayerId, e.EventType, e.Minute })
+                .ToListAsync(ct))
+                .Select(e => $"{e.MatchId}|{e.PlayerId}|{e.EventType}|{e.Minute}")
+                .ToHashSet()
+            : [];
+
         // Process results sequentially (DB context not thread-safe)
         foreach (var (item, pulseData) in results)
         {
             var (pulseId, matchId, homeTeamId, awayTeamId) = item;
+            var isLive = matchDetails[matchId].Status == MatchStatus.Live;
 
-            // Mark match as Pulse-synced so it won't be retried (only if fetch succeeded)
-            if (pulseData is not null)
+            // Mark match as Pulse-synced only when finished (live matches re-sync each time)
+            if (pulseData is not null && !isLive && !pulseSyncedMatchIds.Contains(matchId))
             {
                 DbContext.ExternalMappings.Add(new ExternalMapping
                 {
@@ -167,6 +182,7 @@ internal sealed record SyncPulseEventsCommandHandler(
 
                 var minute = pe.Clock?.Label?.Replace("'00", "'");
                 if (!seenKeys.Add((matchId, playerId, eventType.Value, minute))) continue;
+                if (existingEvents.Contains($"{matchId}|{playerId}|{eventType.Value}|{minute}")) continue;
 
                 DbContext.MatchEvents.Add(new MatchEvent
                 {
@@ -181,7 +197,8 @@ internal sealed record SyncPulseEventsCommandHandler(
                     var assistKey = pe.AssistId.Value.ToString();
                     if (pulsePlayerMap.TryGetValue(assistKey, out var assistPlayerId) && validPlayerIds.Contains(assistPlayerId))
                     {
-                        if (seenKeys.Add((matchId, assistPlayerId, MatchEventType.Assist, minute)))
+                        if (seenKeys.Add((matchId, assistPlayerId, MatchEventType.Assist, minute))
+                            && !existingEvents.Contains($"{matchId}|{assistPlayerId}|{MatchEventType.Assist}|{minute}"))
                         {
                             DbContext.MatchEvents.Add(new MatchEvent
                             {
