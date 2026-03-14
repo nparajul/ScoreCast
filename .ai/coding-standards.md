@@ -24,9 +24,12 @@
 - Entity configurations (EF Fluent API) go in `Infrastructure/`
 
 ## CQRS Conventions
+- Queries: `public record XxxQuery(...) : IQuery<ScoreCastResponse<T>>;` (from `ScoreCast.Ws.Application.V1.Interfaces`)
+- Query Handlers: `internal sealed record XxxQueryHandler(...) : IQueryHandler<XxxQuery, ScoreCastResponse<T>>`
 - Commands: `public record XxxCommand(XxxRequest Request) : ICommand<ScoreCastResponse>;`
-- Handlers: `internal sealed record XxxCommandHandler(IScoreCastDbContext DbContext, IUnitOfWork UnitOfWork) : ICommandHandler<XxxCommand, ScoreCastResponse>`
-- Commands are `public`, handlers are `internal sealed`
+- Command Handlers: `internal sealed record XxxCommandHandler(IScoreCastDbContext DbContext, IUnitOfWork UnitOfWork) : ICommandHandler<XxxCommand, ScoreCastResponse>`
+- `IQuery<T>` extends `ICommand<T>`, `IQueryHandler<TQuery, TResult>` extends `ICommandHandler<TQuery, TResult>` — defined in `ScoreCast.Ws.Application.V1.Interfaces`
+- Commands/Queries are `public`, handlers are `internal sealed`
 - `SaveChangesAsync` must always use `request.AppName ?? nameof(XxxCommand)` pattern
 
 ## FastEndpoints Conventions

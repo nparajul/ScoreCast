@@ -15,6 +15,8 @@ Premier League predictions app where users predict match outcomes and scorelines
 
 ## Architecture
 - **CQRS without MediatR** — commands/queries in Application, handlers in Infrastructure via FastEndpoints
+- **Queries** use `IQuery<T>` / `IQueryHandler<TQuery, TResult>` interfaces (extend FastEndpoints `ICommand<T>` / `ICommandHandler`)
+- **Commands** use `ICommand<T>` / `ICommandHandler<TCommand, TResult>` from FastEndpoints directly
 - **Clean Architecture** — Domain has zero dependencies (except Shared), Application depends on Domain, Infrastructure implements Application interfaces
 - **Separate Migrations project** — excluded from default build to avoid slow compile times
 
@@ -76,7 +78,7 @@ Web.Server → Web (WASM) → Web.Components → Models, ApiClient
 - `/leagues/{id}` — league detail with standings
 - `/predict` — submit predictions (season-scoped)
 - `/scores` — live scores with match minute, goal scorers
-- `/league-table` — PL standings with competition zones
+- `/points-table` — standings with competition zones (league) or group tables (World Cup)
 - `/player-stats` — sortable player statistics
 - `/master-data-sync` — admin data sync operations
 

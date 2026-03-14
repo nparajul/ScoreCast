@@ -6,6 +6,9 @@
 - [ ] New NuGet packages added to `Directory.Packages.props`, not individual csproj files
 - [ ] No circular project references
 - [ ] Commands: `public record`, Handlers: `internal sealed record`
+- [ ] Queries use `IQuery<T>` (not `ICommand<T>`), query handlers use `IQueryHandler<TQuery, TResult>` (not `ICommandHandler`)
+- [ ] Commands use `ICommand<T>`, command handlers use `ICommandHandler<TCommand, TResult>`
+- [ ] `IQuery`/`IQueryHandler` interfaces from `ScoreCast.Ws.Application.V1.Interfaces`
 - [ ] Response result records in `ScoreCast.Models`, requests in `ScoreCast.Models`
 - [ ] Constants in `ScoreCast.Shared.Constants`, enums in `ScoreCast.Shared.Enums`
 
