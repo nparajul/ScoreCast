@@ -4,7 +4,8 @@ namespace ScoreCast.Models.V1.Responses;
 
 public record ScoreCastResponse
 {
-    private protected ScoreCastResponse() { }
+    [System.Text.Json.Serialization.JsonConstructor]
+    public ScoreCastResponse() { }
     public string? Message { get; init; }
     public required ScoreCastResultType ResultType { get; init; }
     public string? Code { get; init; }

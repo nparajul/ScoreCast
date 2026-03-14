@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Layout;
 
@@ -6,8 +7,9 @@ public partial class MainLayout
 {
     private MudThemeProvider _themeProvider = default!;
     private bool _isDarkMode = false;
+    private bool _drawerOpen = false;
+    private long _selectedRoleId;
 
-    private string? SelectedRole { get; set; }
     private string? WrapperClass { get; set; }
 
     private void HandleMenuOpen(bool isOpen)
@@ -29,6 +31,7 @@ public partial class MainLayout
     {
         Notify.Register(this);
         Loading.IsLoading = true;
+        RoleNav.OnChanged += StateHasChanged;
         await base.OnInitializedAsync();
     }
 
@@ -43,7 +46,22 @@ public partial class MainLayout
         await base.OnAfterRenderAsync(firstRender);
     }
 
+    private async Task OnRoleChanged(long roleId)
+    {
+        _selectedRoleId = roleId;
+        var role = RoleNav.Roles.FirstOrDefault(r => r.Id == roleId);
+        if (role is not null)
+            await RoleNav.SelectRoleAsync(role);
+    }
+
+    private async Task OnRoleChangedFromSelect(ChangeEventArgs e)
+    {
+        if (long.TryParse(e.Value?.ToString(), out var roleId))
+            await OnRoleChanged(roleId);
+    }
+
     private void ToggleDarkMode() => _isDarkMode = !_isDarkMode;
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
 
     public void AlertChanged() => StateHasChanged();
 }

@@ -2,6 +2,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.UserManagement;
+using ScoreCast.Shared.Constants;
 using ScoreCast.Ws.Application.Interfaces;
 using ScoreCast.Ws.Application.V1.UserManagement.Commands;
 using ScoreCast.Ws.Domain.V1.Entities.UserManagement;
@@ -39,6 +40,13 @@ internal sealed record SyncUserCommandHandler(
         };
 
         DbContext.UserMasters.Add(newUser);
+
+        var defaultRole = await DbContext.RoleMasters
+            .FirstOrDefaultAsync(r => r.Name == RoleNames.User, ct);
+
+        if (defaultRole is not null)
+            DbContext.UserRoles.Add(new UserRole {  User = newUser, Role = defaultRole });
+
         await UnitOfWork.SaveChangesAsync(request.AppName ?? nameof(SyncUserCommand), ct);
 
         return ScoreCastResponse<SyncUserResult>.Ok(

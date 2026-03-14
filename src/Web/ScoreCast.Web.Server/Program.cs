@@ -3,6 +3,7 @@ var app = builder.Build();
 
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
+app.UseRouting();
 app.MapFallbackToFile("index.html");
 
 app.Run();
