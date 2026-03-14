@@ -1,5 +1,20 @@
 @page "/scores"
 
+<style>
+    .live-pulse {
+        width: 8px;
+        height: 8px;
+        background: #f44336;
+        border-radius: 50%;
+        animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+</style>
+
 <PageGuard>
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
     <MudText Typo="Typo.h5" Class="mb-3" Style="font-weight:700;">Scores & Fixtures</MudText>
@@ -68,6 +83,10 @@
                             else if (match.Status == "Live")
                             {
                                 <MudText Style="font-weight:700;font-size:16px;color:#4caf50;">@(match.HomeScore ?? 0) - @(match.AwayScore ?? 0)</MudText>
+                                <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:2px;">
+                                    <span class="live-pulse"></span>
+                                    <span style="font-size:10px;font-weight:700;color:#f44336;letter-spacing:1px;">LIVE</span>
+                                </div>
                             }
                             else
                             {
