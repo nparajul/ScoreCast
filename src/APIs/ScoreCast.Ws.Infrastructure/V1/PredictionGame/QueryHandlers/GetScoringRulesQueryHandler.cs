@@ -8,7 +8,7 @@ using ScoreCast.Ws.Application.V1.PredictionGame.Queries;
 namespace ScoreCast.Ws.Infrastructure.V1.PredictionGame.QueryHandlers;
 
 internal sealed record GetScoringRulesQueryHandler(
-    IScoreCastDbContext DbContext) : ICommandHandler<GetScoringRulesQuery, ScoreCastResponse<List<ScoringRuleResult>>>
+    IScoreCastDbContext DbContext) : IQueryHandler<GetScoringRulesQuery, ScoreCastResponse<List<ScoringRuleResult>>>
 {
     public async Task<ScoreCastResponse<List<ScoringRuleResult>>> ExecuteAsync(GetScoringRulesQuery query, CancellationToken ct)
     {

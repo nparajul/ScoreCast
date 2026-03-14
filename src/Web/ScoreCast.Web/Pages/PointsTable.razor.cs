@@ -1,12 +1,12 @@
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Constants;
+using ScoreCast.Shared.Enums;
 using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
 
-public partial class LeagueTable
+public partial class PointsTable
 {
-    private const string AppName = "LEAGUE TABLE";
     [Inject] private IScoreCastApiClient Api { get; set; } = default!;
     [Inject] private ILoadingService Loading { get; set; } = default!;
     [Inject] private IAlertService Alert { get; set; } = default!;
@@ -15,7 +15,7 @@ public partial class LeagueTable
     private List<(string Name, string? FlagUrl)> _countries = [];
     private List<CompetitionResult> _filteredCompetitions = [];
     private List<SeasonResult> _seasons = [];
-    private List<LeagueTableRow> _table = [];
+    private PointsTableResult? _result;
     private List<CompetitionZoneResult> _zones = [];
     private string? _selectedCountry;
     private CompetitionResult? _selectedCompetition;
@@ -24,7 +24,12 @@ public partial class LeagueTable
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        var response = await Api.GetCompetitionsAsync(CancellationToken.None);
+
+        var competitionsTask = Api.GetCompetitionsAsync(CancellationToken.None);
+        var defaultTask = Api.GetDefaultCompetitionAsync(CancellationToken.None);
+        await Task.WhenAll(competitionsTask, defaultTask);
+
+        var response = await competitionsTask;
         if (response is { Success: true, Data: not null })
         {
             _competitions = response.Data;
@@ -33,24 +38,22 @@ public partial class LeagueTable
                 .DistinctBy(c => c.CountryName)
                 .OrderBy(c => c.CountryName)
                 .ToList();
-
-            _filteredCompetitions = _competitions
-                .Where(c => c.CountryName == CountryNames.England).ToList();
         }
 
-        // render dropdowns with items first
-        StateHasChanged();
-        await Task.Yield();
+        var defaultResponse = await defaultTask;
+        var defaultCompetition = defaultResponse is { Success: true, Data: not null }
+            ? _competitions.FirstOrDefault(c => c.Code == defaultResponse.Data.Code)
+            : _competitions.FirstOrDefault(c => c.Code == CompetitionCodes.PremierLeague);
 
-        // now set selections so MudSelect can match against rendered items
-        _selectedCountry = CountryNames.England;
-        var pl = _filteredCompetitions.FirstOrDefault(c => c.Code == CompetitionCodes.PremierLeague);
-        if (pl is not null)
+        if (defaultCompetition is not null)
         {
-            _selectedCompetition = pl;
+            _selectedCountry = defaultCompetition.CountryName;
+            _filteredCompetitions = _competitions
+                .Where(c => c.CountryName == _selectedCountry).ToList();
+            _selectedCompetition = _filteredCompetitions.FirstOrDefault(c => c.Id == defaultCompetition.Id);
             StateHasChanged();
             await Task.Yield();
-            await LoadCompetitionData(pl);
+            await LoadCompetitionData(defaultCompetition);
         }
 
         StateHasChanged();
@@ -84,7 +87,7 @@ public partial class LeagueTable
         _selectedCompetition = null;
         _selectedSeason = null;
         _seasons = [];
-        _table = [];
+        _result = null;
         _zones = [];
         _filteredCompetitions = country is null
             ? []
@@ -99,7 +102,7 @@ public partial class LeagueTable
         _selectedCompetition = competition;
         _seasons = [];
         _selectedSeason = null;
-        _table = [];
+        _result = null;
         _zones = [];
 
         if (competition is null) return;
@@ -110,7 +113,7 @@ public partial class LeagueTable
     private async Task OnSeasonChanged(SeasonResult? season)
     {
         _selectedSeason = season;
-        _table = [];
+        _result = null;
         if (season is not null)
             await LoadTableAsync(season.Id);
     }
@@ -119,16 +122,19 @@ public partial class LeagueTable
     {
         await Loading.While(async () =>
         {
-            var response = await Api.GetLeagueTableAsync(seasonId, CancellationToken.None);
+            var response = await Api.GetPointsTableAsync(seasonId, CancellationToken.None);
             if (response is { Success: true, Data: not null })
-                _table = response.Data;
+                _result = response.Data;
             else
-                Alert.Add("Failed to load league table", Severity.Error);
+                Alert.Add("Failed to load points table", Severity.Error);
         });
     }
 
-    private string RowStyleFunc(LeagueTableRow row, int _)
+    private bool IsGroupFormat => _result?.Format is CompetitionFormat.GroupAndKnockout;
+
+    private string RowStyleFunc(PointsTableRow row, int _)
     {
+        if (IsGroupFormat) return string.Empty;
         var zone = _zones.FirstOrDefault(z => row.Position >= z.StartPosition && row.Position <= z.EndPosition);
         if (zone is null) return string.Empty;
         return $"background:{zone.Color}15;border-left:3px solid {zone.Color};";
