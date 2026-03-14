@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.UserManagement;
 using ScoreCast.Shared.Constants;
+using ScoreCast.Shared.Types;
 using ScoreCast.Ws.Application;
 using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Application.V1.UserManagement.Commands;
@@ -25,6 +26,7 @@ internal sealed record SyncUserCommandHandler(
         {
             existingUser.Email = request.Email;
             existingUser.DisplayName = request.DisplayName ?? existingUser.DisplayName;
+            existingUser.LastLoginDate = ScoreCastDateTime.Now;
 
             await UnitOfWork.SaveChangesAsync(request.AppName ?? nameof(SyncUserCommand), ct);
 

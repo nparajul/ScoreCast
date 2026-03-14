@@ -101,7 +101,7 @@ internal sealed record SyncFplDataCommandHandler(
             .ToListAsync(ct);
         var refMappedIds = existingPulseRefs.ToHashSet();
 
-        foreach (var fixture in fixtures.Where(f => f.Finished && f.PulseId.HasValue))
+        foreach (var fixture in fixtures.Where(f => (f.Finished || f.Started == true) && f.PulseId.HasValue))
         {
             var homeTeamCode = fplTeamIdToCode.GetValueOrDefault(fixture.TeamH);
             var awayTeamCode = fplTeamIdToCode.GetValueOrDefault(fixture.TeamA);

@@ -2,6 +2,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
+using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
 using ScoreCast.Ws.Application.V1.Football.Queries;
 using ScoreCast.Ws.Application.V1.Interfaces;
@@ -47,7 +48,7 @@ internal sealed record GetPlayerStatsQueryHandler(
                 var player = playerNames.GetValueOrDefault(g.Key);
                 return new PlayerStatRow(
                     g.Key,
-                    player.Name ?? "Unknown",
+                    player.Name ?? SharedConstants.Unknown,
                     player.PhotoUrl,
                     team.Name,
                     team.LogoUrl,
