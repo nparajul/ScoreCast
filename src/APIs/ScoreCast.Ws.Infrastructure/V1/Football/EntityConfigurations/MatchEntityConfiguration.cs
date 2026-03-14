@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
-using ScoreCast.Ws.Domain.V1.Enums;
+using ScoreCast.Shared.Enums;
 using ScoreCast.Ws.Infrastructure.V1.Shared;
 
 namespace ScoreCast.Ws.Infrastructure.V1.Football.EntityConfigurations;
@@ -23,6 +23,8 @@ internal sealed class MatchEntityConfiguration : BaseEntityConfiguration<Match>
         builder.Property(m => m.HomeScore).HasColumnName("home_score").HasColumnOrder(order++);
         builder.Property(m => m.AwayScore).HasColumnName("away_score").HasColumnOrder(order++);
         builder.Property(m => m.Status).HasColumnName("status").HasColumnOrder(order++).HasConversion<string>().HasMaxLength(20).HasDefaultValue(MatchStatus.Scheduled);
+        builder.Property(m => m.Venue).HasColumnName("venue").HasColumnOrder(order++).HasMaxLength(200);
+        builder.Property(m => m.Referee).HasColumnName("referee").HasColumnOrder(order++).HasMaxLength(200);
 
         builder.HasOne(m => m.Gameweek).WithMany(g => g.Matches).HasForeignKey(m => m.GameweekId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(m => m.HomeTeam).WithMany().HasForeignKey(m => m.HomeTeamId).OnDelete(DeleteBehavior.Restrict);

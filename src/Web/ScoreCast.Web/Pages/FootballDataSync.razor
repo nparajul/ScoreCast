@@ -77,12 +77,21 @@
                                        Size="Size.Small"
                                        StartIcon="@Icons.Material.Filled.Assessment"
                                        Style="background:#38003c;color:#00ff85;font-weight:700;"
+                                       Disabled="_pulseSyncing"
                                        OnClick="@(() => SyncFplDataAsync(competition))">
-                                Sync FPL Events
+                                Sync PL Events
                             </MudButton>
                             }
                         </div>
                     </div>
+                    @if (_pulseSyncing && competition.ExternalSources.Contains("Fpl"))
+                    {
+                        <div class="mt-3">
+                            <MudProgressLinear Color="Color.Success" Value="@(_pulseTotal > 0 ? (double)_pulseProcessed / _pulseTotal * 100 : 0)" Class="my-2" Rounded="true" Size="Size.Medium">
+                                <MudText Typo="Typo.caption">@_pulseProcessed / @_pulseTotal matches</MudText>
+                            </MudProgressLinear>
+                        </div>
+                    }
                 </MudPaper>
             }
         </MudStack>
