@@ -113,8 +113,8 @@ internal sealed record SyncMatchesCommandHandler(
             var match = await DbContext.Matches
                 .FirstOrDefaultAsync(m => m.ExternalId == externalId, ct);
 
-            var kickoff = DateTime.TryParse(apiMatch.UtcDate, out var dt)
-                ? DateTime.SpecifyKind(dt, DateTimeKind.Utc)
+            var kickoff = DateTimeOffset.TryParse(apiMatch.UtcDate, out var dto)
+                ? dto.UtcDateTime
                 : (DateTime?)null;
 
             var status = MapStatus(apiMatch.Status);
