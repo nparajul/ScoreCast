@@ -3,7 +3,6 @@ using ScoreCast.Models.V1.Requests.Prediction;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Models.V1.Responses.MasterData;
-using ScoreCast.Shared.Constants;
 using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
@@ -204,22 +203,25 @@ public partial class MasterDataSync
     {
         await Loading.While(async () =>
         {
-            var seasonsResponse = await Api.GetSeasonsAsync(CompetitionCodes.PremierLeague, CancellationToken.None);
-            var season = seasonsResponse?.Data?.FirstOrDefault(s => s.IsCurrent);
-            if (season is null)
+            var errors = new List<string>();
+            foreach (var competition in _competitions)
             {
-                Alert.Add("No current season found", Severity.Error);
-                return;
+                var seasonsResponse = await Api.GetSeasonsAsync(competition.Code, CancellationToken.None);
+                var season = seasonsResponse?.Data?.FirstOrDefault(s => s.IsCurrent);
+                if (season is null) continue;
+
+                var result = await Api.CalculateOutcomesAsync(
+                    new CalculateOutcomesRequest { SeasonId = season.Id },
+                    CancellationToken.None);
+
+                if (!result.Success)
+                    errors.Add($"{competition.Name}: {result.Message}");
             }
 
-            var result = await Api.CalculateOutcomesAsync(
-                new CalculateOutcomesRequest { SeasonId = season.Id },
-                CancellationToken.None);
-
-            if (result.Success)
-                Alert.Add(result.Message ?? "Points calculated", Severity.Success);
+            if (errors.Count == 0)
+                Alert.Add("Points calculated for all competitions", Severity.Success);
             else
-                Alert.Add(result.Message ?? "Failed to calculate points", Severity.Error);
+                Alert.Add(string.Join("; ", errors), Severity.Error);
         }, "Calculating points...");
 
         StateHasChanged();

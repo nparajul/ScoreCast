@@ -8,7 +8,7 @@ using ScoreCast.Ws.Application.V1.UserManagement.Queries;
 namespace ScoreCast.Ws.Infrastructure.V1.UserManagement.QueryHandlers;
 
 internal sealed record GetRolePagesQueryHandler(
-    IScoreCastDbContext DbContext) : ICommandHandler<GetRolePagesQuery, ScoreCastResponse<List<PageResult>>>
+    IScoreCastDbContext DbContext) : IQueryHandler<GetRolePagesQuery, ScoreCastResponse<List<PageResult>>>
 {
     public async Task<ScoreCastResponse<List<PageResult>>> ExecuteAsync(GetRolePagesQuery query, CancellationToken ct)
     {
