@@ -1,18 +1,15 @@
+using ScoreCast.Shared.Enums;
 using ScoreCast.Ws.Domain.V1.Entities.Common;
 using ScoreCast.Ws.Domain.V1.Entities.UserManagement;
 
 namespace ScoreCast.Ws.Domain.V1.Entities.Football;
 
-public sealed record Prediction : ScoreCastEntity
+public sealed record PredictionLeagueMember : ScoreCastEntity
 {
     public long PredictionLeagueId { get; set; }
     public long UserId { get; set; }
-    public long MatchId { get; set; }
-    public int PredictedHomeScore { get; set; }
-    public int PredictedAwayScore { get; set; }
-    public int PointsAwarded { get; set; }
+    public PredictionLeagueMemberRole Role { get; set; } = PredictionLeagueMemberRole.Member;
 
     public PredictionLeague PredictionLeague { get; init; } = default!;
     public UserMaster User { get; init; } = default!;
-    public Match Match { get; init; } = default!;
 }
