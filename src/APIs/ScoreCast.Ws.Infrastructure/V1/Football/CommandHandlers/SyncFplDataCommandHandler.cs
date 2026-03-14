@@ -184,7 +184,8 @@ internal sealed record SyncFplDataCommandHandler(
             var match = ourTeams.FirstOrDefault(t =>
                 t.Name.Contains(fpl.Name, StringComparison.OrdinalIgnoreCase) ||
                 fpl.Name.Contains(t.ShortName ?? "", StringComparison.OrdinalIgnoreCase) ||
-                (t.ShortName ?? "").Contains(fpl.ShortName, StringComparison.OrdinalIgnoreCase));
+                (t.ShortName ?? "").Contains(fpl.ShortName, StringComparison.OrdinalIgnoreCase) ||
+                MatchesAbbreviation(fpl.Name, t.Name));
 
             if (match is null || !byEntityId.Add(match.Id)) continue;
 
@@ -216,7 +217,7 @@ internal sealed record SyncFplDataCommandHandler(
 
         var ourPlayers = await DbContext.TeamPlayers
             .Where(tp => tp.SeasonId == season.Id)
-            .Select(tp => new { tp.PlayerId, tp.TeamId, tp.Player.Name })
+            .Select(tp => new { tp.PlayerId, tp.TeamId, tp.Player.Name, tp.Player.DateOfBirth })
             .ToListAsync(ct);
 
         var ourPlayersByTeam = ourPlayers
@@ -244,7 +245,16 @@ internal sealed record SyncFplDataCommandHandler(
             var fplFullName = $"{fpl.FirstName} {fpl.SecondName}";
             var match = teamPlayers.FirstOrDefault(p =>
                 p.Name.Contains(fpl.SecondName, StringComparison.OrdinalIgnoreCase) ||
-                fplFullName.Contains(p.Name, StringComparison.OrdinalIgnoreCase));
+                fplFullName.Contains(p.Name, StringComparison.OrdinalIgnoreCase) ||
+                p.Name.Contains(fpl.WebName, StringComparison.OrdinalIgnoreCase) ||
+                fpl.WebName.Contains(p.Name, StringComparison.OrdinalIgnoreCase));
+
+            // Fallback: match by date of birth within same team
+            match ??= fpl.BirthDate is not null
+                ? teamPlayers.FirstOrDefault(p =>
+                    p.DateOfBirth.HasValue &&
+                    p.DateOfBirth.Value.ToString("yyyy-MM-dd") == fpl.BirthDate)
+                : null;
 
             if (match is null || !byEntityId.Add(match.PlayerId)) continue;
 
@@ -260,5 +270,16 @@ internal sealed record SyncFplDataCommandHandler(
         }
 
         return result;
+    }
+
+    /// <summary>Checks if every word in the abbreviation starts a word in the full name (e.g. "Man Utd" matches "Manchester United")</summary>
+    private static bool MatchesAbbreviation(string abbreviated, string fullName)
+    {
+        var abbrWords = abbreviated.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var fullWords = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (abbrWords.Length == 0) return false;
+
+        return abbrWords.All(aw =>
+            fullWords.Any(fw => fw.StartsWith(aw, StringComparison.OrdinalIgnoreCase)));
     }
 }
