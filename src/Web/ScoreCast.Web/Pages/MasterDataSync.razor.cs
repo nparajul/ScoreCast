@@ -20,7 +20,7 @@ public partial class MasterDataSync
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        await InvokeAsync(LoadCompetitionsAsync);
+        await LoadCompetitionsAsync();
     }
 
     private async Task LoadCompetitionsAsync()

@@ -4,7 +4,7 @@ namespace ScoreCast.Models.V1.Requests.Prediction;
 
 public record SubmitPredictionsRequest : ScoreCastRequest
 {
-    public long PredictionLeagueId { get; set; }
+    public long SeasonId { get; set; }
     public List<PredictionEntry> Predictions { get; set; } = [];
 }
 

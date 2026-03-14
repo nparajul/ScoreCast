@@ -4,7 +4,6 @@ using ScoreCast.Models.V1.Responses;
 using ScoreCast.Ws.Application;
 using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Application.V1.PredictionGame.Commands;
-using ScoreCast.Ws.Domain.V1.Entities.Football;
 
 namespace ScoreCast.Ws.Infrastructure.V1.PredictionGame.CommandHandlers;
 
@@ -23,16 +22,10 @@ internal sealed record SubmitPredictionsCommandHandler(
         if (user is null)
             return ScoreCastResponse.Error("User not found");
 
-        var isMember = await DbContext.PredictionLeagueMembers
-            .AnyAsync(m => m.PredictionLeagueId == request.PredictionLeagueId && m.UserId == user.Id, ct);
-
-        if (!isMember)
-            return ScoreCastResponse.Error("Not a member of this league");
-
         var matchIds = request.Predictions.Select(p => p.MatchId).ToList();
 
         var existing = await DbContext.Predictions
-            .Where(p => p.PredictionLeagueId == request.PredictionLeagueId
+            .Where(p => p.SeasonId == request.SeasonId
                         && p.UserId == user.Id
                         && matchIds.Contains(p.MatchId))
             .ToDictionaryAsync(p => p.MatchId, ct);
@@ -48,7 +41,7 @@ internal sealed record SubmitPredictionsCommandHandler(
             {
                 DbContext.Predictions.Add(new Domain.V1.Entities.Football.Prediction
                 {
-                    PredictionLeagueId = request.PredictionLeagueId,
+                    SeasonId = request.SeasonId,
                     UserId = user.Id,
                     MatchId = entry.MatchId,
                     PredictedHomeScore = entry.PredictedHomeScore,

@@ -25,39 +25,36 @@ public partial class LeagueTable
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        await InvokeAsync(async () =>
+        var response = await Api.GetCompetitionsAsync(CancellationToken.None);
+        if (response is { Success: true, Data: not null })
         {
-            var response = await Api.GetCompetitionsAsync(CancellationToken.None);
-            if (response is { Success: true, Data: not null })
-            {
-                _competitions = response.Data;
-                _countries = _competitions
-                    .Select(c => (c.CountryName, c.CountryFlagUrl))
-                    .DistinctBy(c => c.CountryName)
-                    .OrderBy(c => c.CountryName)
-                    .ToList();
+            _competitions = response.Data;
+            _countries = _competitions
+                .Select(c => (c.CountryName, c.CountryFlagUrl))
+                .DistinctBy(c => c.CountryName)
+                .OrderBy(c => c.CountryName)
+                .ToList();
 
-                _filteredCompetitions = _competitions
-                    .Where(c => c.CountryName == CountryNames.England).ToList();
-            }
+            _filteredCompetitions = _competitions
+                .Where(c => c.CountryName == CountryNames.England).ToList();
+        }
 
-            // render dropdowns with items first
+        // render dropdowns with items first
+        StateHasChanged();
+        await Task.Yield();
+
+        // now set selections so MudSelect can match against rendered items
+        _selectedCountry = CountryNames.England;
+        var pl = _filteredCompetitions.FirstOrDefault(c => c.Code == CompetitionCodes.PremierLeague);
+        if (pl is not null)
+        {
+            _selectedCompetition = pl;
             StateHasChanged();
             await Task.Yield();
+            await LoadCompetitionData(pl);
+        }
 
-            // now set selections so MudSelect can match against rendered items
-            _selectedCountry = CountryNames.England;
-            var pl = _filteredCompetitions.FirstOrDefault(c => c.Code == CompetitionCodes.PremierLeague);
-            if (pl is not null)
-            {
-                _selectedCompetition = pl;
-                StateHasChanged();
-                await Task.Yield();
-                await LoadCompetitionData(pl);
-            }
-
-            StateHasChanged();
-        });
+        StateHasChanged();
     }
 
     private async Task LoadCompetitionData(CompetitionResult competition)

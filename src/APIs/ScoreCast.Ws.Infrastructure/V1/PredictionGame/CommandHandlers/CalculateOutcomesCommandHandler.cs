@@ -8,37 +8,37 @@ using ScoreCast.Ws.Application.V1.PredictionGame.Commands;
 
 namespace ScoreCast.Ws.Infrastructure.V1.PredictionGame.CommandHandlers;
 
-internal sealed record CalculatePredictionPointsCommandHandler(
+internal sealed record CalculateOutcomesCommandHandler(
     IScoreCastDbContext DbContext,
-    IUnitOfWork UnitOfWork) : ICommandHandler<CalculatePredictionPointsCommand, ScoreCastResponse>
+    IUnitOfWork UnitOfWork) : ICommandHandler<CalculateOutcomesCommand, ScoreCastResponse>
 {
-    public async Task<ScoreCastResponse> ExecuteAsync(CalculatePredictionPointsCommand command, CancellationToken ct)
+    public async Task<ScoreCastResponse> ExecuteAsync(CalculateOutcomesCommand command, CancellationToken ct)
     {
-        var request = command.Request;
-
         var finishedMatches = await DbContext.Matches
             .AsNoTracking()
-            .Where(m => m.Gameweek.SeasonId == request.SeasonId && m.Status == MatchStatus.Finished)
+            .Where(m => m.Gameweek.SeasonId == command.SeasonId
+                        && m.Status == MatchStatus.Finished
+                        && m.HomeScore != null && m.AwayScore != null)
             .Select(m => new { m.Id, m.HomeScore, m.AwayScore })
             .ToDictionaryAsync(m => m.Id, ct);
 
         var predictions = await DbContext.Predictions
-            .Where(p => finishedMatches.Keys.Contains(p.MatchId) && p.Outcome == null)
+            .Where(p => p.SeasonId == command.SeasonId
+                        && p.Outcome == null
+                        && finishedMatches.Keys.Contains(p.MatchId))
             .ToListAsync(ct);
 
         foreach (var prediction in predictions)
         {
             var match = finishedMatches[prediction.MatchId];
-            if (match.HomeScore is null || match.AwayScore is null) continue;
-
             prediction.Outcome = DetermineOutcome(
                 prediction.PredictedHomeScore, prediction.PredictedAwayScore,
-                match.HomeScore.Value, match.AwayScore.Value);
+                match.HomeScore!.Value, match.AwayScore!.Value);
         }
 
-        await UnitOfWork.SaveChangesAsync(request.AppName ?? nameof(CalculatePredictionPointsCommand), ct);
+        await UnitOfWork.SaveChangesAsync(nameof(CalculateOutcomesCommand), ct);
 
-        return ScoreCastResponse.Ok($"Updated {predictions.Count} predictions");
+        return ScoreCastResponse.Ok($"Updated {predictions.Count} prediction outcomes");
     }
 
     private static PredictionOutcome DetermineOutcome(int predHome, int predAway, int actualHome, int actualAway)

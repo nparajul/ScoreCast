@@ -76,11 +76,11 @@
                             }
                         </div>
                         <div style="min-width:80px;text-align:center;">
-                            @if (match.Status == "Finished")
+                            @if (match.Status == nameof(MatchStatus.Finished))
                             {
                                 <MudText Style="font-weight:700;font-size:16px;">@match.HomeScore - @match.AwayScore</MudText>
                             }
-                            else if (match.Status == "Live")
+                            else if (match.Status == nameof(MatchStatus.Live))
                             {
                                 <MudText Style="font-weight:700;font-size:16px;color:#4caf50;">@(match.HomeScore ?? 0) - @(match.AwayScore ?? 0)</MudText>
                                 <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:2px;">
@@ -155,7 +155,7 @@
                                 </div>
                             </div>
                         }
-                        else if (match.Status == "Finished")
+                        else if (match.Status == nameof(MatchStatus.Finished))
                         {
                             <MudText Typo="Typo.body2" Align="Align.Center" Style="color:var(--mud-palette-text-secondary);">
                                 No event data available

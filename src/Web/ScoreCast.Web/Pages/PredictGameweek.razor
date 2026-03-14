@@ -1,4 +1,4 @@
-@page "/leagues/{LeagueId:long}/predict"
+@page "/predict"
 
 <style>
     .predict-table { width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse; border: 1px solid var(--mud-palette-lines-default); }
@@ -11,17 +11,19 @@
     .predict-input::-webkit-outer-spin-button,
     .predict-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .predict-input:disabled { opacity: 0.5; }
-    .predict-exact td { background: rgba(76, 175, 80, 0.15); }
-    .predict-correct td { background: rgba(255, 193, 7, 0.15); }
-    .predict-wrong td { background: rgba(244, 67, 54, 0.1); }
+    .predict-exact td { background: rgba(46, 125, 50, 0.25); }
+    .predict-result-gd td { background: rgba(0, 131, 143, 0.25); }
+    .predict-correct td { background: rgba(255, 179, 0, 0.25); }
+    .predict-gd td { background: rgba(156, 39, 176, 0.2); }
+    .predict-wrong td { background: rgba(211, 47, 47, 0.2); }
     .predict-none td { background: rgba(158, 158, 158, 0.15); }
 </style>
 
 <PageGuard>
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
     <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack"
-               OnClick="@(() => Nav.NavigateTo($"/leagues/{LeagueId}"))" Class="mb-2">
-        Back to Standings
+               OnClick="@(() => Nav.NavigateTo("/"))" Class="mb-2">
+        Back to Home
     </MudButton>
 
     <MudText Typo="Typo.h5" Style="font-weight:700;" Class="mb-1">Make Predictions</MudText>
@@ -58,54 +60,96 @@
                            OnClick="NextGameweek" />
         </div>
 
-        <table class="predict-table">
-            <tbody>
-            @foreach (var match in _matches)
-            {
-                <tr class="@match.GetRowClass()">
-                    <td style="text-align:right;width:40%;">
-                        <div class="d-flex align-center justify-end gap-1">
-                            <span style="font-size:16px;font-weight:600;">@match.HomeTeamShortName</span>
-                            @if (match.HomeTeamLogo is not null)
-                            {
-                                <MudImage Src="@match.HomeTeamLogo" Width="18" Height="18" ObjectFit="ObjectFit.Contain" />
-                            }
-                        </div>
-                    </td>
-                    <td style="text-align:center;width:110px;">
-                        <div class="d-flex align-center justify-center gap-1">
-                            <input type="number" @bind="match.PredictedHomeScore" disabled="@match.IsLocked"
-                                   class="predict-input" />
-                            <span style="font-weight:700;font-size:15px;">-</span>
-                            <input type="number" @bind="match.PredictedAwayScore" disabled="@match.IsLocked"
-                                   class="predict-input" />
-                        </div>
-                    </td>
-                    <td style="width:30%;">
-                        <div class="d-flex align-center gap-1">
-                            @if (match.AwayTeamLogo is not null)
-                            {
-                                <MudImage Src="@match.AwayTeamLogo" Width="18" Height="18" ObjectFit="ObjectFit.Contain" />
-                            }
-                            <span style="font-size:16px;font-weight:600;">@match.AwayTeamShortName</span>
-                        </div>
-                    </td>
-                    <td style="white-space:nowrap;font-size:12px;font-weight:600;color:var(--mud-palette-text-primary);">
-                        @if (match.Status == "Finished") { <text>FT @match.HomeScore-@match.AwayScore</text> }
-                        else if (match.KickoffTime.HasValue) { @match.KickoffTime.Value.ToLocalTime().ToString("dd MMM HH:mm") }
-                    </td>
-                </tr>
-            }
-            </tbody>
-        </table>
+        var showPoints = _matches.All(m => m.IsLocked) && _matches.Any(m => m.HasPrediction);
 
-        <div class="d-flex justify-center mt-4">
-            <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Size="Size.Small"
-                       StartIcon="@Icons.Material.Filled.Save"
-                       OnClick="SubmitPredictionsAsync">
-                Save Predictions
-            </MudButton>
+        <div class="d-flex gap-4 @(showPoints ? "" : "justify-center")">
+            <table class="predict-table">
+                <tbody>
+                @foreach (var match in _matches)
+                {
+                    <tr class="@match.GetRowClass()">
+                        <td style="text-align:right;width:40%;">
+                            <div class="d-flex align-center justify-end gap-1">
+                                <span style="font-size:16px;font-weight:600;">@match.HomeTeamShortName</span>
+                                @if (match.HomeTeamLogo is not null)
+                                {
+                                    <MudImage Src="@match.HomeTeamLogo" Width="18" Height="18" ObjectFit="ObjectFit.Contain" />
+                                }
+                            </div>
+                        </td>
+                        <td style="text-align:center;width:110px;">
+                            <div class="d-flex align-center justify-center gap-1">
+                                <input type="number" @bind="match.PredictedHomeScore" disabled="@match.IsLocked"
+                                       class="predict-input" />
+                                <span style="font-weight:700;font-size:15px;">-</span>
+                                <input type="number" @bind="match.PredictedAwayScore" disabled="@match.IsLocked"
+                                       class="predict-input" />
+                            </div>
+                        </td>
+                        <td style="width:30%;">
+                            <div class="d-flex align-center gap-1">
+                                @if (match.AwayTeamLogo is not null)
+                                {
+                                    <MudImage Src="@match.AwayTeamLogo" Width="18" Height="18" ObjectFit="ObjectFit.Contain" />
+                                }
+                                <span style="font-size:16px;font-weight:600;">@match.AwayTeamShortName</span>
+                            </div>
+                        </td>
+                        <td style="white-space:nowrap;font-size:12px;font-weight:600;color:var(--mud-palette-text-primary);">
+                            @if (match.Status == nameof(MatchStatus.Finished)) { <text>FT @match.HomeScore-@match.AwayScore</text> }
+                            else if (match.KickoffTime.HasValue) { @match.KickoffTime.Value.ToLocalTime().ToString("dd MMM HH:mm") }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+
+            @if (showPoints)
+            {
+                var breakdown = ScoringBreakdown.Calculate(_matches, _scoringRules);
+                var total = breakdown.Sum(b => b.Total);
+                var totalPossible = _matches.Count(m => m.Status == nameof(MatchStatus.Finished) && m.HasPrediction) * _scoringRules.Max(r => r.Points);
+                <MudPaper Elevation="1" Class="pa-3 rounded-lg" Style="min-width:450px;align-self:flex-start;">
+                    <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mb-2">Points Breakdown</MudText>
+                    <MudSimpleTable Dense="true" Elevation="0" Style="background:transparent;">
+                        <thead>
+                            <tr>
+                                <th style="padding:4px 8px;">Rule</th>
+                                <th style="padding:4px 8px;text-align:center;">Pts</th>
+                                <th style="padding:4px 8px;text-align:center;">×</th>
+                                <th style="padding:4px 8px;text-align:right;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in breakdown)
+                            {
+                                <tr class="@row.CssClass">
+                                    <td style="padding:4px 8px;font-size:13px;">@row.Label</td>
+                                    <td style="padding:4px 8px;text-align:center;font-size:13px;">@row.Points</td>
+                                    <td style="padding:4px 8px;text-align:center;font-size:13px;">@row.Count</td>
+                                    <td style="padding:4px 8px;text-align:right;font-weight:600;font-size:13px;">@row.Total</td>
+                                </tr>
+                            }
+                            <tr style="border-top:2px solid var(--mud-palette-lines-default);">
+                                <td colspan="3" style="padding:6px 8px;font-weight:700;">Total</td>
+                                <td style="padding:6px 8px;text-align:right;font-weight:700;font-size:16px;">@total / @totalPossible</td>
+                            </tr>
+                        </tbody>
+                    </MudSimpleTable>
+                </MudPaper>
+            }
         </div>
+
+        @if (_matches.Any(m => !m.IsLocked))
+        {
+            <div class="d-flex justify-center mt-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Size="Size.Small"
+                           StartIcon="@Icons.Material.Filled.Save"
+                           OnClick="SubmitPredictionsAsync">
+                    Save Predictions
+                </MudButton>
+            </div>
+        }
     }
 </MudContainer>
 </PageGuard>

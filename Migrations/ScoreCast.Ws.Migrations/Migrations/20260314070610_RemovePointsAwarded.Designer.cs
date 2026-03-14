@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ScoreCast.Ws.Infrastructure.V1.Shared;
@@ -11,9 +12,11 @@ using ScoreCast.Ws.Infrastructure.V1.Shared;
 namespace ScoreCast.Ws.Migrations.Migrations
 {
     [DbContext(typeof(ScoreCastDbContext))]
-    partial class ScoreCastDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260314070610_RemovePointsAwarded")]
+    partial class RemovePointsAwarded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -994,9 +997,9 @@ namespace ScoreCast.Ws.Migrations.Migrations
                         .HasColumnName("predicted_home_score")
                         .HasColumnOrder(4);
 
-                    b.Property<long>("SeasonId")
+                    b.Property<long>("PredictionLeagueId")
                         .HasColumnType("bigint")
-                        .HasColumnName("season_id")
+                        .HasColumnName("prediction_league_id")
                         .HasColumnOrder(1);
 
                     b.Property<long>("UserId")
@@ -1010,7 +1013,7 @@ namespace ScoreCast.Ws.Migrations.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.HasIndex("SeasonId", "UserId", "MatchId")
+                    b.HasIndex("PredictionLeagueId", "UserId", "MatchId")
                         .IsUnique();
 
                     b.ToTable("prediction", "scorecast");
@@ -2313,10 +2316,10 @@ namespace ScoreCast.Ws.Migrations.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.Season", "Season")
-                        .WithMany()
-                        .HasForeignKey("SeasonId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("ScoreCast.Ws.Domain.V1.Entities.Football.PredictionLeague", "PredictionLeague")
+                        .WithMany("Predictions")
+                        .HasForeignKey("PredictionLeagueId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("ScoreCast.Ws.Domain.V1.Entities.UserManagement.UserMaster", "User")
@@ -2327,7 +2330,7 @@ namespace ScoreCast.Ws.Migrations.Migrations
 
                     b.Navigation("Match");
 
-                    b.Navigation("Season");
+                    b.Navigation("PredictionLeague");
 
                     b.Navigation("User");
                 });
@@ -2516,6 +2519,8 @@ namespace ScoreCast.Ws.Migrations.Migrations
             modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.PredictionLeague", b =>
                 {
                     b.Navigation("Members");
+
+                    b.Navigation("Predictions");
                 });
 
             modelBuilder.Entity("ScoreCast.Ws.Domain.V1.Entities.Football.Season", b =>
