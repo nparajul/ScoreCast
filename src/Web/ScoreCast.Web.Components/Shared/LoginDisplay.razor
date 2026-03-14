@@ -7,9 +7,3 @@
         <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="authentication/login">Log in</MudButton>
     </NotAuthorized>
 </AuthorizeView>
-
-@code {
-    [Inject] private NavigationManager Navigation { get; set; } = default!;
-
-    private void BeginLogout() => Navigation.NavigateToLogout("authentication/logout");
-}

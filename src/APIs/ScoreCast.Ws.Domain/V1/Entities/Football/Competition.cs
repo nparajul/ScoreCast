@@ -14,6 +14,6 @@ public sealed record Competition : ScoreCastEntity
     public int SortOrder { get; set; }
     public bool IsActive { get; set; } = true;
 
-    public Country Country { get; init; } = default!;
+    public Country Country { get; init; } = null!;
     public ICollection<Season> Seasons { get; init; } = [];
 }

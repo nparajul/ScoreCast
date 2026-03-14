@@ -106,7 +106,7 @@ internal sealed record SyncPulseEventsCommandHandler(
         var mappedEntityIds = pulsePlayerMap.Values.ToHashSet();
 
         // Fetch Pulse data in parallel (5 concurrent)
-        var semaphore = new SemaphoreSlim(5);
+        using var semaphore = new SemaphoreSlim(5);
         var fetchTasks = batch.Select(async item =>
         {
             await semaphore.WaitAsync(ct);

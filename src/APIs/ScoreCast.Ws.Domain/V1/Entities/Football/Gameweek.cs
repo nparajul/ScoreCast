@@ -11,6 +11,6 @@ public sealed record Gameweek : ScoreCastEntity
     public DateOnly? EndDate { get; set; }
     public GameweekStatus Status { get; set; } = GameweekStatus.Upcoming;
 
-    public Season Season { get; init; } = default!;
+    public Season Season { get; init; } = null!;
     public ICollection<Match> Matches { get; init; } = [];
 }
