@@ -23,16 +23,19 @@ internal sealed record CalculatePredictionPointsCommandHandler(
             .ToDictionaryAsync(m => m.Id, ct);
 
         var predictions = await DbContext.Predictions
-            .Where(p => finishedMatches.Keys.Contains(p.MatchId) && p.Outcome == null)
+            .Where(p => p.PredictionType == PredictionType.Score
+                        && p.MatchId != null
+                        && finishedMatches.Keys.Contains(p.MatchId.Value)
+                        && p.Outcome == null)
             .ToListAsync(ct);
 
         foreach (var prediction in predictions)
         {
-            var match = finishedMatches[prediction.MatchId];
+            var match = finishedMatches[prediction.MatchId!.Value];
             if (match.HomeScore is null || match.AwayScore is null) continue;
 
             prediction.Outcome = DetermineOutcome(
-                prediction.PredictedHomeScore, prediction.PredictedAwayScore,
+                prediction.PredictedHomeScore!.Value, prediction.PredictedAwayScore!.Value,
                 match.HomeScore.Value, match.AwayScore.Value);
         }
 

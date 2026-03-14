@@ -22,6 +22,7 @@ internal sealed record GetLeagueStandingsQueryHandler(
 
         var scoringRules = await DbContext.PredictionScoringRules
             .AsNoTracking()
+            .Where(r => r.PredictionType == PredictionType.Score && r.StageType == null)
             .ToDictionaryAsync(r => r.Outcome, r => r.Points, ct);
 
         var members = await DbContext.PredictionLeagueMembers

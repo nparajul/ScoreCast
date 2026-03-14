@@ -96,6 +96,7 @@ internal sealed record SyncTeamsCommandHandler(
         var teamsById = await DbContext.Teams
             .Where(t => mappedTeamIds.Contains(t.Id))
             .ToDictionaryAsync(t => t.Id, ct);
+        var allTeams = await DbContext.Teams.ToListAsync(ct);
         var upsertedTeams = new List<Team>();
 
         foreach (var pt in pulseTeams)
@@ -105,21 +106,33 @@ internal sealed record SyncTeamsCommandHandler(
 
             if (existingPulseMappings.TryGetValue(pulseId, out var existingTeamId) && teamsById.TryGetValue(existingTeamId, out var existingTeam))
             {
-                existingTeam.Name = pt.Name;
                 existingTeam.ShortName = pt.ShortName;
                 existingTeam.Venue = pt.Grounds?.FirstOrDefault()?.Name;
                 team = existingTeam;
             }
             else
             {
-                team = new Team
+                // Match existing team by name (Pulse "Arsenal" → DB "Arsenal FC")
+                var matched = allTeams.FirstOrDefault(t => t.Name.StartsWith(pt.Name, StringComparison.OrdinalIgnoreCase))
+                    ?? allTeams.FirstOrDefault(t => t.ShortName != null && t.ShortName.Equals(pt.ShortName, StringComparison.OrdinalIgnoreCase));
+
+                if (matched is not null)
                 {
-                    Name = pt.Name,
-                    ShortName = pt.ShortName,
-                    Country = country,
-                    Venue = pt.Grounds?.FirstOrDefault()?.Name
-                };
-                DbContext.Teams.Add(team);
+                    matched.ShortName = pt.ShortName;
+                    matched.Venue = pt.Grounds?.FirstOrDefault()?.Name;
+                    team = matched;
+                }
+                else
+                {
+                    team = new Team
+                    {
+                        Name = pt.Name,
+                        ShortName = pt.ShortName,
+                        Country = country,
+                        Venue = pt.Grounds?.FirstOrDefault()?.Name
+                    };
+                    DbContext.Teams.Add(team);
+                }
 
                 if (!existingPulseMappings.ContainsKey(pulseId))
                 {

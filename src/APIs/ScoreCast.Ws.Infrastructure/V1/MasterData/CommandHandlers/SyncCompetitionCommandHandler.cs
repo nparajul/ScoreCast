@@ -96,7 +96,7 @@ internal sealed record SyncCompetitionCommandHandler(
                 Country = country,
                 LogoUrl = api.Emblem,
                 ExternalId = externalId,
-                Type = api.Type.Equals(nameof(LeagueType.Cup).ToUpper(), StringComparison.OrdinalIgnoreCase) ? LeagueType.Cup : LeagueType.League
+                Format = MapCompetitionFormat(api.Type)
             };
             DbContext.Competitions.Add(competition);
         }
@@ -106,7 +106,7 @@ internal sealed record SyncCompetitionCommandHandler(
             competition.Code = api.Code;
             competition.CountryId = country.Id;
             competition.LogoUrl = api.Emblem;
-            competition.Type = api.Type.Equals(nameof(LeagueType.Cup).ToUpper(), StringComparison.OrdinalIgnoreCase) ? LeagueType.Cup : LeagueType.League;
+            competition.Format = MapCompetitionFormat(api.Type);
         }
 
         return competition;
@@ -202,4 +202,9 @@ internal sealed record SyncCompetitionCommandHandler(
 
         return team;
     }
+
+    private static CompetitionFormat MapCompetitionFormat(string? apiType) =>
+        apiType?.Equals("CUP", StringComparison.OrdinalIgnoreCase) is true
+            ? CompetitionFormat.Knockout
+            : CompetitionFormat.League;
 }

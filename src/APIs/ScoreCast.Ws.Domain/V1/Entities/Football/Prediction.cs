@@ -8,12 +8,17 @@ public sealed record Prediction : ScoreCastEntity
 {
     public long SeasonId { get; set; }
     public long UserId { get; set; }
-    public long MatchId { get; set; }
-    public int PredictedHomeScore { get; set; }
-    public int PredictedAwayScore { get; set; }
+    public long? MatchId { get; set; }
+    public PredictionType PredictionType { get; set; } = PredictionType.Score;
+    public int? PredictedHomeScore { get; set; }
+    public int? PredictedAwayScore { get; set; }
+    public long? PredictedTeamId { get; set; }
+    public long? PredictedPlayerId { get; set; }
     public PredictionOutcome? Outcome { get; set; }
 
     public Season Season { get; init; } = null!;
     public UserMaster User { get; init; } = null!;
-    public Match Match { get; init; } = null!;
+    public Match? Match { get; init; }
+    public Team? PredictedTeam { get; init; }
+    public Player? PredictedPlayer { get; init; }
 }

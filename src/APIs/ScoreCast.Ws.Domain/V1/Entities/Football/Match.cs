@@ -8,6 +8,8 @@ public sealed record Match : ScoreCastEntity
     public long GameweekId { get; set; }
     public long HomeTeamId { get; set; }
     public long AwayTeamId { get; set; }
+    public long? MatchGroupId { get; set; }
+    public long? FirstLegMatchId { get; set; }
     public string? ExternalId { get; set; }
     public DateTime? KickoffTime { get; set; }
     public int? HomeScore { get; set; }
@@ -16,9 +18,12 @@ public sealed record Match : ScoreCastEntity
     public string? Venue { get; set; }
     public string? Referee { get; set; }
     public string? Minute { get; set; }
+    public int? Leg { get; set; }
 
     public Gameweek Gameweek { get; init; } = null!;
     public Team HomeTeam { get; init; } = null!;
     public Team AwayTeam { get; init; } = null!;
+    public MatchGroup? MatchGroup { get; init; }
+    public Match? FirstLegMatch { get; init; }
     public ICollection<Prediction> Predictions { get; init; } = [];
 }
