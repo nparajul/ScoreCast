@@ -7,6 +7,7 @@ public sealed record UserSeason : ScoreCastEntity
 {
     public long UserId { get; set; }
     public long SeasonId { get; set; }
+    public int DisplayOrder { get; set; }
 
     public UserMaster User { get; init; } = null!;
     public Season Season { get; init; } = null!;

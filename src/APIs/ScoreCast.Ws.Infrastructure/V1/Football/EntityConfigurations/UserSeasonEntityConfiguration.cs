@@ -16,6 +16,7 @@ internal sealed class UserSeasonEntityConfiguration : BaseEntityConfiguration<Us
 
         builder.Property(u => u.UserId).HasColumnName("user_id").HasColumnOrder(order++).IsRequired();
         builder.Property(u => u.SeasonId).HasColumnName("season_id").HasColumnOrder(order++).IsRequired();
+        builder.Property(u => u.DisplayOrder).HasColumnName("display_order").HasColumnOrder(order++).HasDefaultValue(0);
 
         builder.HasOne(u => u.User).WithMany().HasForeignKey(u => u.UserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(u => u.Season).WithMany().HasForeignKey(u => u.SeasonId).OnDelete(DeleteBehavior.Restrict);

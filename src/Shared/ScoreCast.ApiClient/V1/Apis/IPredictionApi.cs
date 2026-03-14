@@ -43,6 +43,9 @@ public partial interface IScoreCastApiClient
     [Get("/api/v1/prediction/user-seasons")]
     Task<ScoreCastResponse<List<UserSeasonResult>>> GetUserSeasonsAsync(CancellationToken ct);
 
+    [Put("/api/v1/prediction/user-seasons/reorder")]
+    Task<ScoreCastResponse> ReorderUserSeasonsAsync([Body] ReorderUserSeasonsRequest request, CancellationToken ct);
+
     [Get("/api/v1/prediction/profile/{targetUserId}/{predictionLeagueId}")]
     Task<ScoreCastResponse<PlayerProfileResult>> GetPlayerProfileAsync(long targetUserId, long predictionLeagueId, CancellationToken ct);
 
