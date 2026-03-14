@@ -122,16 +122,21 @@ public partial class MasterDataSync
     {
         try
         {
+            var fplSuccess = false;
             await Loading.While(async () =>
             {
                 var result = await Api.SyncFplDataAsync(new SyncCompetitionRequest { CompetitionCode = competition.Code, AppName = AppName }, CancellationToken.None);
                 if (result.Success)
+                {
                     Alert.Add(result.Message ?? $"Synced FPL mappings for {competition.Name}", Severity.Success);
+                    fplSuccess = true;
+                }
                 else
                     Alert.Add(result.Message ?? "FPL sync failed", Severity.Error);
             });
 
-            await SyncPulseEventsAsync(competition);
+            if (fplSuccess)
+                await SyncPulseEventsAsync(competition);
         }
         catch (Exception ex)
         {
@@ -216,6 +221,20 @@ public partial class MasterDataSync
             else
                 Alert.Add(result.Message ?? "Failed to calculate points", Severity.Error);
         }, "Calculating points...");
+
+        StateHasChanged();
+    }
+
+    private async Task EnhanceLiveMatchesAsync()
+    {
+        await Loading.While(async () =>
+        {
+            var result = await Api.EnhanceLiveMatchesAsync(new EnhanceLiveMatchesRequest(), CancellationToken.None);
+            if (result.Success)
+                Alert.Add(result.Message ?? "Live matches enhanced", Severity.Success);
+            else
+                Alert.Add(result.Message ?? "Enhancement failed", Severity.Error);
+        }, "Enhancing live matches...");
 
         StateHasChanged();
     }

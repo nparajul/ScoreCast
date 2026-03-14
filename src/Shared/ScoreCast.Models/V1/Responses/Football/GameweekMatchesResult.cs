@@ -9,7 +9,7 @@ public record MatchDetail(
     string HomeTeamName, string? HomeTeamLogo, string HomeTeamShortName,
     string AwayTeamName, string? AwayTeamLogo, string AwayTeamShortName,
     int? HomeScore, int? AwayScore,
-    string? Venue, string? Referee,
+    string? Venue, string? Referee, string? Minute,
     List<MatchEventDetail> Events);
 
 public record MatchEventDetail(

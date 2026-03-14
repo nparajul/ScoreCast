@@ -7,6 +7,7 @@ using ScoreCast.Shared.Enums;
 using ScoreCast.Ws.Application;
 using ScoreCast.Ws.Application.V1.MasterData.Commands;
 using ScoreCast.Ws.Application.V1.Interfaces;
+using ScoreCast.Ws.Domain.V1.Entities;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
 using ScoreCast.Ws.Infrastructure.V1.MasterData.ExternalModels;
 
@@ -19,22 +20,6 @@ internal sealed record SyncTeamsCommandHandler(
 {
     public async Task<ScoreCastResponse> ExecuteAsync(SyncTeamsCommand command, CancellationToken ct)
     {
-        var client = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FootballDataClient));
-
-        FootballDataTeamsResponse? apiResponse;
-        try
-        {
-            apiResponse = await client.GetFromJsonAsync<FootballDataTeamsResponse>(
-                string.Format(FootballDataApi.Routes.Teams, command.Request.CompetitionCode), ct);
-        }
-        catch (Exception ex)
-        {
-            return ScoreCastResponse.Error($"Failed to fetch teams for {command.Request.CompetitionCode}: {ex.Message}");
-        }
-
-        if (apiResponse?.Teams is null or { Count: 0 })
-            return ScoreCastResponse.Error($"No teams returned for {command.Request.CompetitionCode}");
-
         var competition = await DbContext.Competitions
             .Include(c => c.Country)
             .FirstOrDefaultAsync(c => c.Code == command.Request.CompetitionCode, ct);
@@ -45,19 +30,22 @@ internal sealed record SyncTeamsCommandHandler(
         var currentSeason = await DbContext.Seasons
             .FirstOrDefaultAsync(s => s.CompetitionId == competition.Id && s.IsCurrent, ct);
 
+        var isPremierLeague = command.Request.CompetitionCode == CompetitionCodes.PremierLeague;
+
         await using var transaction = await UnitOfWork.BeginTransactionAsync(ct);
         try
         {
-            var upsertedTeams = new List<Team>();
+            List<Team> upsertedTeams;
             var playerCount = 0;
-            foreach (var apiTeam in apiResponse.Teams)
-            {
-                var team = await UpsertTeamAsync(apiTeam, competition.Country, ct);
-                upsertedTeams.Add(team);
 
-                if (apiTeam.Squad is { Count: > 0 } && currentSeason is not null)
-                    playerCount += await UpsertPlayersAsync(apiTeam.Squad, team, currentSeason, ct);
-            }
+            if (isPremierLeague)
+                upsertedTeams = await SyncTeamsFromPulseAsync(competition.Country, currentSeason, ct);
+            else
+                upsertedTeams = [];
+
+            // Fallback to football-data.org if Pulse returned nothing, or for non-PL
+            if (upsertedTeams.Count == 0)
+                (upsertedTeams, playerCount) = await SyncTeamsFromFootballDataAsync(command.Request.CompetitionCode, competition.Country, currentSeason, ct);
 
             if (currentSeason is not null)
                 await LinkTeamsToSeasonAsync(currentSeason, upsertedTeams, ct);
@@ -73,7 +61,133 @@ internal sealed record SyncTeamsCommandHandler(
         }
     }
 
-    private async Task<Team> UpsertTeamAsync(FootballDataTeam api, Country country, CancellationToken ct)
+    private async Task<List<Team>> SyncTeamsFromPulseAsync(Country country, Season? currentSeason, CancellationToken ct)
+    {
+        if (currentSeason is null) return [];
+
+        var pulseCompSeasonId = await DbContext.ExternalMappings
+            .Where(m => m.Source == ExternalSource.Pulse && m.EntityType == EntityType.Season
+                        && m.EntityId == currentSeason.Id)
+            .Select(m => m.ExternalCode)
+            .FirstOrDefaultAsync(ct);
+
+        if (pulseCompSeasonId is null) return [];
+
+        var pulseClient = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.PulseClient));
+
+        List<PulseTeamResponse>? pulseTeams;
+        try
+        {
+            pulseTeams = await pulseClient.GetFromJsonAsync<List<PulseTeamResponse>>(
+                string.Format(PulseApi.Routes.TeamsByCompSeason, pulseCompSeasonId), ct);
+        }
+        catch (Exception)
+        {
+            return [];
+        }
+
+        if (pulseTeams is not { Count: > 0 }) return [];
+
+        var existingPulseMappings = await DbContext.ExternalMappings
+            .Where(m => m.Source == ExternalSource.Pulse && m.EntityType == EntityType.Team)
+            .ToDictionaryAsync(m => m.ExternalCode, m => m.EntityId, ct);
+
+        var teamsById = await DbContext.Teams.ToDictionaryAsync(t => t.Id, ct);
+        var upsertedTeams = new List<Team>();
+
+        foreach (var pt in pulseTeams)
+        {
+            var pulseId = pt.Id.ToString();
+            Team team;
+
+            if (existingPulseMappings.TryGetValue(pulseId, out var existingTeamId) && teamsById.TryGetValue(existingTeamId, out var existingTeam))
+            {
+                existingTeam.Name = pt.Name;
+                existingTeam.ShortName = pt.ShortName;
+                existingTeam.Venue = pt.Grounds?.FirstOrDefault()?.Name;
+                team = existingTeam;
+            }
+            else
+            {
+                team = new Team
+                {
+                    Name = pt.Name,
+                    ShortName = pt.ShortName,
+                    Country = country,
+                    Venue = pt.Grounds?.FirstOrDefault()?.Name
+                };
+                DbContext.Teams.Add(team);
+
+                if (!existingPulseMappings.ContainsKey(pulseId))
+                {
+                    DbContext.ExternalMappings.Add(new ExternalMapping
+                    {
+                        EntityType = EntityType.Team,
+                        Source = ExternalSource.Pulse,
+                        ExternalCode = pulseId,
+                        EntityId = team.Id
+                    });
+                }
+            }
+
+            upsertedTeams.Add(team);
+        }
+
+        return upsertedTeams;
+    }
+
+    private async Task<(List<Team> Teams, int PlayerCount)> SyncTeamsFromFootballDataAsync(
+        string competitionCode, Country country, Season? currentSeason, CancellationToken ct)
+    {
+        var client = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FootballDataClient));
+
+        FootballDataTeamsResponse? apiResponse;
+        try
+        {
+            apiResponse = await client.GetFromJsonAsync<FootballDataTeamsResponse>(
+                string.Format(FootballDataApi.Routes.Teams, competitionCode), ct);
+        }
+        catch (Exception)
+        {
+            return ([], 0);
+        }
+
+        if (apiResponse?.Teams is null or { Count: 0 })
+            return ([], 0);
+
+        var upsertedTeams = new List<Team>();
+        var playerCount = 0;
+
+        foreach (var apiTeam in apiResponse.Teams)
+        {
+            var team = await UpsertFdTeamAsync(apiTeam, country, ct);
+            upsertedTeams.Add(team);
+
+            if (apiTeam.Squad is { Count: > 0 } && currentSeason is not null)
+                playerCount += await UpsertPlayersAsync(apiTeam.Squad, team, currentSeason, ct);
+        }
+
+        return (upsertedTeams, playerCount);
+    }
+
+    private async Task LinkTeamsToSeasonAsync(Season season, List<Team> teams, CancellationToken ct)
+    {
+        var existingTeamIds = await DbContext.SeasonTeams
+            .Where(st => st.SeasonId == season.Id)
+            .Select(st => st.TeamId)
+            .ToHashSetAsync(ct);
+
+        foreach (var team in teams.Where(t => t.Id == 0 || !existingTeamIds.Contains(t.Id)))
+        {
+            DbContext.SeasonTeams.Add(new SeasonTeam
+            {
+                Season = season,
+                Team = team
+            });
+        }
+    }
+
+    private async Task<Team> UpsertFdTeamAsync(FootballDataTeam api, Country country, CancellationToken ct)
     {
         var externalId = api.Id.ToString();
         var team = await DbContext.Teams
@@ -107,23 +221,6 @@ internal sealed record SyncTeamsCommandHandler(
         }
 
         return team;
-    }
-
-    private async Task LinkTeamsToSeasonAsync(Season season, List<Team> teams, CancellationToken ct)
-    {
-        var existingTeamIds = await DbContext.SeasonTeams
-            .Where(st => st.SeasonId == season.Id)
-            .Select(st => st.TeamId)
-            .ToHashSetAsync(ct);
-
-        foreach (var team in teams.Where(t => t.Id == 0 || !existingTeamIds.Contains(t.Id)))
-        {
-            DbContext.SeasonTeams.Add(new SeasonTeam
-            {
-                Season = season,
-                Team = team
-            });
-        }
     }
 
     private async Task<int> UpsertPlayersAsync(
