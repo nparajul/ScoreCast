@@ -2,7 +2,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.UserManagement;
-using ScoreCast.Ws.Application.Interfaces;
+using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Application.V1.UserManagement.Queries;
 
 namespace ScoreCast.Ws.Infrastructure.V1.UserManagement.QueryHandlers;

@@ -3,11 +3,11 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Shared.Constants;
-using ScoreCast.Shared.Enums;
-using ScoreCast.Ws.Application.Interfaces;
 using ScoreCast.Ws.Application.V1.Football.Commands;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
-using ScoreCast.Ws.Domain.V1.Enums;
+using ScoreCast.Shared.Enums;
+using ScoreCast.Ws.Application;
+using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Infrastructure.V1.Football.ExternalModels;
 
 namespace ScoreCast.Ws.Infrastructure.V1.Football.CommandHandlers;

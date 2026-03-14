@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.UserManagement;
 using ScoreCast.Shared.Constants;
-using ScoreCast.Ws.Application.Interfaces;
+using ScoreCast.Ws.Application;
+using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Application.V1.UserManagement.Commands;
 using ScoreCast.Ws.Domain.V1.Entities.UserManagement;
 

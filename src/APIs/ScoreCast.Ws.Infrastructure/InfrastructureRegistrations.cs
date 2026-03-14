@@ -3,7 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ScoreCast.Shared.Constants;
-using ScoreCast.Ws.Application.Interfaces;
+using ScoreCast.Ws.Application;
+using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Infrastructure.Internal;
 using ScoreCast.Ws.Infrastructure.V1.Shared;
 

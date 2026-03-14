@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
-using ScoreCast.Ws.Domain.V1.Enums;
+using ScoreCast.Shared.Enums;
 using ScoreCast.Ws.Infrastructure.V1.Shared;
 
 namespace ScoreCast.Ws.Infrastructure.V1.Football.EntityConfigurations;
