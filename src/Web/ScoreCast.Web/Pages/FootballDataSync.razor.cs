@@ -118,4 +118,23 @@ public partial class FootballDataSync
             await Alert.ShowDialogForException(ex, Severity.Error);
         }
     }
+
+    private async Task SyncFplDataAsync(CompetitionResult competition)
+    {
+        try
+        {
+            await Loading.While(async () =>
+            {
+                var result = await Api.SyncFplDataAsync(new SyncCompetitionRequest { CompetitionCode = competition.Code, AppName = AppName }, CancellationToken.None);
+                if (result.Success)
+                    Alert.Add(result.Message ?? $"Synced FPL events for {competition.Name}", Severity.Success);
+                else
+                    Alert.Add(result.Message ?? "FPL sync failed", Severity.Error);
+            });
+        }
+        catch (Exception ex)
+        {
+            await Alert.ShowDialogForException(ex, Severity.Error);
+        }
+    }
 }

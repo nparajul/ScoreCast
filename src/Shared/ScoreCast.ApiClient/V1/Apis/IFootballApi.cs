@@ -22,6 +22,9 @@ public partial interface IScoreCastApiClient
     [Post("/api/v1/football/sync/matches")]
     Task<ScoreCastResponse> SyncMatchesAsync([Body] SyncCompetitionRequest request, CancellationToken ct);
 
+    [Post("/api/v1/football/sync/fpl")]
+    Task<ScoreCastResponse> SyncFplDataAsync([Body] SyncCompetitionRequest request, CancellationToken ct);
+
     [Get("/api/v1/football/competitions/{competitionCode}/seasons")]
     Task<ScoreCastResponse<List<SeasonResult>>> GetSeasonsAsync(string competitionCode, CancellationToken ct);
 
