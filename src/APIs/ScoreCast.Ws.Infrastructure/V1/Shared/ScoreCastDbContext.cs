@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Ws.Application.Interfaces;
+using ScoreCast.Ws.Domain.V1.Entities;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
 using ScoreCast.Ws.Domain.V1.Entities.UserManagement;
 
@@ -25,6 +26,8 @@ public sealed class ScoreCastDbContext(DbContextOptions<ScoreCastDbContext> opti
     public DbSet<Player> Players => Set<Player>();
     public DbSet<TeamPlayer> TeamPlayers => Set<TeamPlayer>();
     public DbSet<CompetitionZone> CompetitionZones => Set<CompetitionZone>();
+    public DbSet<MatchEvent> MatchEvents => Set<MatchEvent>();
+    public DbSet<ExternalMapping> ExternalMappings => Set<ExternalMapping>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

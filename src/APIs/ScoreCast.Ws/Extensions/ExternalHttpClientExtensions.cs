@@ -19,5 +19,15 @@ public static class ExternalHttpClientExtensions
             client.DefaultRequestHeaders.Add(FootballDataApi.AuthHeader, apiKey);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         });
+
+        builder.Services.AddHttpClient(nameof(ScoreCastHttpClient.FplClient), (sp, client) =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var baseUrl = config[FplApi.BaseUrlKey];
+            ArgumentException.ThrowIfNullOrWhiteSpace(baseUrl);
+            client.BaseAddress = new Uri(baseUrl);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("ScoreCast/1.0");
+        });
     }
 }

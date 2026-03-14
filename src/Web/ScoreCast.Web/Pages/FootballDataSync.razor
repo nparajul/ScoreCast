@@ -71,6 +71,16 @@
                                        OnClick="@(() => SyncMatchesAsync(competition))">
                                 Sync Matches
                             </MudButton>
+                            @if (competition.ExternalSources.Contains("Fpl"))
+                            {
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Warning"
+                                       Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.Assessment"
+                                       OnClick="@(() => SyncFplDataAsync(competition))">
+                                Sync FPL Events
+                            </MudButton>
+                            }
                         </div>
                     </div>
                 </MudPaper>
