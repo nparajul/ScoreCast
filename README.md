@@ -1,6 +1,6 @@
 # ScoreCast
 
-A Premier League predictions app where users predict match outcomes, scorelines, and goal scorers. Points are awarded based on prediction accuracy with leaderboards, streaks, and head-to-head challenges.
+A Premier League predictions app where users predict match outcomes and scorelines. Points are awarded based on prediction accuracy with leaderboards across prediction leagues.
 
 ## Tech Stack
 
@@ -11,8 +11,37 @@ A Premier League predictions app where users predict match outcomes, scorelines,
 - **Blazor WASM** (standalone) with **MudBlazor 9.1.0**
 - **Refit 10.0.1** — typed HTTP API clients
 - **Serilog** — structured logging (console + rolling file)
-- **OneOf 3.0.271** — discriminated unions for alert/UI services
 - Central Package Management, `.slnx` solution format
+
+## Key Features
+
+### Predictions & Scoring
+- Predict match outcomes and scorelines for every Premier League match
+- Predictions lock at kickoff — no changes after a match starts
+- Points computed on the fly from configurable scoring rules (never stored)
+- Scoring: Exact Score (10pts), Correct Result + GD (7pts), Correct Result (5pts), Correct GD (3pts)
+
+### Prediction Leagues
+- Create and join prediction leagues with invite codes
+- League standings with real-time point calculations
+- Predictions are per-season, shared across all leagues a user belongs to
+
+### Live Match Experience
+- Real-time match minute, scores, and status from Pulse API
+- Goal scorers, assists, cards, and substitutions synced live
+- Live match cards highlighted with visual indicators
+
+### Data Sources (Premier League)
+- **Pulse API** (primary) — official PL API for fixtures, scores, clock, events, teams
+- **Football-data.org** (secondary) — fallback for non-PL or when Pulse fails
+- **FPL API** — used for Pulse ID mappings and player data enrichment
+
+### Other
+- Google Sign-In via Keycloak identity provider
+- Dark/light mode with custom branded theme
+- League table with competition zone color coding
+- Player stats with sortable columns
+- Admin data sync page with categorized operations
 
 ## Projects
 
@@ -95,56 +124,31 @@ After `docker compose down/up`, re-apply via admin API:
 
 Test users: `admin`/`admin`, `testuser`/`test`
 
+## Data Sync
+
+Admin page (`/master-data-sync`) provides manual sync operations:
+
+| Operation | Source | Description |
+|---|---|---|
+| Sync Competition | Football-data.org | Competitions, seasons, countries |
+| Sync Teams | Pulse (PL) / Football-data.org | Teams, players, season rosters |
+| Sync Matches | Pulse (PL) / Football-data.org | All fixtures with scores and status |
+| Sync FPL Data | FPL API | Player mappings, Pulse ID mappings |
+| Sync Pulse Events | Pulse API | Match events (goals, cards, subs) |
+| Enhance Live | Pulse + Football-data.org | Real-time scores, clock, events for live matches |
+| Calculate Points | — | Compute outcomes and accumulate user points |
+
+### New Season Setup
+When a new PL season starts:
+1. Run Sync Competition (creates new season, sets `IsCurrent`)
+2. Find new Pulse compSeason ID from any fixture's `gameweek.compSeason.id`
+3. Insert mapping: `external_mapping(EntityType=Season, Source=Pulse, ExternalCode=<id>)`
+4. Run Sync Teams + Sync Matches as normal
+
 ## Authentication
 
 - Keycloak issues JWT tokens via OIDC
 - API validates with JWT Bearer (`scorecast-api` audience)
 - Blazor WASM uses OIDC with `scorecast-web` client
-- Custom `ApiAuthHandler` (DelegatingHandler) attaches Bearer tokens to Refit API calls
 - `KeycloakUserPreprocessor` extracts `sub` claim server-side, populates `UserId` on requests
-
-## Branding & Theme
-
-### Colors
-| Role | Light Mode | Dark Mode |
-|---|---|---|
-| Primary | `#0A1929` (deep navy) | `#8B1A9E` (purple) |
-| Secondary | `#37003C` (PL purple) | `#FF6B35` (orange) |
-| Tertiary | `#FF6B35` (orange) | `#8B1A9E` (purple) |
-| Background | `#F5F7FA` (light grey) | `#0A1929` (navy) |
-| Surface | `#FFFFFF` (white) | `#132F4C` (dark blue) |
-
-### Logo
-- `scorecast-logo.svg` — full logo (football icon + "ScoreCast" text + tagline) for light backgrounds
-- `scorecast-logo-dark.svg` — white text variant for dark backgrounds
-- `scorecast-icon.svg` — compact square icon (favicon, loading splash)
-- `scorecast-icon-light.svg` — backgroundless variant (app bar)
-- Logo swaps automatically based on dark/light mode
-
-### Keycloak Custom Theme
-Located at `keycloak/themes/scorecast/login/` — custom login and register pages matching the app branding, mounted via Docker volume.
-
-## Key Features (Built)
-
-- User registration and login via Keycloak
-- Google Sign-In (social login via Keycloak identity provider)
-- Automatic user sync on first login (Blazor → API)
-- User profile management (GET/PUT /api/v1/users/me)
-- Dark/light mode toggle with theme-aware logos
-- Custom branded loading splash
-- SVG favicon
-- Sticky footer
-- Styled logged-out page
-- Custom Keycloak login/register theme
-
-## What's Not Built Yet
-
-- Match, Prediction, Gameweek, League, Leaderboard entities
-- Prediction submission and scoring logic
-- Leaderboard calculations
-- Private leagues
-- Background jobs
-- External football data API integration
-- Keycloak setup automation script
-- Profile editing page
-- Dashboard page for authenticated users
+- Custom Keycloak login/register theme matching app branding
