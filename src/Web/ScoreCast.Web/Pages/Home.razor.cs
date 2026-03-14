@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Components.Authorization;
-
 namespace ScoreCast.Web.Pages;
 
 public partial class Home

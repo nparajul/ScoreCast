@@ -1,7 +1,5 @@
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
-using MudBlazor;
 
 namespace ScoreCast.Web.Components.Reusable;
 

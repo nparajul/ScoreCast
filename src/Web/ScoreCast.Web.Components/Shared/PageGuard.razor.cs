@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Components;
-using ScoreCast.Web.Components.Helpers;
-
 namespace ScoreCast.Web.Components.Shared;
 
 public partial class PageGuard : ComponentBase, IDisposable

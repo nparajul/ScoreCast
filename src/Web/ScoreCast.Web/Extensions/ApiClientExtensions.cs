@@ -1,9 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Refit;
-using ScoreCast.ApiClient.V1.Apis;
 
 namespace ScoreCast.Web.Extensions;
 
