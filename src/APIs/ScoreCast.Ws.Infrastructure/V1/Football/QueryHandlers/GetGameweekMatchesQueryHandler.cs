@@ -44,7 +44,7 @@ internal sealed record GetGameweekMatchesQueryHandler(
             .OrderBy(m => m.KickoffTime)
             .Select(m => new
             {
-                m.Id, m.KickoffTime, m.Status, m.HomeScore, m.AwayScore, m.Venue, m.Referee,
+                m.Id, m.KickoffTime, m.Status, m.HomeScore, m.AwayScore, m.Venue, m.Referee, m.Minute,
                 m.HomeTeamId, m.AwayTeamId,
                 HomeTeamName = m.HomeTeam.Name, HomeTeamLogo = m.HomeTeam.LogoUrl,
                 HomeTeamShortName = m.HomeTeam.ShortName ?? m.HomeTeam.Name,
@@ -74,7 +74,7 @@ internal sealed record GetGameweekMatchesQueryHandler(
             m.Id, m.KickoffTime, m.Status.ToString(),
             m.HomeTeamName, m.HomeTeamLogo, m.HomeTeamShortName,
             m.AwayTeamName, m.AwayTeamLogo, m.AwayTeamShortName,
-            m.HomeScore, m.AwayScore, m.Venue, m.Referee,
+            m.HomeScore, m.AwayScore, m.Venue, m.Referee, m.Minute,
             eventsByMatch.GetValueOrDefault(m.Id, []).OrderBy(e => ParseMinute(e.Minute)).Select(e =>
             {
                 var playerTeamId = playerTeamMap.GetValueOrDefault(e.PlayerId);

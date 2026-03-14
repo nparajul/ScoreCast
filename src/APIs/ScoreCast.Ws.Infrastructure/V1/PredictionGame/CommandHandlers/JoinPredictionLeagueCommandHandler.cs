@@ -48,9 +48,12 @@ internal sealed record JoinPredictionLeagueCommandHandler(
 
         await UnitOfWork.SaveChangesAsync(request.AppName ?? nameof(JoinPredictionLeagueCommand), ct);
 
+        var memberCount = await DbContext.PredictionLeagueMembers
+            .CountAsync(m => m.PredictionLeagueId == league.Id, ct);
+
         return ScoreCastResponse<PredictionLeagueResult>.Ok(
             new PredictionLeagueResult(league.Id, league.Name, league.InviteCode, league.SeasonId,
-                league.Season.Name, league.Members.Count + 1,
+                league.Season.Name, memberCount,
                 league.CreatedByUser.DisplayName ?? league.CreatedByUser.UserId));
     }
 }

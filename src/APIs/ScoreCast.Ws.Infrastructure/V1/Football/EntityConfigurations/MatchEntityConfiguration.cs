@@ -25,6 +25,7 @@ internal sealed class MatchEntityConfiguration : BaseEntityConfiguration<Match>
         builder.Property(m => m.Status).HasColumnName("status").HasColumnOrder(order++).HasConversion<string>().HasMaxLength(20).HasDefaultValue(MatchStatus.Scheduled);
         builder.Property(m => m.Venue).HasColumnName("venue").HasColumnOrder(order++).HasMaxLength(200);
         builder.Property(m => m.Referee).HasColumnName("referee").HasColumnOrder(order++).HasMaxLength(200);
+        builder.Property(m => m.Minute).HasColumnName("minute").HasColumnOrder(order++).HasMaxLength(20);
 
         builder.HasOne(m => m.Gameweek).WithMany(g => g.Matches).HasForeignKey(m => m.GameweekId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(m => m.HomeTeam).WithMany().HasForeignKey(m => m.HomeTeamId).OnDelete(DeleteBehavior.Restrict);
