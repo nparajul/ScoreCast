@@ -27,20 +27,41 @@ internal sealed record GetLeagueStandingsQueryHandler(
         var exactPoints = scoringRules.GetValueOrDefault(PredictionOutcome.ExactScore, 10);
         var correctResultPoints = scoringRules.GetValueOrDefault(PredictionOutcome.CorrectResult, 5);
 
-        var standings = await DbContext.Predictions
+        var members = await DbContext.PredictionLeagueMembers
+            .AsNoTracking()
+            .Where(m => m.PredictionLeagueId == query.PredictionLeagueId)
+            .Select(m => new { m.UserId, m.User.DisplayName, m.User.AvatarUrl, UserIdString = m.User.UserId })
+            .ToListAsync(ct);
+
+        var predictionStats = await DbContext.Predictions
             .AsNoTracking()
             .Where(p => p.PredictionLeagueId == query.PredictionLeagueId)
             .GroupBy(p => p.UserId)
-            .Select(g => new LeagueStandingRow(
-                g.Key,
-                g.First().User.DisplayName ?? g.First().User.UserId,
-                g.First().User.AvatarUrl,
-                g.Sum(p => p.PointsAwarded),
-                g.Count(p => p.PointsAwarded == exactPoints),
-                g.Count(p => p.PointsAwarded == correctResultPoints),
-                g.Count()))
+            .Select(g => new
+            {
+                UserId = g.Key,
+                TotalPoints = g.Sum(p => p.PointsAwarded),
+                ExactScores = g.Count(p => p.PointsAwarded == exactPoints),
+                CorrectResults = g.Count(p => p.PointsAwarded == correctResultPoints),
+                Count = g.Count()
+            })
+            .ToDictionaryAsync(s => s.UserId, ct);
+
+        var standings = members
+            .Select(m =>
+            {
+                var stats = predictionStats.GetValueOrDefault(m.UserId);
+                return new LeagueStandingRow(
+                    m.UserId,
+                    m.DisplayName ?? m.UserIdString,
+                    m.AvatarUrl,
+                    stats?.TotalPoints ?? 0,
+                    stats?.ExactScores ?? 0,
+                    stats?.CorrectResults ?? 0,
+                    stats?.Count ?? 0);
+            })
             .OrderByDescending(s => s.TotalPoints)
-            .ToListAsync(ct);
+            .ToList();
 
         return ScoreCastResponse<LeagueStandingsResult>.Ok(
             new LeagueStandingsResult(league.Name, standings));

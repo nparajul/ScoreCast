@@ -24,4 +24,7 @@ public partial interface IScoreCastApiClient
 
     [Get("/api/v1/prediction/leagues/{predictionLeagueId}/standings")]
     Task<ScoreCastResponse<LeagueStandingsResult>> GetLeagueStandingsAsync(long predictionLeagueId, CancellationToken ct);
+
+    [Get("/api/v1/prediction/leagues/{predictionLeagueId}/predictions/{gameweekId}")]
+    Task<ScoreCastResponse<List<MyPredictionResult>>> GetMyPredictionsAsync(long predictionLeagueId, long gameweekId, CancellationToken ct);
 }
