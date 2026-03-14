@@ -92,7 +92,10 @@ internal sealed record SyncTeamsCommandHandler(
             .Where(m => m.Source == ExternalSource.Pulse && m.EntityType == EntityType.Team)
             .ToDictionaryAsync(m => m.ExternalCode, m => m.EntityId, ct);
 
-        var teamsById = await DbContext.Teams.ToDictionaryAsync(t => t.Id, ct);
+        var mappedTeamIds = existingPulseMappings.Values.ToHashSet();
+        var teamsById = await DbContext.Teams
+            .Where(t => mappedTeamIds.Contains(t.Id))
+            .ToDictionaryAsync(t => t.Id, ct);
         var upsertedTeams = new List<Team>();
 
         foreach (var pt in pulseTeams)
@@ -158,13 +161,26 @@ internal sealed record SyncTeamsCommandHandler(
         var upsertedTeams = new List<Team>();
         var playerCount = 0;
 
+        var playerCache = await DbContext.Players
+            .Where(p => p.ExternalId != null)
+            .ToDictionaryAsync(p => p.ExternalId!, ct);
+
+        var existingTeamPlayers = currentSeason is not null
+            ? (await DbContext.TeamPlayers
+                .Where(tp => tp.SeasonId == currentSeason.Id)
+                .Select(tp => new { tp.TeamId, tp.PlayerId })
+                .ToListAsync(ct))
+                .Select(x => (x.TeamId, x.PlayerId))
+                .ToHashSet()
+            : [];
+
         foreach (var apiTeam in apiResponse.Teams)
         {
             var team = await UpsertFdTeamAsync(apiTeam, country, ct);
             upsertedTeams.Add(team);
 
             if (apiTeam.Squad is { Count: > 0 } && currentSeason is not null)
-                playerCount += await UpsertPlayersAsync(apiTeam.Squad, team, currentSeason, ct);
+                playerCount += UpsertPlayers(apiTeam.Squad, team, currentSeason, playerCache, existingTeamPlayers);
         }
 
         return (upsertedTeams, playerCount);
@@ -223,17 +239,16 @@ internal sealed record SyncTeamsCommandHandler(
         return team;
     }
 
-    private async Task<int> UpsertPlayersAsync(
-        List<FootballDataPlayer> squad, Team team, Season season, CancellationToken ct)
+    private int UpsertPlayers(
+        List<FootballDataPlayer> squad, Team team, Season season,
+        Dictionary<string, Player> playerCache, HashSet<(long TeamId, long PlayerId)> existingTeamPlayers)
     {
         var count = 0;
         foreach (var apiPlayer in squad)
         {
             var externalId = apiPlayer.Id.ToString();
-            var player = await DbContext.Players
-                .FirstOrDefaultAsync(p => p.ExternalId == externalId, ct);
 
-            if (player is null)
+            if (!playerCache.TryGetValue(externalId, out var player))
             {
                 player = new Player
                 {
@@ -244,6 +259,7 @@ internal sealed record SyncTeamsCommandHandler(
                     ExternalId = externalId
                 };
                 DbContext.Players.Add(player);
+                playerCache[externalId] = player;
             }
             else
             {
@@ -253,10 +269,8 @@ internal sealed record SyncTeamsCommandHandler(
                 player.Nationality = apiPlayer.Nationality;
             }
 
-            var exists = await DbContext.TeamPlayers
-                .AnyAsync(tp => tp.Player == player && tp.Team == team && tp.Season == season, ct);
-
-            if (!exists)
+            var key = (team.Id, player.Id);
+            if (team.Id == 0 || player.Id == 0 || existingTeamPlayers.Add(key))
             {
                 DbContext.TeamPlayers.Add(new TeamPlayer
                 {

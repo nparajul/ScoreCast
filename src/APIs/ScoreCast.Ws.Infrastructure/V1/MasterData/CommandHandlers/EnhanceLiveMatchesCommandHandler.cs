@@ -132,7 +132,7 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
             .ToDictionaryAsync(m => m.ExternalCode, m => m.EntityId, ct);
 
         // Fetch all candidate fixtures from Pulse
-        var semaphore = new SemaphoreSlim(5);
+        using var semaphore = new SemaphoreSlim(5);
         var fetchTasks = pulseMappings.Select(async kv =>
         {
             await semaphore.WaitAsync(ct);

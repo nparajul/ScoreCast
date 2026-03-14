@@ -17,8 +17,8 @@ public sealed record Match : ScoreCastEntity
     public string? Referee { get; set; }
     public string? Minute { get; set; }
 
-    public Gameweek Gameweek { get; init; } = default!;
-    public Team HomeTeam { get; init; } = default!;
-    public Team AwayTeam { get; init; } = default!;
+    public Gameweek Gameweek { get; init; } = null!;
+    public Team HomeTeam { get; init; } = null!;
+    public Team AwayTeam { get; init; } = null!;
     public ICollection<Prediction> Predictions { get; init; } = [];
 }
