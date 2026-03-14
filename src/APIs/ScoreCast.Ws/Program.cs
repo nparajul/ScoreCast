@@ -28,6 +28,7 @@ try
     builder.AddApiCommonServices();
     builder.AddScoreCastAuthentication();
     builder.AddScoreCastAuthorization();
+    builder.AddScoreCastExternalHttpClients();
     builder.Services.AddScoreCastInfrastructure(builder.Environment.EnvironmentName);
 
     builder.Services.AddApiVersioning(o =>
