@@ -14,26 +14,38 @@ internal sealed record CalculateOutcomesCommandHandler(
 {
     public async Task<ScoreCastResponse> ExecuteAsync(CalculateOutcomesCommand command, CancellationToken ct)
     {
-        var finishedMatches = await DbContext.Matches
-            .AsNoTracking()
-            .Where(m => m.Gameweek.SeasonId == command.SeasonId
-                        && m.Status == MatchStatus.Finished
-                        && m.HomeScore != null && m.AwayScore != null)
-            .Select(m => new { m.Id, m.HomeScore, m.AwayScore })
-            .ToDictionaryAsync(m => m.Id, ct);
-
         var predictions = await DbContext.Predictions
+            .Include(p => p.Match)
             .Where(p => p.SeasonId == command.SeasonId
                         && p.Outcome == null
-                        && finishedMatches.Keys.Contains(p.MatchId))
+                        && p.Match.Status == MatchStatus.Finished
+                        && p.Match.HomeScore != null && p.Match.AwayScore != null)
             .ToListAsync(ct);
 
         foreach (var prediction in predictions)
         {
-            var match = finishedMatches[prediction.MatchId];
             prediction.Outcome = DetermineOutcome(
                 prediction.PredictedHomeScore, prediction.PredictedAwayScore,
-                match.HomeScore!.Value, match.AwayScore!.Value);
+                prediction.Match.HomeScore!.Value, prediction.Match.AwayScore!.Value);
+        }
+
+        if (predictions.Count > 0)
+        {
+            var scoringRules = await DbContext.PredictionScoringRules
+                .AsNoTracking()
+                .ToDictionaryAsync(r => r.Outcome, r => r.Points, ct);
+
+            var pointsByUser = predictions
+                .GroupBy(p => p.UserId)
+                .ToDictionary(g => g.Key, g => g.Sum(p => scoringRules.GetValueOrDefault(p.Outcome!.Value)));
+
+            var userIds = pointsByUser.Keys.ToList();
+            var users = await DbContext.UserMasters
+                .Where(u => userIds.Contains(u.Id))
+                .ToListAsync(ct);
+
+            foreach (var user in users)
+                user.TotalPoints += pointsByUser[user.Id];
         }
 
         await UnitOfWork.SaveChangesAsync(nameof(CalculateOutcomesCommand), ct);
