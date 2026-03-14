@@ -90,7 +90,7 @@
                             <span style="font-size:16px;font-weight:600;">@match.AwayTeamShortName</span>
                         </div>
                     </td>
-                    <td style="white-space:nowrap;font-size:12px;" class="mud-text-secondary">
+                    <td style="white-space:nowrap;font-size:12px;font-weight:600;color:var(--mud-palette-text-primary);">
                         @if (match.Status == "Finished") { <text>FT @match.HomeScore-@match.AwayScore</text> }
                         else if (match.KickoffTime.HasValue) { @match.KickoffTime.Value.ToLocalTime().ToString("dd MMM HH:mm") }
                     </td>
