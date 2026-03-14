@@ -25,12 +25,19 @@ internal sealed record CreatePredictionLeagueCommandHandler(
         if (user is null)
             return ScoreCastResponse<PredictionLeagueResult>.Error("User not found");
 
+        var competition = await DbContext.Competitions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == request.CompetitionId, ct);
+
+        if (competition is null)
+            return ScoreCastResponse<PredictionLeagueResult>.Error("Competition not found");
+
         var season = await DbContext.Seasons
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == request.SeasonId, ct);
+            .FirstOrDefaultAsync(s => s.CompetitionId == request.CompetitionId && s.IsCurrent, ct);
 
         if (season is null)
-            return ScoreCastResponse<PredictionLeagueResult>.Error("Season not found");
+            return ScoreCastResponse<PredictionLeagueResult>.Error("No active season for this competition");
 
         string inviteCode;
         do
@@ -42,7 +49,8 @@ internal sealed record CreatePredictionLeagueCommandHandler(
         {
             Name = request.Name,
             InviteCode = inviteCode,
-            SeasonId = request.SeasonId,
+            CompetitionId = competition.Id,
+            SeasonId = season.Id,
             CreatedByUserId = user.Id
         };
 
@@ -60,8 +68,9 @@ internal sealed record CreatePredictionLeagueCommandHandler(
         await UnitOfWork.SaveChangesAsync(request.AppName ?? nameof(CreatePredictionLeagueCommand), ct);
 
         return ScoreCastResponse<PredictionLeagueResult>.Ok(
-            new PredictionLeagueResult(league.Id, league.Name, league.InviteCode, league.SeasonId,
-                season.Name, 1, user.DisplayName ?? user.UserId));
+            new PredictionLeagueResult(league.Id, league.Name, league.InviteCode,
+                competition.Id, competition.Name, competition.Code, competition.LogoUrl,
+                season.Id, season.Name, 1, user.DisplayName ?? user.UserId));
     }
 
     private static string GenerateInviteCode()
