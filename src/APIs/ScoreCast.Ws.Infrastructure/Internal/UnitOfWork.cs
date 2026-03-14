@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using ScoreCast.Ws.Application.Interfaces;
+using ScoreCast.Ws.Application;
 using ScoreCast.Ws.Domain.V1;
 using ScoreCast.Ws.Infrastructure.V1.Shared;
 

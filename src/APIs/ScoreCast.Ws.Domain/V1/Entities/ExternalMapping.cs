@@ -1,5 +1,5 @@
 using ScoreCast.Ws.Domain.V1.Entities.Common;
-using ScoreCast.Ws.Domain.V1.Enums;
+using ScoreCast.Shared.Enums;
 
 namespace ScoreCast.Ws.Domain.V1.Entities;
 

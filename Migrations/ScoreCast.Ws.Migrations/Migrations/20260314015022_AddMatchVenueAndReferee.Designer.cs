@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ScoreCast.Ws.Infrastructure.V1.Shared;
@@ -11,9 +12,11 @@ using ScoreCast.Ws.Infrastructure.V1.Shared;
 namespace ScoreCast.Ws.Migrations.Migrations
 {
     [DbContext(typeof(ScoreCastDbContext))]
-    partial class ScoreCastDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260314015022_AddMatchVenueAndReferee")]
+    partial class AddMatchVenueAndReferee
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -756,12 +759,6 @@ namespace ScoreCast.Ws.Migrations.Migrations
                         .HasColumnName("match_id")
                         .HasColumnOrder(1);
 
-                    b.Property<string>("Minute")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)")
-                        .HasColumnName("minute")
-                        .HasColumnOrder(5);
-
                     b.Property<string>("ModifiedBy")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -800,7 +797,7 @@ namespace ScoreCast.Ws.Migrations.Migrations
 
                     b.HasIndex("PlayerId");
 
-                    b.HasIndex("MatchId", "PlayerId", "EventType", "Minute")
+                    b.HasIndex("MatchId", "PlayerId", "EventType")
                         .IsUnique();
 
                     b.ToTable("match_event", "scorecast");

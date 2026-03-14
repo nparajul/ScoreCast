@@ -2,9 +2,9 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
-using ScoreCast.Ws.Application.Interfaces;
 using ScoreCast.Ws.Application.V1.Football.Queries;
-using ScoreCast.Ws.Domain.V1.Enums;
+using ScoreCast.Shared.Enums;
+using ScoreCast.Ws.Application.V1.Interfaces;
 
 namespace ScoreCast.Ws.Infrastructure.V1.Football.QueryHandlers;
 
@@ -33,7 +33,7 @@ internal sealed record GetLeagueTableQueryHandler(
         var matchTeams = matches.ToDictionary(m => m.Id, m => (m.HomeTeamId, m.AwayTeamId));
         var goalEvents = await DbContext.MatchEvents
             .AsNoTracking()
-            .Where(e => matchIds.Contains(e.MatchId) && (e.EventType == MatchEventType.Goal || e.EventType == MatchEventType.OwnGoal))
+            .Where(e => matchIds.Contains(e.MatchId) && (e.EventType == MatchEventType.Goal || e.EventType == MatchEventType.PenaltyGoal || e.EventType == MatchEventType.OwnGoal))
             .Select(e => new { e.MatchId, e.PlayerId, e.Player.Name, e.Value, IsOwnGoal = e.EventType == MatchEventType.OwnGoal })
             .ToListAsync(ct);
 

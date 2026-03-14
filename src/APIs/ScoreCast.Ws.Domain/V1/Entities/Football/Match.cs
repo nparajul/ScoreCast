@@ -1,5 +1,5 @@
 using ScoreCast.Ws.Domain.V1.Entities.Common;
-using ScoreCast.Ws.Domain.V1.Enums;
+using ScoreCast.Shared.Enums;
 
 namespace ScoreCast.Ws.Domain.V1.Entities.Football;
 
@@ -13,6 +13,8 @@ public sealed record Match : ScoreCastEntity
     public int? HomeScore { get; set; }
     public int? AwayScore { get; set; }
     public MatchStatus Status { get; set; } = MatchStatus.Scheduled;
+    public string? Venue { get; set; }
+    public string? Referee { get; set; }
 
     public Gameweek Gameweek { get; init; } = default!;
     public Team HomeTeam { get; init; } = default!;
