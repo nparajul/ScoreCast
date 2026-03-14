@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Components;
-using ScoreCast.ApiClient.V1.Apis;
 using ScoreCast.Models.V1.Requests.Prediction;
 using ScoreCast.Models.V1.Responses.Prediction;
 using ScoreCast.Web.Components.Helpers;

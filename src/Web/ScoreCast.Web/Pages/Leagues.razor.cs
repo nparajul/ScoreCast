@@ -1,5 +1,4 @@
 using Microsoft.JSInterop;
-using ScoreCast.ApiClient.V1.Apis;
 using ScoreCast.Models.V1.Requests.Prediction;
 using ScoreCast.Models.V1.Responses.Prediction;
 using ScoreCast.Shared.Constants;
