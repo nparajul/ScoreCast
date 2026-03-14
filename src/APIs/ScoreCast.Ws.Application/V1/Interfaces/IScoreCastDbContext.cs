@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using ScoreCast.Ws.Domain.V1.Entities;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
 using ScoreCast.Ws.Domain.V1.Entities.UserManagement;
 
-namespace ScoreCast.Ws.Application.Interfaces;
+namespace ScoreCast.Ws.Application.V1.Interfaces;
 
 public interface IScoreCastDbContext
 {
@@ -24,4 +25,6 @@ public interface IScoreCastDbContext
     DbSet<Player> Players { get; }
     DbSet<TeamPlayer> TeamPlayers { get; }
     DbSet<CompetitionZone> CompetitionZones { get; }
+    DbSet<MatchEvent> MatchEvents { get; }
+    DbSet<ExternalMapping> ExternalMappings { get; }
 }
