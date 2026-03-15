@@ -21,6 +21,9 @@ public partial interface IScoreCastApiClient
     [Get("/api/v1/football/seasons/{seasonId}/table")]
     Task<ScoreCastResponse<PointsTableResult>> GetPointsTableAsync(long seasonId, CancellationToken ct);
 
+    [Get("/api/v1/football/seasons/{seasonId}/bracket")]
+    Task<ScoreCastResponse<BracketResult>> GetBracketAsync(long seasonId, CancellationToken ct);
+
     [Get("/api/v1/football/competitions/{competitionCode}/zones")]
     Task<ScoreCastResponse<List<CompetitionZoneResult>>> GetCompetitionZonesAsync(string competitionCode, CancellationToken ct);
 

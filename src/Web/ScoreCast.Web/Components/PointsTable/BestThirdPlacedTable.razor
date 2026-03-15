@@ -1,0 +1,56 @@
+@if (Rows.Count > 0)
+{
+    <div class="d-flex gap-4 mb-3 mt-2 ms-2 flex-wrap">
+        <div class="d-flex align-center gap-1">
+            <span style="width:12px;height:12px;border-radius:2px;background:#4caf50;display:inline-block;"></span>
+            <MudText Typo="Typo.caption">Qualification next stage</MudText>
+        </div>
+    </div>
+    <MudSimpleTable Dense="true" Hover="true" Elevation="1" Style="max-width:800px;">
+        <thead>
+            <tr>
+                <th style="width:32px;">#</th>
+                <th>Team</th>
+                <th style="text-align:center;width:36px;">P</th>
+                <th style="text-align:center;width:36px;">W</th>
+                <th style="text-align:center;width:36px;">D</th>
+                <th style="text-align:center;width:36px;">L</th>
+                <th style="text-align:center;width:36px;">GF</th>
+                <th style="text-align:center;width:36px;">GA</th>
+                <th style="text-align:center;width:36px;">GD</th>
+                <th style="text-align:center;width:40px;font-weight:700;">Pts</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ var rank = 1; }
+            @foreach (var row in Rows)
+            {
+                var qualified = rank <= 8;
+                <tr style="@(qualified ? "background:#4caf5015;border-left:3px solid #4caf50;" : "")">
+                    <td>@(rank++)</td>
+                    <td>
+                        <div class="d-flex align-center gap-2">
+                            @if (!string.IsNullOrEmpty(row.TeamLogo))
+                            {
+                                <img src="@row.TeamLogo" alt="" style="width:20px;height:20px;" />
+                            }
+                            @row.TeamName
+                        </div>
+                    </td>
+                    <td style="text-align:center;">@row.Played</td>
+                    <td style="text-align:center;">@row.Won</td>
+                    <td style="text-align:center;">@row.Drawn</td>
+                    <td style="text-align:center;">@row.Lost</td>
+                    <td style="text-align:center;">@row.GoalsFor</td>
+                    <td style="text-align:center;">@row.GoalsAgainst</td>
+                    <td style="text-align:center;">@row.GoalDifference</td>
+                    <td style="text-align:center;font-weight:700;">@row.Points</td>
+                </tr>
+            }
+        </tbody>
+    </MudSimpleTable>
+}
+else
+{
+    <MudAlert Severity="Severity.Info" Class="mt-2">No group stage results yet.</MudAlert>
+}

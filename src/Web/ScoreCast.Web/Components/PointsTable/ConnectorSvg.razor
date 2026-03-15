@@ -1,0 +1,23 @@
+@* SVG connector. Parent flex has align-items:stretch so this gets same height as adjacent card column. *@
+@* viewBox 0 0 24 [Pairs*100] with preserveAspectRatio=none stretches to fill. *@
+
+@{
+    var h = Pairs * 100;
+    var vb = $"0 0 24 {h}";
+}
+
+<svg width="24" height="100%" viewBox="@vb" preserveAspectRatio="none"
+     style="display:block;flex-shrink:0;@(Mirror ? "transform:scaleX(-1);" : "")">
+    @for (var i = 0; i < Pairs; i++)
+    {
+        var top = i * 100;
+        var y1 = top + 25;
+        var y2 = top + 75;
+        var yMid = top + 50;
+
+        <line x1="0" y1="@y1" x2="12" y2="@y1" stroke="#999" stroke-width="1" vector-effect="non-scaling-stroke" />
+        <line x1="0" y1="@y2" x2="12" y2="@y2" stroke="#999" stroke-width="1" vector-effect="non-scaling-stroke" />
+        <line x1="12" y1="@y1" x2="12" y2="@y2" stroke="#999" stroke-width="1" vector-effect="non-scaling-stroke" />
+        <line x1="12" y1="@yMid" x2="24" y2="@yMid" stroke="#999" stroke-width="1" vector-effect="non-scaling-stroke" />
+    }
+</svg>
