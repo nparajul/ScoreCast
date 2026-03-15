@@ -50,63 +50,60 @@
         @foreach (var match in _gameweek.Matches)
         {
             <MudPaper Class="mb-2" Elevation="1" Style="@($"overflow:hidden;border-radius:8px;{(match.Status == nameof(MatchStatus.Live) ? "border-left:3px solid #4caf50;background:linear-gradient(90deg, rgba(76,175,80,0.06) 0%, transparent 30%);" : "")}")">
-                <div @onclick="() => ToggleMatch(match.MatchId)" style="cursor:pointer;padding:12px 16px;">
+                <div @onclick="() => ToggleMatch(match.MatchId)" style="cursor:pointer;padding:8px 10px;">
                     <div class="d-flex align-center justify-space-between">
                         @if (match.Minute is not null)
                         {
-                            <div style="min-width:36px;text-align:center;margin-right:8px;">
-                                <span style="font-size:12px;font-weight:700;color:@(match.Status == nameof(MatchStatus.Live) ? "var(--mud-palette-text-primary)" : "var(--mud-palette-text-secondary)");">
+                            <div style="min-width:28px;text-align:center;margin-right:4px;">
+                                <span style="font-size:11px;font-weight:700;color:@(match.Status == nameof(MatchStatus.Live) ? "var(--mud-palette-text-primary)" : "var(--mud-palette-text-secondary)");">
                                     @match.Minute
                                 </span>
                             </div>
                         }
-                        <div class="d-flex align-center gap-2" style="flex:1;justify-content:flex-end;">
-                            <MudText Style="font-weight:600;font-size:14px;text-align:right;">@match.HomeTeamShortName</MudText>
+                        <div class="d-flex align-center gap-1" style="flex:1;justify-content:flex-end;overflow:hidden;">
+                            <span style="font-weight:600;font-size:13px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@match.HomeTeamShortName</span>
                             @if (match.HomeTeamLogo is not null)
                             {
-                                <MudImage Src="@match.HomeTeamLogo" Width="24" Height="24" ObjectFit="ObjectFit.Contain" />
+                                <img src="@match.HomeTeamLogo" alt="" style="width:20px;height:20px;flex-shrink:0;" />
                             }
                         </div>
-                        <div style="min-width:80px;text-align:center;">
+                        <div style="min-width:60px;text-align:center;flex-shrink:0;">
                             @if (match.Status == nameof(MatchStatus.Finished))
                             {
-                                <MudText Style="font-weight:700;font-size:16px;">@match.HomeScore - @match.AwayScore</MudText>
+                                <span style="font-weight:700;font-size:14px;">@match.HomeScore - @match.AwayScore</span>
                             }
                             else if (match.Status == nameof(MatchStatus.Live))
                             {
-                                <MudText Style="font-weight:700;font-size:16px;color:#4caf50;">@(match.HomeScore ?? 0) - @(match.AwayScore ?? 0)</MudText>
-                                <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:2px;">
+                                <span style="font-weight:700;font-size:14px;color:#4caf50;">@(match.HomeScore ?? 0) - @(match.AwayScore ?? 0)</span>
+                                <div style="display:flex;align-items:center;justify-content:center;gap:3px;margin-top:1px;">
                                     <span class="live-pulse"></span>
-                                    <span style="font-size:10px;font-weight:700;color:#f44336;letter-spacing:1px;">LIVE</span>
+                                    <span style="font-size:9px;font-weight:700;color:#f44336;letter-spacing:1px;">LIVE</span>
                                 </div>
                             }
                             else
                             {
-                                <MudText Style="font-size:13px;color:var(--mud-palette-text-secondary);">
+                                <span style="font-size:12px;color:var(--mud-palette-text-secondary);">
                                     @(match.KickoffTime?.ToLocalTime().ToString("HH:mm") ?? "TBD")
-                                </MudText>
+                                </span>
                             }
                         </div>
-                        <div class="d-flex align-center gap-2" style="flex:1;">
+                        <div class="d-flex align-center gap-1" style="flex:1;overflow:hidden;">
                             @if (match.AwayTeamLogo is not null)
                             {
-                                <MudImage Src="@match.AwayTeamLogo" Width="24" Height="24" ObjectFit="ObjectFit.Contain" />
+                                <img src="@match.AwayTeamLogo" alt="" style="width:20px;height:20px;flex-shrink:0;" />
                             }
-                            <MudText Style="font-weight:600;font-size:14px;">@match.AwayTeamShortName</MudText>
+                            <span style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@match.AwayTeamShortName</span>
                         </div>
                     </div>
-                    <div class="d-flex align-center justify-center gap-1" style="margin-top:4px;">
+                    <div class="d-flex align-center justify-center gap-1" style="margin-top:2px;">
                         <MudIcon Icon="@(_expandedMatches.Contains(match.MatchId) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Size="Size.Small" Style="color:var(--mud-palette-text-secondary);" />
-                        <MudText Style="font-size:11px;color:var(--mud-palette-text-secondary);">
-                            @(_expandedMatches.Contains(match.MatchId) ? "collapse" : "expand for more")
-                        </MudText>
                     </div>
                 </div>
 
                 @if (_expandedMatches.Contains(match.MatchId))
                 {
                     <MudDivider />
-                    <div style="padding:12px 16px;background:var(--mud-palette-background-grey);">
+                    <div style="padding:8px 10px;background:var(--mud-palette-background-grey);">
                         @if (match.Venue is not null || match.Referee is not null || match.KickoffTime.HasValue)
                         {
                             <div style="text-align:center;margin-bottom:10px;font-size:13px;color:var(--mud-palette-text-primary);opacity:0.85;">
@@ -127,20 +124,20 @@
 
                         @if (match.Events.Count > 0)
                         {
-                            <div class="d-flex" style="gap:16px;">
+                            <div class="d-flex" style="gap:@(IsMobile ? "12" : "16")px;">
                                 <div style="flex:1;text-align:right;">
-                                    @foreach (var line in GetDisplayLines(match.Events, true))
+                                    @foreach (var line in GetDisplayLines(match.Events, true, !IsMobile))
                                     {
-                                        <div style="font-size:13px;margin-bottom:2px;@(line.Bold ? "font-weight:700;" : "")">
+                                        <div style="font-size:@(IsMobile ? "12" : "13")px;margin-bottom:2px;@(line.Bold ? "font-weight:700;" : "")">
                                             @line.Text @(line.Minute is not null ? $" {line.Minute}" : "")
                                         </div>
                                     }
                                 </div>
                                 <div style="width:1px;background:var(--mud-palette-divider);"></div>
                                 <div style="flex:1;text-align:left;">
-                                    @foreach (var line in GetDisplayLines(match.Events, false))
+                                    @foreach (var line in GetDisplayLines(match.Events, false, !IsMobile))
                                     {
-                                        <div style="font-size:13px;margin-bottom:2px;@(line.Bold ? "font-weight:700;" : "")">
+                                        <div style="font-size:@(IsMobile ? "12" : "13")px;margin-bottom:2px;@(line.Bold ? "font-weight:700;" : "")">
                                             @(line.Minute is not null ? $"{line.Minute} " : "")@line.Text
                                         </div>
                                     }

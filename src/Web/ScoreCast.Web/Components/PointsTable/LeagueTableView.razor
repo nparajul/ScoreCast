@@ -1,7 +1,8 @@
 @using ScoreCast.Shared.Constants
 
 @* ── MOBILE: tabbed views ── *@
-<div class="d-block d-md-none">
+@if (IsMobile)
+{
     <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:4px;margin-bottom:12px;">
         @foreach (var tab in new[] { "Short", "Full", "Form" })
         {
@@ -134,10 +135,11 @@
             </tbody>
         </MudSimpleTable>
     }
-</div>
+}
 
 @* ── DESKTOP: full table ── *@
-<div class="d-none d-md-block">
+else
+{
     <MudTable Items="Rows" Dense="true" Hover="true" Elevation="1" RowStyleFunc="RowStyleFunc" FixedHeader="true" Breakpoint="Breakpoint.None">
         <HeaderContent>
             <MudTh Style="width:30px;">#</MudTh>
@@ -204,7 +206,7 @@
             </MudTd>
         </RowTemplate>
     </MudTable>
-</div>
+}
 
 <div class="d-flex gap-4 mt-3 flex-wrap">
     @foreach (var zone in Zones)

@@ -21,7 +21,8 @@
         else
         {
             @* ── MOBILE: pill tabs ── *@
-            <div class="d-block d-md-none">
+            @if (IsMobile)
+            {
                 <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:4px;margin-bottom:12px;">
                     @foreach (var tab in new[] { "Groups", "Best 3rd", "Knockout" })
                     {
@@ -47,10 +48,9 @@
                 {
                     <KnockoutBracket Bracket="_bracket" />
                 }
-            </div>
-
-            @* ── DESKTOP: MudTabs ── *@
-            <div class="d-none d-md-block">
+            }
+            else
+            {
                 <MudTabs Elevation="1" Rounded="true" ApplyEffectsToContainer="true" Class="mt-0">
                     <MudTabPanel Text="Group Stage" Icon="@Icons.Material.Filled.Groups">
                         <GroupStageView Groups="_result.Groups" Zones="_zones" />
@@ -62,7 +62,7 @@
                         <KnockoutBracket Bracket="_bracket" />
                     </MudTabPanel>
                 </MudTabs>
-            </div>
+            }
         }
     }
     else if (_selectedSeason is not null && !Loading.IsLoading)
