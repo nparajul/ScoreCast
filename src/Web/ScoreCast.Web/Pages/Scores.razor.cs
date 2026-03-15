@@ -1,3 +1,4 @@
+using Microsoft.JSInterop;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
@@ -9,9 +10,10 @@ namespace ScoreCast.Web.Pages;
 public partial class Scores : IDisposable
 {
     private CancellationTokenSource? _pollCts;
-    [Inject] private IScoreCastApiClient Api { get; set; } = default!;
-    [Inject] private ILoadingService Loading { get; set; } = default!;
-    [Inject] private IAlertService Alert { get; set; } = default!;
+    [Inject] private IScoreCastApiClient Api { get; set; } = null!;
+    [Inject] private ILoadingService Loading { get; set; } = null!;
+    [Inject] private IAlertService Alert { get; set; } = null!;
+    [Inject] private IJSRuntime Js { get; set; } = null!;
 
     private const string AppName = "SCORES";
 
@@ -29,6 +31,8 @@ public partial class Scores : IDisposable
         StateHasChanged();
     }
 
+    private string? _scrollToAnchor;
+
     private async Task LoadGameweekAsync(long seasonId, int gameweekNumber)
     {
         _expandedMatches.Clear();
@@ -41,6 +45,7 @@ public partial class Scores : IDisposable
                 Alert.Add("Failed to load matches", Severity.Error);
         });
         StartOrStopPolling();
+        QueueScrollToFocusGroup();
     }
 
     private void StartOrStopPolling()
@@ -97,16 +102,23 @@ public partial class Scores : IDisposable
             _expandedMatches.Add(matchId);
     }
 
+    private const string YellowCardHtml = "<span style=\"display:inline-block;width:8px;height:11px;background:#fdd835;border-radius:1px;vertical-align:middle;\"></span>";
+    private const string RedCardHtml = "<span style=\"display:inline-block;width:8px;height:11px;background:#d32f2f;border-radius:1px;vertical-align:middle;\"></span>";
+
+    private const string AssistHtml = "👟";
+
+    private const string PenaltyMissedHtml = "<svg style=\"display:inline-block;vertical-align:middle;\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"14\" rx=\"0\" fill=\"none\"/><line x1=\"9\" y1=\"8\" x2=\"15\" y2=\"14\"/><line x1=\"15\" y1=\"8\" x2=\"9\" y2=\"14\"/></svg>";
+
     private static string FormatEvent(MatchEventDetail e) => e.EventType switch
     {
         EventTypes.Goal => e.Value > 1 ? $"⚽ x{e.Value}" : "⚽",
         EventTypes.PenaltyGoal => "⚽ (P)",
         EventTypes.OwnGoal => "⚽ (OG)",
-        EventTypes.Assist => "🅰️",
-        EventTypes.YellowCard => "🟨",
-        EventTypes.RedCard => "🟥",
+        EventTypes.Assist => AssistHtml,
+        EventTypes.YellowCard => YellowCardHtml,
+        EventTypes.RedCard => RedCardHtml,
         EventTypes.PenaltySaved => "🧤",
-        EventTypes.PenaltyMissed => "❌",
+        EventTypes.PenaltyMissed => PenaltyMissedHtml,
         _ => ""
     };
 
@@ -144,6 +156,51 @@ public partial class Scores : IDisposable
         if (double.TryParse(parts[0], out var main))
             return parts.Length > 1 && double.TryParse(parts[1], out var added) ? main + added * 0.01 : main;
         return 999;
+    }
+
+    private record DateGroup(string Label, string AnchorId, List<MatchDetail> Matches);
+
+    private List<DateGroup> GetMatchesByDate()
+    {
+        if (_gameweek is null) return [];
+
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        return _gameweek.Matches
+            .GroupBy(m => m.KickoffTime.HasValue ? DateOnly.FromDateTime(m.KickoffTime.Value.ToLocalTime()) : (DateOnly?)null)
+            .OrderBy(g => g.Key)
+            .Select(g =>
+            {
+                var label = g.Key switch
+                {
+                    null => "TBD",
+                    var d when d == today => "Today",
+                    var d when d == today.AddDays(1) => "Tomorrow",
+                    var d when d == today.AddDays(-1) => "Yesterday",
+                    var d => d.Value.ToString("dddd, MMMM d")
+                };
+                var anchorId = $"date-{g.Key?.ToString("yyyy-MM-dd") ?? "tbd"}";
+                return new DateGroup(label, anchorId, g.ToList());
+            })
+            .ToList();
+    }
+
+    private void QueueScrollToFocusGroup()
+    {
+        if (_gameweek is null) return;
+        var groups = GetMatchesByDate();
+        var target = groups.FirstOrDefault(g => g.Label == "Today") ?? groups.FirstOrDefault();
+        _scrollToAnchor = target?.AnchorId;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_scrollToAnchor is not null)
+        {
+            var anchor = _scrollToAnchor;
+            _scrollToAnchor = null;
+            await Js.InvokeVoidAsync("eval",
+                $"(function(){{var c=document.getElementById('scores-scroll-area');var e=document.getElementById('{anchor}');if(c&&e){{var r=e.getBoundingClientRect();var cr=c.getBoundingClientRect();c.scrollTop+=r.top-cr.top;}}}})()");
+        }
     }
 
     private record SubPair(string PlayerOn, string PlayerOff, string? Minute);
