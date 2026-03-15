@@ -1,5 +1,9 @@
+.mud-main-content {
+    flex: 1;
+}
+
 .main-container {
-    min-height: 700px;
+    min-height: 100%;
     margin-top: var(--mud-appbar-height);
     padding-top: 12px !important;
     padding-bottom: 48px !important;
@@ -26,16 +30,17 @@
     }
     .mud-typography-h5 {
         font-size: 1.125rem !important;
-        margin-bottom: 8px !important;
+        margin-bottom: 4px !important;
     }
     .mud-main-content {
         padding-top: 0px !important;
     }
-    .mud-main-content .mt-4 {
-        margin-top: 8px !important;
-    }
     .main-container {
-        padding-top: 8px !important;
+        padding-top: 0px !important;
+    }
+    .main-container .mud-container {
+        margin-top: 4px !important;
+        padding-top: 4px !important;
     }
     .mud-simple-table table {
         width: 100% !important;
