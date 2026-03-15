@@ -1,76 +1,28 @@
 using ScoreCast.Models.V1.Responses.Football;
-using ScoreCast.Shared.Constants;
+using ScoreCast.Web.Components;
 using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
 
 public partial class PlayerStats
 {
-    private const string AppName = "PLAYER STATS";
     [Inject] private IScoreCastApiClient Api { get; set; } = default!;
     [Inject] private ILoadingService Loading { get; set; } = default!;
     [Inject] private IAlertService Alert { get; set; } = default!;
 
-    private List<CompetitionResult> _competitions = [];
-    private List<SeasonResult> _seasons = [];
-    private CompetitionResult? _selectedCompetition;
     private SeasonResult? _selectedSeason;
     private List<PlayerStatRow> _rows = [];
     private string _sortColumn = "Goals";
     private bool _sortDescending = true;
     private string _search = "";
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task OnFilterChanged(CompetitionFilterState state)
     {
-        if (!firstRender) return;
-
-        await Loading.While(async () =>
-        {
-            var response = await Api.GetCompetitionsAsync(CancellationToken.None);
-            if (response is { Success: true, Data: not null })
-                _competitions = response.Data;
-
-            var pl = _competitions.FirstOrDefault(c => c.Code == CompetitionCodes.PremierLeague);
-            if (pl is not null)
-            {
-                _selectedCompetition = pl;
-                await LoadSeasonsAsync(pl);
-            }
-        });
-
-        StateHasChanged();
-    }
-
-    private async Task LoadSeasonsAsync(CompetitionResult competition)
-    {
-        var response = await Api.GetSeasonsAsync(competition.Code, CancellationToken.None);
-        if (response is { Success: true, Data: not null })
-            _seasons = response.Data;
-
-        StateHasChanged();
-        await Task.Yield();
-
-        _selectedSeason = _seasons.FirstOrDefault(s => s.IsCurrent) ?? _seasons.FirstOrDefault();
-        if (_selectedSeason is not null)
-            await LoadStatsAsync(_selectedSeason.Id);
-    }
-
-    private async Task OnCompetitionChanged(CompetitionResult? competition)
-    {
-        _selectedCompetition = competition;
-        _seasons = [];
-        _selectedSeason = null;
+        _selectedSeason = state.Season;
         _rows = [];
-        if (competition is not null)
-            await Loading.While(async () => await LoadSeasonsAsync(competition));
-    }
-
-    private async Task OnSeasonChanged(SeasonResult? season)
-    {
-        _selectedSeason = season;
-        _rows = [];
-        if (season is not null)
-            await LoadStatsAsync(season.Id);
+        if (state.Season is not null)
+            await LoadStatsAsync(state.Season.Id);
+        StateHasChanged();
     }
 
     private async Task LoadStatsAsync(long seasonId)
