@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Models.V1.Responses.MasterData;
+using ScoreCast.Shared.Exceptions;
 using ScoreCast.Ws.Application.V1.MasterData.Commands;
 using ScoreCast.Ws.Domain.V1.Entities;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
@@ -27,10 +28,9 @@ internal sealed record SyncPulseEventsCommandHandler(
         {
             return await ExecuteCoreAsync(command, ct);
         }
-        catch (Exception ex)
+        catch (ScoreCastException ex)
         {
-            Logger.LogError(ex, "Pulse events sync failed");
-            return ScoreCastResponse<SyncPulseEventsResult>.Error($"Pulse sync failed: {ex.Message}");
+            return ScoreCastResponse<SyncPulseEventsResult>.Error(ex.Message);
         }
     }
 

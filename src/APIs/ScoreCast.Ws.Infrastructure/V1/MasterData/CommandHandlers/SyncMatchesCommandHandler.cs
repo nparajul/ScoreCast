@@ -3,6 +3,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Shared.Constants;
+using ScoreCast.Shared.Exceptions;
 using ScoreCast.Ws.Application.V1.MasterData.Commands;
 using ScoreCast.Ws.Domain.V1.Entities;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
@@ -54,18 +55,18 @@ internal sealed record SyncMatchesCommandHandler(
             if (isPremierLeague)
                 totalMatches = await SyncFromPulseAsync(command.Request.AppName ?? nameof(SyncMatchesCommand), seasons, competition.Country, teamCache, ct);
 
-            // Fallback to football-data.org if Pulse returned nothing, or for non-PL
-            if (totalMatches == 0)
+            // Fallback to football-data.org only for non-PL competitions
+            if (!isPremierLeague)
                 totalMatches = await SyncFromFootballDataAsync(command.Request.CompetitionCode, seasons, competition.Country, teamCache, ct);
 
             await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(SyncMatchesCommand), ct);
             await transaction.CommitAsync(ct);
             return ScoreCastResponse.Ok($"Synced {totalMatches} matches across {seasons.Count} seasons for {competition.Name}");
         }
-        catch (Exception ex)
+        catch (ScoreCastException ex)
         {
             await transaction.RollbackAsync(ct);
-            return ScoreCastResponse.Error($"Failed to sync matches for {competition.Name}: {ex.InnerException?.Message ?? ex.Message}");
+            return ScoreCastResponse.Error(ex.Message);
         }
     }
 
@@ -103,9 +104,9 @@ internal sealed record SyncMatchesCommandHandler(
                 response = await pulseClient.GetFromJsonAsync<PulseFixturesListResponse>(
                     string.Format(PulseApi.Routes.FixturesByCompSeason, pulseCompSeasonId), ct);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                continue;
+                throw new ScoreCastException($"Pulse fixtures API call failed for compSeason {pulseCompSeasonId}", ex);
             }
 
             if (response?.Content is not { Count: > 0 }) continue;
@@ -156,7 +157,7 @@ internal sealed record SyncMatchesCommandHandler(
         foreach (var pf in fixtures)
         {
             var pulseFixtureId = ((int)pf.Id).ToString();
-            var matchday = pf.Gameweek?.Gameweek ?? 1;
+            var matchday = (int)(pf.Gameweek?.Gameweek ?? 1);
 
             if (!gameweekCache.TryGetValue(matchday, out var gameweek))
             {
@@ -180,7 +181,7 @@ internal sealed record SyncMatchesCommandHandler(
                 continue;
 
             var kickoff = pf.Kickoff?.Millis is not null
-                ? DateTimeOffset.FromUnixTimeMilliseconds(pf.Kickoff.Millis.Value).UtcDateTime
+                ? DateTimeOffset.FromUnixTimeMilliseconds((long)pf.Kickoff.Millis.Value).UtcDateTime
                 : (DateTime?)null;
 
             var status = MapPulseStatus(pf.Status);
@@ -204,8 +205,8 @@ internal sealed record SyncMatchesCommandHandler(
                     HomeTeam = homeTeam,
                     AwayTeam = awayTeam,
                     KickoffTime = kickoff,
-                    HomeScore = pf.Teams[0].Score,
-                    AwayScore = pf.Teams[1].Score,
+                    HomeScore = (int?)pf.Teams[0].Score,
+                    AwayScore = (int?)pf.Teams[1].Score,
                     Status = status,
                     Venue = homeTeam.Venue,
                     Referee = referee,
@@ -217,8 +218,8 @@ internal sealed record SyncMatchesCommandHandler(
             else
             {
                 match.KickoffTime = kickoff;
-                match.HomeScore = pf.Teams[0].Score;
-                match.AwayScore = pf.Teams[1].Score;
+                match.HomeScore = (int?)pf.Teams[0].Score;
+                match.AwayScore = (int?)pf.Teams[1].Score;
                 match.Status = status;
                 match.Venue = homeTeam.Venue;
                 match.Referee = referee;
@@ -268,22 +269,19 @@ internal sealed record SyncMatchesCommandHandler(
         foreach (var season in seasons)
         {
             var seasonYear = season.StartDate.Year;
+            FootballDataMatchesResponse? apiResponse;
             try
             {
-                var apiResponse = await client.GetFromJsonAsync<FootballDataMatchesResponse>(
+                apiResponse = await client.GetFromJsonAsync<FootballDataMatchesResponse>(
                     string.Format(FootballDataApi.Routes.Matches, competitionCode, seasonYear), ct);
-
-                if (apiResponse?.Matches is { Count: > 0 })
-                    totalMatches += await UpsertFdMatchesForSeasonAsync(season, country, apiResponse.Matches, teamCache, ct);
-            }
-            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
-            {
-                break;
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to fetch {seasonYear}: {ex.Message}", ex);
+                throw new ScoreCastException($"Football-data.org matches API failed for {competitionCode} season {seasonYear}", ex);
             }
+
+            if (apiResponse?.Matches is { Count: > 0 })
+                totalMatches += await UpsertFdMatchesForSeasonAsync(season, country, apiResponse.Matches, teamCache, ct);
         }
 
         return totalMatches;
