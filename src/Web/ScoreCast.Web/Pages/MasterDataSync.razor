@@ -102,9 +102,11 @@
                                 <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1">Fixtures & Results</MudText>
                                 <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Size="Size.Small" FullWidth="true"
                                            StartIcon="@Icons.Material.Filled.SportsSoccer"
-                                           OnClick="@(() => SyncMatchesAsync(competition))">
+                                           OnClick="@(() => SyncMatchesAsync(competition, _syncAllSeasons))">
                                     Sync Matches
                                 </MudButton>
+                                <MudCheckBox @bind-Value="_syncAllSeasons" Dense="true" Size="Size.Small" Color="Color.Secondary"
+                                             Label="All seasons" Class="mt-1" Style="font-size:11px;" />
                             </div>
                             @if (competition.ExternalSources.Contains("Fpl"))
                             {

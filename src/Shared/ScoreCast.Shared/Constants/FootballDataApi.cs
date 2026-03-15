@@ -23,4 +23,9 @@ public static class FootballDataApi
         public const string Suspended = "SUSPENDED";
         public const string Cancelled = "CANCELLED";
     }
+
+    public static class Duration
+    {
+        public const string Regular = "REGULAR";
+    }
 }
