@@ -16,9 +16,11 @@ internal sealed class PredictionLeagueEntityConfiguration : BaseEntityConfigurat
 
         builder.Property(p => p.Name).HasColumnName("name").HasColumnOrder(order++).IsRequired().HasMaxLength(100);
         builder.Property(p => p.InviteCode).HasColumnName("invite_code").HasColumnOrder(order++).IsRequired().HasMaxLength(20);
+        builder.Property(p => p.CompetitionId).HasColumnName("competition_id").HasColumnOrder(order++).IsRequired();
         builder.Property(p => p.SeasonId).HasColumnName("season_id").HasColumnOrder(order++).IsRequired();
         builder.Property(p => p.CreatedByUserId).HasColumnName("created_by_user_id").HasColumnOrder(order++).IsRequired();
 
+        builder.HasOne(p => p.Competition).WithMany().HasForeignKey(p => p.CompetitionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(p => p.Season).WithMany().HasForeignKey(p => p.SeasonId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(p => p.CreatedByUser).WithMany().HasForeignKey(p => p.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(p => p.InviteCode).IsUnique();

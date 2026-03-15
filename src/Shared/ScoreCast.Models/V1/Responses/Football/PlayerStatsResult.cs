@@ -8,9 +8,11 @@ public record PlayerStatRow(
     string? PlayerImageUrl,
     string? TeamName,
     string? TeamLogo,
+    string? Position,
     int Goals,
     int PenaltyGoals,
     int OwnGoals,
     int Assists,
     int YellowCards,
-    int RedCards);
+    int RedCards,
+    int CleanSheets);

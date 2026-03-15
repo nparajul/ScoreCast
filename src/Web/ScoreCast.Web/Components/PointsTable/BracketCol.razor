@@ -1,0 +1,15 @@
+@if (Slots is not null && Slots.Count > 0)
+{
+    var totalRows = Slots.Count * RowSpan;
+
+    <div data-bracket-col="@Index" style="display:grid;grid-template-rows:repeat(@totalRows, minmax(35px, 1fr));min-width:150px;padding:0 4px;">
+        @for (var i = 0; i < Slots.Count; i++)
+        {
+            var row = i * RowSpan + 1;
+            var addGap = PairGap > 0 && i % 2 == 1 && i < Slots.Count - 1;
+            <div data-bracket-card style="grid-row:@row / span @RowSpan;display:flex;align-items:center;@(addGap ? $"margin-bottom:{PairGap}px;" : "")">
+                <div style="width:100%;"><MatchCard Slot="Slots[i]" /></div>
+            </div>
+        }
+    </div>
+}

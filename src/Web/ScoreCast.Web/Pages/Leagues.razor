@@ -3,26 +3,65 @@
 <PageGuard>
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
 
-    @if (_currentGameweek > 0 && _leagues.Count > 0)
+    @if (_predictionTiles.Count > 0)
     {
         <MudText Typo="Typo.h5" Style="font-weight:700;text-align:center;" Class="mb-3">Predictions</MudText>
+        <div class="d-flex flex-wrap justify-center gap-4 mb-6">
+            @foreach (var tile in _predictionTiles)
+            {
+                <MudPaper Elevation="3" Class="rounded-xl overflow-hidden d-flex flex-column"
+                          Style="width:220px;min-width:160px;flex:1;max-width:260px;text-align:center;color:white;">
+                    @if (tile.LogoUrl is not null)
+                    {
+                        <div style="background:rgba(255,255,255,0.95);padding:20px 0;display:flex;align-items:center;justify-content:center;">
+                            <MudImage Src="@tile.LogoUrl" Width="80" Height="80" ObjectFit="ObjectFit.Contain" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="background:rgba(255,255,255,0.1);padding:20px 0;display:flex;align-items:center;justify-content:center;">
+                            <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Style="font-size:64px;opacity:0.9;" />
+                        </div>
+                    }
+                    <div class="pa-4 d-flex flex-column align-center flex-grow-1"
+                         style="background:linear-gradient(135deg, var(--mud-palette-tertiary) 0%, var(--mud-palette-primary) 100%);">
+                        <MudText Typo="Typo.subtitle1" Style="font-weight:700;color:white;line-height:1.3;">@tile.CompetitionName</MudText>
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
+                                 Style="color:rgba(255,255,255,0.85);border-color:rgba(255,255,255,0.4);font-weight:600;"
+                                 Class="mt-1 mb-3">
+                            @tile.SeasonName Season
+                        </MudChip>
+                        <MudButton Variant="Variant.Filled" Size="Size.Small" FullWidth="true"
+                                   Style="background:white;color:var(--mud-palette-tertiary);font-weight:700;border-radius:8px;"
+                                   StartIcon="@Icons.Material.Filled.SportsSoccer"
+                                   OnClick="@(() => NavigateToPredict(tile.CompetitionCode, tile.SeasonId))">
+                            Make Predictions
+                        </MudButton>
+                    </div>
+                </MudPaper>
+            }
+
+            <MudPaper Elevation="1" Class="pa-5 rounded-xl d-flex flex-column align-center justify-center"
+                      Style="width:240px;text-align:center;border:2px dashed var(--mud-palette-lines-default);cursor:pointer;"
+                      @onclick="@(() => _showAddPredictionDialog = true)">
+                <MudIcon Icon="@Icons.Material.Filled.Add" Style="font-size:40px;color:var(--mud-palette-text-secondary);" Class="mb-2" />
+                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Add Competition</MudText>
+            </MudPaper>
+        </div>
+    }
+    else if (_initialized && _leagues.Count > 0)
+    {
         <div class="d-flex justify-center mb-6">
-            <MudPaper Elevation="3" Class="pa-6 rounded-xl"
-                      Style="max-width:280px;text-align:center;background:linear-gradient(135deg, var(--mud-palette-tertiary) 0%, var(--mud-palette-primary) 100%);color:white;">
-            <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Style="font-size:40px;opacity:0.9;" Class="mb-2" />
-            <MudText Typo="Typo.h6" Style="font-weight:800;color:white;">Gameweek @_currentGameweek</MudText>
-            <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.8);" Class="mb-3">Make your predictions before kickoff!</MudText>
-            <MudButton Variant="Variant.Filled" Size="Size.Small"
-                       Style="background:white;color:var(--mud-palette-tertiary);font-weight:700;"
-                       StartIcon="@Icons.Material.Filled.Edit"
-                       OnClick="@(() => Nav.NavigateTo("/predict"))">
-                Predict Now
-            </MudButton>
-        </MudPaper>
+            <MudPaper Elevation="1" Class="pa-5 rounded-xl d-flex flex-column align-center justify-center"
+                      Style="width:240px;text-align:center;border:2px dashed var(--mud-palette-lines-default);cursor:pointer;"
+                      @onclick="@(() => _showAddPredictionDialog = true)">
+                <MudIcon Icon="@Icons.Material.Filled.Add" Style="font-size:40px;color:var(--mud-palette-text-secondary);" Class="mb-2" />
+                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Start Predicting</MudText>
+            </MudPaper>
         </div>
     }
 
-    <div class="d-flex justify-space-between align-center mb-4">
+    <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center gap-2 mb-4">
         <MudText Typo="Typo.h5" Style="font-weight:700;">My Leagues</MudText>
         <div class="d-flex gap-2">
             <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
@@ -52,7 +91,7 @@
                         <div>
                             <MudText Typo="Typo.subtitle1" Style="font-weight:600;">@league.Name</MudText>
                             <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                @league.SeasonName · @league.MemberCount member@(league.MemberCount != 1 ? "s" : "") · Created by @league.OwnerDisplayName
+                                @league.CompetitionName · @league.SeasonName · @league.MemberCount member@(league.MemberCount != 1 ? "s" : "") · Created by @league.OwnerDisplayName
                             </MudText>
                         </div>
                         <div class="d-flex align-center gap-2" @onclick:stopPropagation="true">
@@ -72,13 +111,20 @@
 <MudDialog @bind-Visible="_showCreateDialog" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
     <TitleContent>Create Prediction League</TitleContent>
     <DialogContent>
+        <MudSelect T="CompetitionResult" @bind-Value="_selectedCompetition" Label="Competition" Variant="Variant.Outlined"
+                   ToStringFunc="@(c => c?.Name ?? "")" Class="mb-3">
+            @foreach (var comp in _competitions)
+            {
+                <MudSelectItem T="CompetitionResult" Value="comp">@comp.Name</MudSelectItem>
+            }
+        </MudSelect>
         <MudTextField @bind-Value="_newLeagueName" Label="League Name" Variant="Variant.Outlined"
                       Placeholder="e.g. The Lads" Immediate="true" />
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="@(() => _showCreateDialog = false)">Cancel</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Tertiary"
-                   Disabled="@(string.IsNullOrWhiteSpace(_newLeagueName) || _currentSeasonId == 0)"
+                   Disabled="@(string.IsNullOrWhiteSpace(_newLeagueName) || _selectedCompetition is null)"
                    OnClick="CreateLeagueAsync">Create</MudButton>
     </DialogActions>
 </MudDialog>
@@ -94,5 +140,27 @@
         <MudButton Variant="Variant.Filled" Color="Color.Primary"
                    Disabled="@(string.IsNullOrWhiteSpace(_inviteCode))"
                    OnClick="JoinLeagueAsync">Join</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<MudDialog @bind-Visible="_showAddPredictionDialog" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent>Add Competition Predictions</TitleContent>
+    <DialogContent>
+        <MudSelect T="CompetitionResult" @bind-Value="_selectedCompetition" Label="Competition" Variant="Variant.Outlined"
+                   ToStringFunc="@(c => c?.Name ?? "")">
+            @foreach (var comp in _competitions)
+            {
+                var isActive = _predictionTiles.Any(t => t.CompetitionId == comp.Id);
+                <MudSelectItem T="CompetitionResult" Value="comp" Disabled="isActive">
+                    @comp.Name @(isActive ? "(Already Active)" : "")
+                </MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _showAddPredictionDialog = false)">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Tertiary"
+                   Disabled="@(_selectedCompetition is null)"
+                   OnClick="AddPredictionForCompetition">Go</MudButton>
     </DialogActions>
 </MudDialog>

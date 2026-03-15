@@ -17,22 +17,24 @@ internal sealed record CalculateOutcomesCommandHandler(
         var predictions = await DbContext.Predictions
             .Include(p => p.Match)
             .Where(p => p.SeasonId == command.SeasonId
+                        && p.PredictionType == PredictionType.Score
                         && p.Outcome == null
-                        && p.Match.Status == MatchStatus.Finished
+                        && p.Match!.Status == MatchStatus.Finished
                         && p.Match.HomeScore != null && p.Match.AwayScore != null)
             .ToListAsync(ct);
 
         foreach (var prediction in predictions)
         {
             prediction.Outcome = DetermineOutcome(
-                prediction.PredictedHomeScore, prediction.PredictedAwayScore,
-                prediction.Match.HomeScore!.Value, prediction.Match.AwayScore!.Value);
+                prediction.PredictedHomeScore!.Value, prediction.PredictedAwayScore!.Value,
+                prediction.Match!.HomeScore!.Value, prediction.Match.AwayScore!.Value);
         }
 
         if (predictions.Count > 0)
         {
             var scoringRules = await DbContext.PredictionScoringRules
                 .AsNoTracking()
+                .Where(r => r.PredictionType == PredictionType.Score && r.StageType == null)
                 .ToDictionaryAsync(r => r.Outcome, r => r.Points, ct);
 
             var pointsByUser = predictions

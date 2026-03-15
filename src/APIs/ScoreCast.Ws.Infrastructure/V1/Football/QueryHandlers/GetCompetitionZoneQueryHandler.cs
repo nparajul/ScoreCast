@@ -8,7 +8,7 @@ using ScoreCast.Ws.Application.V1.Interfaces;
 namespace ScoreCast.Ws.Infrastructure.V1.Football.QueryHandlers;
 
 internal sealed record GetCompetitionZonesQueryHandler(
-    IScoreCastDbContext DbContext) : ICommandHandler<GetCompetitionZonesQuery, ScoreCastResponse<List<CompetitionZoneResult>>>
+    IScoreCastDbContext DbContext) : IQueryHandler<GetCompetitionZonesQuery, ScoreCastResponse<List<CompetitionZoneResult>>>
 {
     public async Task<ScoreCastResponse<List<CompetitionZoneResult>>> ExecuteAsync(GetCompetitionZonesQuery query, CancellationToken ct)
     {

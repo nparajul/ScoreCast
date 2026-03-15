@@ -21,6 +21,8 @@ public sealed class ScoreCastDbContext(DbContextOptions<ScoreCastDbContext> opti
     public DbSet<Season> Seasons => Set<Season>();
     public DbSet<SeasonTeam> SeasonTeams => Set<SeasonTeam>();
     public DbSet<Gameweek> Gameweeks => Set<Gameweek>();
+    public DbSet<Stage> Stages => Set<Stage>();
+    public DbSet<MatchGroup> MatchGroups => Set<MatchGroup>();
     public DbSet<Match> Matches => Set<Match>();
     public DbSet<PredictionScoringRule> PredictionScoringRules => Set<PredictionScoringRule>();
     public DbSet<PredictionLeague> PredictionLeagues => Set<PredictionLeague>();
@@ -30,7 +32,9 @@ public sealed class ScoreCastDbContext(DbContextOptions<ScoreCastDbContext> opti
     public DbSet<TeamPlayer> TeamPlayers => Set<TeamPlayer>();
     public DbSet<CompetitionZone> CompetitionZones => Set<CompetitionZone>();
     public DbSet<MatchEvent> MatchEvents => Set<MatchEvent>();
+    public DbSet<MatchLineup> MatchLineups => Set<MatchLineup>();
     public DbSet<ExternalMapping> ExternalMappings => Set<ExternalMapping>();
+    public DbSet<AppConfig> AppConfigs => Set<AppConfig>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

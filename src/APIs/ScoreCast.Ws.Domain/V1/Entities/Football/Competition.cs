@@ -10,7 +10,7 @@ public sealed record Competition : ScoreCastEntity
     public long CountryId { get; set; }
     public string? LogoUrl { get; set; }
     public string? ExternalId { get; set; }
-    public LeagueType Type { get; set; } = LeagueType.League;
+    public CompetitionFormat Format { get; set; } = CompetitionFormat.League;
     public int SortOrder { get; set; }
     public bool IsActive { get; set; } = true;
 

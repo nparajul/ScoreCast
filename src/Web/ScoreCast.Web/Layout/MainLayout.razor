@@ -10,12 +10,12 @@
 @inject IRoleNavigationService RoleNav
 
 <PageTitle>ScoreCast</PageTitle>
-<MudThemeProvider @ref="_themeProvider" @bind-IsDarkMode="_isDarkMode" Theme="AppTheme.Theme" />
+<MudThemeProvider Theme="AppTheme.Theme" />
 <MudDialogProvider FullWidth="true" MaxWidth="MaxWidth.Medium" CloseButton="true"/>
 <MudPopoverProvider />
 <MudSnackbarProvider />
 
-<MudBreakpointProvider>
+<MudBreakpointProvider OnBreakpointChanged="@(bp => { _isMobile = bp <= Breakpoint.Sm; StateHasChanged(); })">
 <MudLayout Style="min-height:100vh; display:flex; flex-direction:column;">
     <MudAppBar Elevation="2" Color="Color.Primary">
         <MudIconButton Icon="@Icons.Material.Filled.Menu"
@@ -49,9 +49,6 @@
             </select>
         }
 
-        <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
-                       Color="Color.Inherit"
-                       OnClick="ToggleDarkMode" />
         <LoginDisplay />
     </MudAppBar>
 
@@ -82,7 +79,7 @@
     </MudDrawer>
 
     <MudContainer Class="main-container" MaxWidth="MaxWidth.ExtraExtraLarge" Style="flex:1;">
-        <CascadingValue Value="_isDarkMode" Name="IsDarkMode">
+        <CascadingValue Value="_isMobile" Name="IsMobile">
             <UserSync />
             <MudContainer MaxWidth="Alert.Width" Class="d-flex flex-column gap-4">
                 @foreach (var alert in Alert.Alerts.ToList())
