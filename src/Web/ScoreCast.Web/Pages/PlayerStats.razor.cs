@@ -80,8 +80,17 @@ public partial class PlayerStats
     private string SortIcon(string column) =>
         _sortColumn != column ? "" : _sortDescending ? Icons.Material.Filled.ArrowDownward : Icons.Material.Filled.ArrowUpward;
 
-    private List<PlayerStatRow> CleanSheetRows =>
-        _rows.Where(r => r.CleanSheets > 0).OrderByDescending(r => r.CleanSheets).ToList();
+    private List<PlayerStatRow> CleanSheetRows
+    {
+        get
+        {
+            var filtered = string.IsNullOrWhiteSpace(_search)
+                ? _rows
+                : _rows.Where(r => r.PlayerName.Contains(_search, StringComparison.OrdinalIgnoreCase)
+                    || (r.TeamName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false));
+            return filtered.Where(r => r.CleanSheets > 0).OrderByDescending(r => r.CleanSheets).ToList();
+        }
+    }
 
     private IEnumerable<PlayerStatRow> MobileTabRows
     {
