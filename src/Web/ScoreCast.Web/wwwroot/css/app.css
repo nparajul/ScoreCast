@@ -3,6 +3,43 @@
     margin-top: var(--mud-appbar-height);
     padding-top: 12px !important;
     padding-bottom: 48px !important;
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+}
+
+@media (min-width: 960px) {
+    .main-container {
+        padding-left: 24px !important;
+        padding-right: 24px !important;
+    }
+}
+
+/* Prevent tables and wide content from overflowing on mobile */
+.mud-table-container {
+    overflow-x: auto;
+}
+
+/* Make MudSelect and MudTextField full width on mobile */
+@media (max-width: 959.98px) {
+    .mud-input-control {
+        min-width: 0 !important;
+    }
+}
+
+/* Compact table on mobile */
+@media (max-width: 959.98px) {
+    .mobile-table .mud-table-cell {
+        padding: 8px 4px !important;
+    }
+    .mobile-table .mud-table-head .mud-table-cell {
+        padding: 8px 4px !important;
+    }
+    .mobile-table .mud-table-cell:first-child,
+    .mobile-table .mud-table-head .mud-table-cell:first-child {
+        padding-left: 8px !important;
+    }
+    .mobile-table .mud-table-cell:last-child,
+    .mobile-table .mud-table-head .mud-table-cell:last-child {
+        padding-right: 8px !important;
+    }
 }

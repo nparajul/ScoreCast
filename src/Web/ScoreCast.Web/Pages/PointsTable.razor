@@ -7,14 +7,14 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">Points Table</MudText>
 
-    <div class="d-flex gap-2 mb-4 flex-wrap align-end">
+    <div class="d-flex flex-column flex-md-row gap-2 mb-4 flex-wrap align-end">
         <MudSelect T="string"
                    Label="Country"
                    Value="_selectedCountry"
                    Variant="Variant.Outlined"
                    Dense="true"
                    Margin="Margin.Dense"
-                   Style="min-width:200px;max-width:300px;"
+                   Style="min-width:0;max-width:300px;"
                    ValueChanged="OnCountryChanged">
             @foreach (var country in _countries)
             {
@@ -37,7 +37,7 @@
                    Variant="Variant.Outlined"
                    Dense="true"
                    Margin="Margin.Dense"
-                   Style="min-width:200px;max-width:350px;"
+                   Style="min-width:0;max-width:350px;"
                    Disabled="@(_filteredCompetitions.Count == 0)"
                    ValueChanged="OnCompetitionChanged">
             @foreach (var comp in _filteredCompetitions)
@@ -60,7 +60,7 @@
                    Variant="Variant.Outlined"
                    Dense="true"
                    Margin="Margin.Dense"
-                   Style="min-width:180px;max-width:250px;"
+                   Style="min-width:0;max-width:250px;"
                    Disabled="@(_seasons.Count == 0)"
                    ValueChanged="OnSeasonChanged"
                    ToStringFunc="@(s => s?.Name ?? string.Empty)">

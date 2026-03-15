@@ -91,8 +91,8 @@ internal sealed record GetPointsTableQueryHandler(
 
             foreach (var m in groupMatches)
             {
-                var home = GetOrAdd(teams, m.HomeTeamId, m.HomeTeamName, m.HomeTeamLogo);
-                var away = GetOrAdd(teams, m.AwayTeamId, m.AwayTeamName, m.AwayTeamLogo);
+                var home = GetOrAdd(teams, m.HomeTeamId, m.HomeTeamName, m.HomeTeamShortName, m.HomeTeamLogo);
+                var away = GetOrAdd(teams, m.AwayTeamId, m.AwayTeamName, m.AwayTeamShortName, m.AwayTeamLogo);
 
                 if (m.Status != MatchStatus.Finished) continue;
 
@@ -126,7 +126,7 @@ internal sealed record GetPointsTableQueryHandler(
                 .ThenByDescending(t => t.GoalsFor)
                 .ThenBy(t => t.Name)
                 .Select((t, i) => new PointsTableRow(
-                    i + 1, t.TeamId, t.Name, t.Logo,
+                    i + 1, t.TeamId, t.Name, t.ShortName, t.Logo,
                     t.Played, t.Won, t.Drawn, t.Lost,
                     t.GoalsFor, t.GoalsAgainst, t.GoalDifference, t.Points,
                     GetForm(teamResults, t.TeamId, goalsByMatch)))
@@ -186,11 +186,11 @@ internal sealed record GetPointsTableQueryHandler(
         return ScoreCastResponse<PointsTableResult>.Ok(new PointsTableResult(format, groups, bestThirdPlaced, knockoutRounds));
     }
 
-    private static TableEntry GetOrAdd(Dictionary<long, TableEntry> teams, long id, string name, string? logo)
+    private static TableEntry GetOrAdd(Dictionary<long, TableEntry> teams, long id, string name, string? shortName, string? logo)
     {
         if (!teams.TryGetValue(id, out var entry))
         {
-            entry = new TableEntry(id, name, logo);
+            entry = new TableEntry(id, name, shortName, logo);
             teams[id] = entry;
         }
         return entry;
@@ -216,10 +216,11 @@ internal sealed record GetPointsTableQueryHandler(
                 .ToList()
             : [];
 
-    private sealed class TableEntry(long teamId, string name, string? logo)
+    private sealed class TableEntry(long teamId, string name, string? shortName, string? logo)
     {
         public long TeamId => teamId;
         public string Name => name;
+        public string? ShortName => shortName;
         public string? Logo => logo;
         public int Played, Won, Drawn, Lost, GoalsFor, GoalsAgainst;
         public int GoalDifference => GoalsFor - GoalsAgainst;
