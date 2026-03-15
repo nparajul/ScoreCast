@@ -6,4 +6,5 @@ namespace ScoreCast.Web.Components.PointsTable;
 public partial class MobileRoundView
 {
     [Parameter, EditorRequired] public List<BracketSlot> Slots { get; set; } = [];
+    [Parameter] public List<BracketSlot>? NextRoundSlots { get; set; }
 }
