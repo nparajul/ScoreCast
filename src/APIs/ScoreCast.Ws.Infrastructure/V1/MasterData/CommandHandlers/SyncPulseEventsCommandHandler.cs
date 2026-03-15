@@ -132,6 +132,15 @@ internal sealed record SyncPulseEventsCommandHandler(
                 .ToHashSet()
             : [];
 
+        var existingLineupKeys = batchMatchIds.Count > 0
+            ? (await DbContext.MatchLineups
+                .Where(l => batchMatchIds.Contains(l.MatchId))
+                .Select(l => new { l.MatchId, l.PlayerId })
+                .ToListAsync(ct))
+                .Select(l => (l.MatchId, l.PlayerId))
+                .ToHashSet()
+            : new HashSet<(long, long)>();
+
         // Process results sequentially (DB context not thread-safe)
         foreach (var (item, pulseData) in results)
         {
@@ -148,6 +157,9 @@ internal sealed record SyncPulseEventsCommandHandler(
             }
 
             MapPulsePlayers(pulseData, homeTeamId, awayTeamId, playersByTeam, pulsePlayerMap, mappedEntityIds);
+
+            // Persist lineups
+            SaveLineups(pulseData, matchId, homeTeamId, awayTeamId, pulsePlayerMap, validPlayerIds, existingLineupKeys);
 
             var seenKeys = new HashSet<(long, long, MatchEventType, string?)>();
             var eventsExpected = pulseData.Events.Count(pe => pe.PersonId is not null && MapPulseEvent(pe.Type, pe.Description) is not null);
@@ -200,8 +212,8 @@ internal sealed record SyncPulseEventsCommandHandler(
                 }
             }
 
-            // Only mark as Pulse-synced when ALL events were successfully mapped
-            if (!isLive && !pulseSyncedMatchIds.Contains(matchId) && eventsMatched >= eventsExpected)
+            // Mark finished matches as Pulse-synced after processing
+            if (!isLive && !pulseSyncedMatchIds.Contains(matchId))
             {
                 DbContext.ExternalMappings.Add(new ExternalMapping
                 {
@@ -287,6 +299,38 @@ internal sealed record SyncPulseEventsCommandHandler(
                     Source = ExternalSource.Pulse,
                     ExternalCode = key
                 });
+            }
+        }
+    }
+
+    private void SaveLineups(
+        PulseFixtureResponse pulse, long matchId, long homeTeamId, long awayTeamId,
+        Dictionary<string, long> pulsePlayerMap, HashSet<long> validPlayerIds,
+        HashSet<(long, long)> existingKeys)
+    {
+        if (pulse.TeamLists is null) return;
+
+        var teamIds = new[] { homeTeamId, awayTeamId };
+        for (var i = 0; i < pulse.TeamLists.Count && i < 2; i++)
+        {
+            var tl = pulse.TeamLists[i];
+            foreach (var (players, isStarter) in new[] { (tl.Lineup, true), (tl.Substitutes, false) })
+            {
+                if (players is null) continue;
+                foreach (var pp in players)
+                {
+                    var key = pp.Id.ToString();
+                    if (!pulsePlayerMap.TryGetValue(key, out var playerId)) continue;
+                    if (!validPlayerIds.Contains(playerId)) continue;
+                    if (!existingKeys.Add((matchId, playerId))) continue;
+
+                    DbContext.MatchLineups.Add(new MatchLineup
+                    {
+                        MatchId = matchId,
+                        PlayerId = playerId,
+                        IsStarter = isStarter
+                    });
+                }
             }
         }
     }
