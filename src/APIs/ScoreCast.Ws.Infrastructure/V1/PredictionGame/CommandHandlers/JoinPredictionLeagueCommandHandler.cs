@@ -27,6 +27,7 @@ internal sealed record JoinPredictionLeagueCommandHandler(
 
         var league = await DbContext.PredictionLeagues
             .Include(l => l.Members)
+            .Include(l => l.Competition)
             .Include(l => l.Season)
             .Include(l => l.CreatedByUser)
             .FirstOrDefaultAsync(l => l.InviteCode == request.InviteCode, ct);
@@ -52,8 +53,9 @@ internal sealed record JoinPredictionLeagueCommandHandler(
             .CountAsync(m => m.PredictionLeagueId == league.Id, ct);
 
         return ScoreCastResponse<PredictionLeagueResult>.Ok(
-            new PredictionLeagueResult(league.Id, league.Name, league.InviteCode, league.SeasonId,
-                league.Season.Name, memberCount,
+            new PredictionLeagueResult(league.Id, league.Name, league.InviteCode,
+                league.CompetitionId, league.Competition.Name, league.Competition.Code, league.Competition.LogoUrl,
+                league.SeasonId, league.Season.Name, memberCount,
                 league.CreatedByUser.DisplayName ?? league.CreatedByUser.UserId));
     }
 }

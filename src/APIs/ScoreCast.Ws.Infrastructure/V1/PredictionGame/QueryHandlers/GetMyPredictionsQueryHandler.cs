@@ -8,7 +8,7 @@ using ScoreCast.Ws.Application.V1.PredictionGame.Queries;
 namespace ScoreCast.Ws.Infrastructure.V1.PredictionGame.QueryHandlers;
 
 internal sealed record GetMyPredictionsQueryHandler(
-    IScoreCastDbContext DbContext) : ICommandHandler<GetMyPredictionsQuery, ScoreCastResponse<List<MyPredictionResult>>>
+    IScoreCastDbContext DbContext) : IQueryHandler<GetMyPredictionsQuery, ScoreCastResponse<List<MyPredictionResult>>>
 {
     public async Task<ScoreCastResponse<List<MyPredictionResult>>> ExecuteAsync(GetMyPredictionsQuery query, CancellationToken ct)
     {
@@ -29,8 +29,9 @@ internal sealed record GetMyPredictionsQueryHandler(
             .AsNoTracking()
             .Where(p => p.SeasonId == query.SeasonId
                         && p.UserId == user.Id
-                        && matchIds.Contains(p.MatchId))
-            .Select(p => new MyPredictionResult(p.MatchId, p.PredictedHomeScore, p.PredictedAwayScore, p.Outcome))
+                        && p.MatchId != null
+                        && matchIds.Contains(p.MatchId.Value))
+            .Select(p => new MyPredictionResult(p.MatchId!.Value, p.PredictedHomeScore!.Value, p.PredictedAwayScore!.Value, p.Outcome))
             .ToListAsync(ct);
 
         return ScoreCastResponse<List<MyPredictionResult>>.Ok(predictions);

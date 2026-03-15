@@ -1,6 +1,7 @@
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
+using ScoreCast.Web.Components;
 using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
@@ -14,85 +15,18 @@ public partial class Scores : IDisposable
 
     private const string AppName = "SCORES";
 
-    private List<CompetitionResult> _competitions = [];
-    private List<string> _countries = [];
-    private List<CompetitionResult> _filteredCompetitions = [];
-    private List<SeasonResult> _seasons = [];
-    private GameweekMatchesResult? _gameweek;
-    private string? _selectedCountry;
-    private CompetitionResult? _selectedCompetition;
     private SeasonResult? _selectedSeason;
+    private GameweekMatchesResult? _gameweek;
     private readonly HashSet<long> _expandedMatches = [];
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task OnFilterChanged(CompetitionFilterState state)
     {
-        if (!firstRender) return;
-        var response = await Api.GetCompetitionsAsync(CancellationToken.None);
-        if (response is { Success: true, Data: not null })
-        {
-            _competitions = response.Data;
-            _countries = _competitions.Select(c => c.CountryName).Distinct().OrderBy(c => c).ToList();
-            _filteredCompetitions = _competitions.Where(c => c.CountryName == CountryNames.England).ToList();
-        }
-
-        StateHasChanged();
-        await Task.Yield();
-
-        _selectedCountry = CountryNames.England;
-        var pl = _filteredCompetitions.FirstOrDefault(c => c.Code == CompetitionCodes.PremierLeague);
-        if (pl is not null)
-        {
-            _selectedCompetition = pl;
-            StateHasChanged();
-            await Task.Yield();
-            await LoadSeasonsAsync(pl);
-        }
-
-        StateHasChanged();
-    }
-
-    private async Task LoadSeasonsAsync(CompetitionResult competition)
-    {
-        var response = await Api.GetSeasonsAsync(competition.Code, CancellationToken.None);
-        if (response is { Success: true, Data: not null })
-            _seasons = response.Data;
-
-        StateHasChanged();
-        await Task.Yield();
-
-        _selectedSeason = _seasons.FirstOrDefault(s => s.IsCurrent) ?? _seasons.FirstOrDefault();
-        if (_selectedSeason is not null)
-            await LoadGameweekAsync(_selectedSeason.Id, SharedConstants.CurrentGameweek);
-    }
-
-    private async Task OnCountryChanged(string? country)
-    {
-        _selectedCountry = country;
-        _selectedCompetition = null;
-        _selectedSeason = null;
-        _seasons = [];
+        _selectedSeason = state.Season;
         _gameweek = null;
-        _filteredCompetitions = country is null ? [] : _competitions.Where(c => c.CountryName == country).ToList();
-        if (_filteredCompetitions.Count == 1)
-            await OnCompetitionChanged(_filteredCompetitions[0]);
-    }
-
-    private async Task OnCompetitionChanged(CompetitionResult? competition)
-    {
-        _selectedCompetition = competition;
-        _seasons = [];
-        _selectedSeason = null;
-        _gameweek = null;
-        if (competition is not null)
-            await Loading.While(async () => await LoadSeasonsAsync(competition));
-    }
-
-    private async Task OnSeasonChanged(SeasonResult? season)
-    {
-        _selectedSeason = season;
-        _gameweek = null;
-        if (season is not null)
-            await LoadGameweekAsync(season.Id, SharedConstants.CurrentGameweek);
+        _expandedMatches.Clear();
+        if (state.Season is not null)
+            await LoadGameweekAsync(state.Season.Id, SharedConstants.CurrentGameweek);
+        StateHasChanged();
     }
 
     private async Task LoadGameweekAsync(long seasonId, int gameweekNumber)
@@ -176,24 +110,28 @@ public partial class Scores : IDisposable
         _ => ""
     };
 
-    private record DisplayLine(string Text, string? Minute, double SortKey, bool Bold);
+    private record DisplayLine(MarkupString Markup, string? Minute, double SortKey, bool Bold);
 
-    private static List<DisplayLine> GetDisplayLines(List<MatchEventDetail> events, bool isHome)
+    private static List<DisplayLine> GetDisplayLines(List<MatchEventDetail> events, bool isHome, bool includeSubs = true)
     {
         var lines = new List<DisplayLine>();
 
         foreach (var e in events.Where(e => e.IsHome == isHome && e.EventType is not EventTypes.SubIn and not EventTypes.SubOut))
         {
             var isGoal = e.EventType is EventTypes.Goal or EventTypes.PenaltyGoal or EventTypes.OwnGoal;
+            var text = isHome ? $"{e.PlayerName} {FormatEvent(e)}" : $"{FormatEvent(e)} {e.PlayerName}";
             lines.Add(new DisplayLine(
-                isHome ? $"{e.PlayerName} {FormatEvent(e)}" : $"{FormatEvent(e)} {e.PlayerName}",
+                new MarkupString(text),
                 e.Minute, ParseMinute(e.Minute), isGoal));
         }
 
-        foreach (var s in GetSubPairs(events, isHome))
-            lines.Add(new DisplayLine(
-                $"🔼 {s.PlayerOn} 🔽 {s.PlayerOff}",
-                s.Minute, ParseMinute(s.Minute), false));
+        if (includeSubs)
+        {
+            foreach (var s in GetSubPairs(events, isHome))
+                lines.Add(new DisplayLine(
+                    new MarkupString($"<span style=\"color:#4caf50;\">▲</span> {s.PlayerOn} <span style=\"color:#f44336;\">▼</span> {s.PlayerOff}"),
+                    s.Minute, ParseMinute(s.Minute), false));
+        }
 
         return lines.OrderBy(l => l.SortKey).ToList();
     }

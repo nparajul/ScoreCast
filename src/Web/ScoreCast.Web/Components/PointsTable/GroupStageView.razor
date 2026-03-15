@@ -1,0 +1,68 @@
+@* ── DESKTOP: 3-column grid ── *@
+@if (!IsMobile)
+{
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+        @foreach (var group in Groups)
+        {
+            <GroupCard Group="group" Zones="Zones" />
+        }
+    </div>
+}
+
+@* ── MOBILE: single column, compact ── *@
+@if (IsMobile)
+{
+    @foreach (var group in Groups)
+    {
+        <MudSimpleTable Dense="true" Hover="true" Elevation="1" Style="white-space:nowrap;margin-bottom:12px;">
+            <thead>
+                <tr>
+                    <th style="width:20px;padding:6px 2px;"></th>
+                    <th style="padding:6px 2px;font-weight:700;">@group.GroupName</th>
+                    <th style="text-align:center;width:20px;padding:6px 2px;">P</th>
+                    <th style="text-align:center;width:20px;padding:6px 2px;">W</th>
+                    <th style="text-align:center;width:20px;padding:6px 2px;">D</th>
+                    <th style="text-align:center;width:20px;padding:6px 2px;">L</th>
+                    <th style="text-align:center;width:32px;padding:6px 2px;">+/-</th>
+                    <th style="text-align:center;width:24px;padding:6px 2px;">GD</th>
+                    <th style="text-align:center;width:24px;padding:6px 2px;font-weight:700;">Pts</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in group.Rows)
+                {
+                    var zone = Zones.FirstOrDefault(z => row.Position >= z.StartPosition && row.Position <= z.EndPosition);
+                    <tr style="@(zone is not null ? $"border-left:3px solid {zone.Color};" : "border-left:3px solid transparent;")">
+                        <td style="padding:8px 2px;color:var(--mud-palette-text-secondary);font-size:0.8125rem;">@row.Position</td>
+                        <td style="padding:8px 2px;">
+                            <div class="d-flex align-center gap-2">
+                                @if (!string.IsNullOrEmpty(row.TeamLogo))
+                                {
+                                    <img src="@row.TeamLogo" alt="" style="width:20px;height:20px;" />
+                                }
+                                <span style="font-size:0.8125rem;font-weight:600;">@(row.TeamShortName ?? row.TeamName)</span>
+                            </div>
+                        </td>
+                        <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;">@row.Played</td>
+                        <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;">@row.Won</td>
+                        <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;">@row.Drawn</td>
+                        <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;">@row.Lost</td>
+                        <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;">@row.GoalsFor-@row.GoalsAgainst</td>
+                        <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;">@row.GoalDifference</td>
+                        <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;font-weight:700;">@row.Points</td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+    }
+}
+
+<div class="d-flex gap-4 mt-3 ms-2 flex-wrap">
+    @foreach (var zone in Zones)
+    {
+        <div class="d-flex align-center gap-1">
+            <span style="width:12px;height:12px;border-radius:2px;background:@zone.Color;display:inline-block;"></span>
+            <MudText Typo="Typo.caption">@zone.Name</MudText>
+        </div>
+    }
+</div>

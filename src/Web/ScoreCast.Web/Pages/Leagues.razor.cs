@@ -1,5 +1,6 @@
 using Microsoft.JSInterop;
 using ScoreCast.Models.V1.Requests.Prediction;
+using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Models.V1.Responses.Prediction;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Web.Components.Helpers;
@@ -18,12 +19,14 @@ public partial class Leagues
     [Inject] private IJSRuntime Js { get; set; } = default!;
 
     private List<PredictionLeagueResult> _leagues = [];
-    private long _currentSeasonId;
-    private int _currentGameweek;
+    private List<CompetitionResult> _competitions = [];
+    private List<PredictionTile> _predictionTiles = [];
     private bool _initialized;
     private bool _showCreateDialog;
     private bool _showJoinDialog;
+    private bool _showAddPredictionDialog;
     private string? _newLeagueName;
+    private CompetitionResult? _selectedCompetition;
     private string? _inviteCode;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -35,17 +38,17 @@ public partial class Leagues
             if (leaguesResponse is { Success: true, Data: not null })
                 _leagues = leaguesResponse.Data;
 
-            var seasonsResponse = await Api.GetSeasonsAsync(CompetitionCodes.PremierLeague, CancellationToken.None);
-            if (seasonsResponse is { Success: true, Data: not null })
-            {
-                _currentSeasonId = seasonsResponse.Data.FirstOrDefault(s => s.IsCurrent)?.Id ?? 0;
-                if (_currentSeasonId > 0)
-                {
-                    var gwResponse = await Api.GetGameweekMatchesAsync(_currentSeasonId, SharedConstants.CurrentGameweek, CancellationToken.None);
-                    if (gwResponse is { Success: true, Data: not null })
-                        _currentGameweek = gwResponse.Data.CurrentGameweek;
-                }
-            }
+            var competitionsResponse = await Api.GetCompetitionsAsync(CancellationToken.None);
+            if (competitionsResponse is { Success: true, Data: not null })
+                _competitions = competitionsResponse.Data;
+
+            // Build prediction tiles from distinct competitions in user's leagues
+            _predictionTiles = _leagues
+                .GroupBy(l => l.CompetitionId)
+                .Select(g => g.First())
+                .Select(l => new PredictionTile(l.CompetitionId, l.CompetitionName, l.CompetitionCode,
+                    l.CompetitionLogoUrl, l.SeasonId, l.SeasonName))
+                .ToList();
 
             _initialized = true;
         });
@@ -54,13 +57,13 @@ public partial class Leagues
 
     private async Task CreateLeagueAsync()
     {
-        if (string.IsNullOrWhiteSpace(_newLeagueName) || _currentSeasonId == 0) return;
+        if (string.IsNullOrWhiteSpace(_newLeagueName) || _selectedCompetition is null) return;
         _showCreateDialog = false;
 
         await Loading.While(async () =>
         {
             var response = await Api.CreatePredictionLeagueAsync(
-                new CreatePredictionLeagueRequest { Name = _newLeagueName, SeasonId = _currentSeasonId },
+                new CreatePredictionLeagueRequest { Name = _newLeagueName, CompetitionId = _selectedCompetition.Id },
                 CancellationToken.None);
 
             if (response is { Success: true, Data: not null })
@@ -68,6 +71,7 @@ public partial class Leagues
                 _leagues.Add(response.Data);
                 Alert.Add($"League '{response.Data.Name}' created! Invite code: {response.Data.InviteCode}", Severity.Success);
                 _newLeagueName = null;
+                _selectedCompetition = null;
             }
             else
             {
@@ -89,8 +93,20 @@ public partial class Leagues
 
             if (response is { Success: true, Data: not null })
             {
+                var isNewCompetition = _predictionTiles.All(t => t.CompetitionId != response.Data.CompetitionId);
                 _leagues.Add(response.Data);
-                Alert.Add($"Joined '{response.Data.Name}'!", Severity.Success);
+                _predictionTiles = _leagues
+                    .GroupBy(l => l.CompetitionId)
+                    .Select(g => g.First())
+                    .Select(l => new PredictionTile(l.CompetitionId, l.CompetitionName, l.CompetitionCode,
+                        l.CompetitionLogoUrl, l.SeasonId, l.SeasonName))
+                    .ToList();
+
+                if (isNewCompetition)
+                    Alert.Add($"Joined '{response.Data.Name}'! This is a {response.Data.CompetitionName} league — head to Predict Now to start making predictions.", Severity.Info);
+                else
+                    Alert.Add($"Joined '{response.Data.Name}'!", Severity.Success);
+
                 _inviteCode = null;
             }
             else
@@ -107,4 +123,28 @@ public partial class Leagues
     }
 
     private void NavigateToLeague(long leagueId) => Nav.NavigateTo($"/leagues/{leagueId}");
+
+    private void NavigateToPredict(string competitionCode, long seasonId) =>
+        Nav.NavigateTo($"/predict?competition={competitionCode}&seasonId={seasonId}");
+
+    private void AddPredictionForCompetition()
+    {
+        if (_selectedCompetition is null) return;
+        _showAddPredictionDialog = false;
+
+        // If user already has a tile for this competition, just navigate
+        var existing = _predictionTiles.FirstOrDefault(t => t.CompetitionId == _selectedCompetition.Id);
+        if (existing is not null)
+        {
+            NavigateToPredict(existing.CompetitionCode, existing.SeasonId);
+            return;
+        }
+
+        // Otherwise navigate — the predict page will handle loading the season
+        Nav.NavigateTo($"/predict?competition={_selectedCompetition.Code}");
+        _selectedCompetition = null;
+    }
+
+    private record PredictionTile(long CompetitionId, string CompetitionName, string CompetitionCode,
+        string? LogoUrl, long SeasonId, string? SeasonName);
 }

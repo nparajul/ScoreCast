@@ -4,7 +4,7 @@ using ScoreCast.Ws.Application.V1.Football.Queries;
 
 namespace ScoreCast.Ws.Endpoints.V1.Football;
 
-public sealed class GetLeagueTableEndpoint : EndpointWithoutRequest<ScoreCastResponse<List<LeagueTableRow>>>
+public sealed class GetPointsTableEndpoint : EndpointWithoutRequest<ScoreCastResponse<PointsTableResult>>
 {
     public override void Configure()
     {
@@ -13,15 +13,15 @@ public sealed class GetLeagueTableEndpoint : EndpointWithoutRequest<ScoreCastRes
         AllowAnonymous();
         Summary(s =>
         {
-            s.Summary = "Get League Table";
-            s.Description = "Returns the league table for a given season, computed from match results";
+            s.Summary = "Get Points Table";
+            s.Description = "Returns the points table for a given season, computed from match results";
         });
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
         var seasonId = Route<long>("seasonId");
-        var result = await new GetLeagueTableQuery(seasonId).ExecuteAsync(ct);
+        var result = await new GetPointsTableQuery(seasonId).ExecuteAsync(ct);
         await Send.OkAsync(result, ct);
     }
 }

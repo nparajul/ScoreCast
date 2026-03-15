@@ -20,13 +20,16 @@
 - **Infrastructure** implements all handlers and data access
 - **Endpoints** are thin — delegate to commands/queries, no business logic
 - **Models** — request/response records in `ScoreCast.Models`
-- **Constants** in `ScoreCast.Shared.Constants`, enums in `ScoreCast.Shared.Enums`
+- **Constants** in `ScoreCast.Shared.Constants` (e.g., `PlayerPositions`, `SharedConstants`), enums in `ScoreCast.Shared.Enums`
 - Entity configurations (EF Fluent API) go in `Infrastructure/`
 
 ## CQRS Conventions
+- Queries: `public record XxxQuery(...) : IQuery<ScoreCastResponse<T>>;` (from `ScoreCast.Ws.Application.V1.Interfaces`)
+- Query Handlers: `internal sealed record XxxQueryHandler(...) : IQueryHandler<XxxQuery, ScoreCastResponse<T>>`
 - Commands: `public record XxxCommand(XxxRequest Request) : ICommand<ScoreCastResponse>;`
-- Handlers: `internal sealed record XxxCommandHandler(IScoreCastDbContext DbContext, IUnitOfWork UnitOfWork) : ICommandHandler<XxxCommand, ScoreCastResponse>`
-- Commands are `public`, handlers are `internal sealed`
+- Command Handlers: `internal sealed record XxxCommandHandler(IScoreCastDbContext DbContext, IUnitOfWork UnitOfWork) : ICommandHandler<XxxCommand, ScoreCastResponse>`
+- `IQuery<T>` extends `ICommand<T>`, `IQueryHandler<TQuery, TResult>` extends `ICommandHandler<TQuery, TResult>` — defined in `ScoreCast.Ws.Application.V1.Interfaces`
+- Commands/Queries are `public`, handlers are `internal sealed`
 - `SaveChangesAsync` must always use `request.AppName ?? nameof(XxxCommand)` pattern
 
 ## FastEndpoints Conventions
@@ -38,7 +41,7 @@
 
 ## Code Style
 - **Records everywhere** for commands, queries, handlers, DTOs, and value objects with primary constructors
-- No magic strings — use constants classes or `nameof(EnumValue)`
+- No magic strings — use constants classes or `nameof(EnumValue)` (e.g., `PlayerPositions.Goalkeeper` not `"Goalkeeper"`)
 - No hardcoded URLs, status codes, or API values — everything via constants
 - Use `ScoreCastDateTime.Now` instead of `DateTime.UtcNow`
 - Points NEVER stored — computed on the fly from `Outcome` + `scoring_rules` table
@@ -51,6 +54,8 @@
 - Snake_case for all column names
 - Global query filter for soft delete: `builder.HasQueryFilter(q => !q.IsDeleted)`
 - No EF attributes/annotations on Domain entities — Fluent API only
+- When creating entities, don't use `required` on FK IDs — just use `long` and pass actual entity references
+- `MatchLineup` entity tracks starters/substitutes per match (unique index on match_id + player_id)
 
 ## Blazor / Frontend
 - No `@code` blocks in `.razor` files — always use code-behind `.razor.cs` files
@@ -60,6 +65,10 @@
 - Use `Alert.Add(message, Severity.X)` for alerts
 - Use `ISnackbar` for transient toast notifications
 - No `InvokeAsync` wrappers in Blazor WASM pages (only needed in Blazor Server)
+- Light mode only — no dark mode toggle or `PaletteDark`
+- Mobile: pill tabs with dark background, `MudSimpleTable` with tight padding
+- Desktop: `MudTabs` with `Header` render fragment for inline search bars
+- Position display: `PlayerPositions.ToShortName(position)` next to player names
 
 ## Refit API Client
 - POST methods: `Task<ScoreCastResponse> MethodAsync([Body] RequestType request, CancellationToken ct)`
@@ -74,6 +83,8 @@
 - Pulse response models use `[property: JsonPropertyName]` for case-sensitive deserialization
 - If FPL sync fails, Pulse sync should NOT run (sequential gating)
 - Enhance live matches should pull from ALL available sources
+- Pulse events sync: always mark finished matches as synced after processing to prevent infinite batch loop
+- Lineup persistence: save starters (TeamLists.Lineup) and substitutes (TeamLists.Substitutes) from Pulse fixture data
 
 ## Dependencies
 - Central Package Management via `Directory.Packages.props` — never specify versions in individual `.csproj` files

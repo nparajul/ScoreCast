@@ -1,0 +1,27 @@
+@{
+    var homeName = Slot.HomeTeam ?? Slot.Home;
+    var awayName = Slot.AwayTeam ?? Slot.Away;
+    var hasScore = Slot.HomeScore is not null;
+    var homeWon = hasScore && Slot.HomeScore > Slot.AwayScore;
+    var awayWon = hasScore && Slot.AwayScore > Slot.HomeScore;
+}
+<div style="border:1px solid var(--mud-palette-lines-default);border-radius:6px;overflow:hidden;background:var(--mud-palette-surface);box-shadow:0 1px 3px rgba(0,0,0,0.12);">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-bottom:1px solid var(--mud-palette-lines-default);@(homeWon ? "font-weight:700;background:rgba(76,175,80,0.08);" : "")">
+        <div class="d-flex align-center gap-2" style="flex:1;min-width:0;">
+            <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Small" Style="font-size:16px;color:var(--mud-palette-text-disabled);" />
+            <span style="font-size:0.8125rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@homeName</span>
+        </div>
+        <span style="font-size:0.8125rem;font-weight:600;">@(hasScore ? Slot.HomeScore.ToString() : "-")</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;@(awayWon ? "font-weight:700;background:rgba(76,175,80,0.08);" : "")">
+        <div class="d-flex align-center gap-2" style="flex:1;min-width:0;">
+            <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Small" Style="font-size:16px;color:var(--mud-palette-text-disabled);" />
+            <span style="font-size:0.8125rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@awayName</span>
+        </div>
+        <span style="font-size:0.8125rem;font-weight:600;">@(hasScore ? Slot.AwayScore.ToString() : "-")</span>
+    </div>
+    @if (Slot.Date is not null)
+    {
+        <div style="text-align:center;font-size:0.6875rem;padding:3px 0;background:var(--mud-palette-background-grey);color:var(--mud-palette-text-secondary);font-weight:500;">@Slot.Date</div>
+    }
+</div>

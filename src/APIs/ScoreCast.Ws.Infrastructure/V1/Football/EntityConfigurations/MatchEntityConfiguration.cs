@@ -18,6 +18,8 @@ internal sealed class MatchEntityConfiguration : BaseEntityConfiguration<Match>
         builder.Property(m => m.GameweekId).HasColumnName("gameweek_id").HasColumnOrder(order++).IsRequired();
         builder.Property(m => m.HomeTeamId).HasColumnName("home_team_id").HasColumnOrder(order++).IsRequired();
         builder.Property(m => m.AwayTeamId).HasColumnName("away_team_id").HasColumnOrder(order++).IsRequired();
+        builder.Property(m => m.MatchGroupId).HasColumnName("match_group_id").HasColumnOrder(order++);
+        builder.Property(m => m.FirstLegMatchId).HasColumnName("first_leg_match_id").HasColumnOrder(order++);
         builder.Property(m => m.ExternalId).HasColumnName("external_id").HasColumnOrder(order++).HasMaxLength(50);
         builder.Property(m => m.KickoffTime).HasColumnName("kickoff_time").HasColumnOrder(order++);
         builder.Property(m => m.HomeScore).HasColumnName("home_score").HasColumnOrder(order++);
@@ -26,10 +28,13 @@ internal sealed class MatchEntityConfiguration : BaseEntityConfiguration<Match>
         builder.Property(m => m.Venue).HasColumnName("venue").HasColumnOrder(order++).HasMaxLength(200);
         builder.Property(m => m.Referee).HasColumnName("referee").HasColumnOrder(order++).HasMaxLength(200);
         builder.Property(m => m.Minute).HasColumnName("minute").HasColumnOrder(order++).HasMaxLength(20);
+        builder.Property(m => m.Leg).HasColumnName("leg").HasColumnOrder(order++);
 
         builder.HasOne(m => m.Gameweek).WithMany(g => g.Matches).HasForeignKey(m => m.GameweekId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(m => m.HomeTeam).WithMany().HasForeignKey(m => m.HomeTeamId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(m => m.AwayTeam).WithMany().HasForeignKey(m => m.AwayTeamId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(m => m.MatchGroup).WithMany(g => g.Matches).HasForeignKey(m => m.MatchGroupId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(m => m.FirstLegMatch).WithMany().HasForeignKey(m => m.FirstLegMatchId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(m => m.ExternalId).IsUnique().HasFilter("external_id IS NOT NULL");
         builder.HasIndex(m => new { m.GameweekId, m.HomeTeamId, m.AwayTeamId }).IsUnique();
     }
