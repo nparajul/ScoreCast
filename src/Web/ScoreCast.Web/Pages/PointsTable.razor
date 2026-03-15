@@ -7,14 +7,14 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">Points Table</MudText>
 
-    <div class="d-flex gap-3 mb-4 flex-wrap align-end">
+    <div class="d-flex gap-2 mb-4 flex-wrap align-end">
         <MudSelect T="string"
                    Label="Country"
                    Value="_selectedCountry"
                    Variant="Variant.Outlined"
                    Dense="true"
                    Margin="Margin.Dense"
-                   Style="min-width:200px;flex:1;max-width:300px;"
+                   Style="min-width:200px;max-width:300px;"
                    ValueChanged="OnCountryChanged">
             @foreach (var country in _countries)
             {
@@ -30,35 +30,29 @@
             }
         </MudSelect>
 
-        <div class="d-flex align-center gap-2" style="flex:1;max-width:350px;min-width:200px;">
-            @if (!string.IsNullOrEmpty(_selectedCompetition?.LogoUrl))
+        <MudSelect T="CompetitionResult"
+                   Label="Competition"
+                   Value="_selectedCompetition"
+                   ToStringFunc="@(c => c?.Name ?? string.Empty)"
+                   Variant="Variant.Outlined"
+                   Dense="true"
+                   Margin="Margin.Dense"
+                   Style="min-width:200px;max-width:350px;"
+                   Disabled="@(_filteredCompetitions.Count == 0)"
+                   ValueChanged="OnCompetitionChanged">
+            @foreach (var comp in _filteredCompetitions)
             {
-                <img src="@_selectedCompetition.LogoUrl" alt="" style="width:24px;height:24px;" />
+                <MudSelectItem T="CompetitionResult" Value="comp">
+                    <div class="d-flex align-center gap-2">
+                        @if (!string.IsNullOrEmpty(comp.LogoUrl))
+                        {
+                            <img src="@comp.LogoUrl" alt="" style="width:20px;height:20px;" />
+                        }
+                        @comp.Name
+                    </div>
+                </MudSelectItem>
             }
-            <MudSelect T="CompetitionResult"
-                       Label="Competition"
-                       Value="_selectedCompetition"
-                       ToStringFunc="@(c => c?.Name ?? string.Empty)"
-                       Variant="Variant.Outlined"
-                       Dense="true"
-                       Margin="Margin.Dense"
-                       Style="flex:1;"
-                       Disabled="@(_filteredCompetitions.Count == 0)"
-                       ValueChanged="OnCompetitionChanged">
-                @foreach (var comp in _filteredCompetitions)
-                {
-                    <MudSelectItem T="CompetitionResult" Value="comp">
-                        <div class="d-flex align-center gap-2">
-                            @if (!string.IsNullOrEmpty(comp.LogoUrl))
-                            {
-                                <img src="@comp.LogoUrl" alt="" style="width:20px;height:20px;" />
-                            }
-                            @comp.Name
-                        </div>
-                    </MudSelectItem>
-                }
-            </MudSelect>
-        </div>
+        </MudSelect>
 
         <MudSelect T="SeasonResult"
                    Label="Season"
@@ -66,7 +60,7 @@
                    Variant="Variant.Outlined"
                    Dense="true"
                    Margin="Margin.Dense"
-                   Style="min-width:180px;flex:1;max-width:250px;"
+                   Style="min-width:180px;max-width:250px;"
                    Disabled="@(_seasons.Count == 0)"
                    ValueChanged="OnSeasonChanged"
                    ToStringFunc="@(s => s?.Name ?? string.Empty)">
@@ -81,132 +75,21 @@
     {
         @if (!IsGroupFormat)
         {
-            <div class="d-flex gap-4 mb-3 flex-wrap">
-                @foreach (var zone in _zones)
-                {
-                    <div class="d-flex align-center gap-1">
-                        <span style="width:12px;height:12px;border-radius:2px;background:@zone.Color;display:inline-block;"></span>
-                        <MudText Typo="Typo.caption">@zone.Name</MudText>
-                    </div>
-                }
-            </div>
-
-            <MudTable Items="_result.Groups[0].Rows" Dense="true" Hover="true" Elevation="1" RowStyleFunc="RowStyleFunc" Breakpoint="Breakpoint.Sm" FixedHeader="true">
-                <HeaderContent>
-                    <MudTh Style="width:50px;">#</MudTh>
-                    <MudTh>Team</MudTh>
-                    <MudTh Style="text-align:center;"><MudTooltip Text="Played">P</MudTooltip></MudTh>
-                    <MudTh Style="text-align:center;"><MudTooltip Text="Won">W</MudTooltip></MudTh>
-                    <MudTh Style="text-align:center;"><MudTooltip Text="Drawn">D</MudTooltip></MudTh>
-                    <MudTh Style="text-align:center;"><MudTooltip Text="Lost">L</MudTooltip></MudTh>
-                    <MudTh Style="text-align:center;"><MudTooltip Text="Goals For">GF</MudTooltip></MudTh>
-                    <MudTh Style="text-align:center;"><MudTooltip Text="Goals Against">GA</MudTooltip></MudTh>
-                    <MudTh Style="text-align:center;"><MudTooltip Text="Goal Difference">GD</MudTooltip></MudTh>
-                    <MudTh Style="text-align:center;font-weight:700;"><MudTooltip Text="Points">Pts</MudTooltip></MudTh>
-                    <MudTh Style="text-align:center;"><MudTooltip Text="Last 5 matches (most recent first)">Form</MudTooltip></MudTh>
-                </HeaderContent>
-                <RowTemplate>
-                    <MudTd DataLabel="#">@context.Position</MudTd>
-                    <MudTd DataLabel="Team">
-                        <div class="d-flex align-center gap-2">
-                            @if (!string.IsNullOrEmpty(context.TeamLogo))
-                            {
-                                <img src="@context.TeamLogo" alt="" style="width:24px;height:24px;" />
-                            }
-                            <MudText>@context.TeamName</MudText>
-                        </div>
-                    </MudTd>
-                    <MudTd DataLabel="P" Style="text-align:center;">@context.Played</MudTd>
-                    <MudTd DataLabel="W" Style="text-align:center;">@context.Won</MudTd>
-                    <MudTd DataLabel="D" Style="text-align:center;">@context.Drawn</MudTd>
-                    <MudTd DataLabel="L" Style="text-align:center;">@context.Lost</MudTd>
-                    <MudTd DataLabel="GF" Style="text-align:center;">@context.GoalsFor</MudTd>
-                    <MudTd DataLabel="GA" Style="text-align:center;">@context.GoalsAgainst</MudTd>
-                    <MudTd DataLabel="GD" Style="text-align:center;">@context.GoalDifference</MudTd>
-                    <MudTd DataLabel="Pts" Style="text-align:center;font-weight:700;">@context.Points</MudTd>
-                    <MudTd DataLabel="Form" Style="text-align:center;">
-                        <div class="d-flex gap-1 justify-center">
-                            @foreach (var r in context.RecentForm)
-                            {
-                                var homeGoals = string.Join(", ", r.Goals.Where(g => g.IsHome).Select(g =>
-                                    $"{g.PlayerName}{(g.Count > 1 ? $" x{g.Count}" : "")}{(g.IsOwnGoal ? " (OG)" : "")}"));
-                                var awayGoals = string.Join(", ", r.Goals.Where(g => !g.IsHome).Select(g =>
-                                    $"{g.PlayerName}{(g.Count > 1 ? $" x{g.Count}" : "")}{(g.IsOwnGoal ? " (OG)" : "")}"));
-                                <MudTooltip Arrow="true" Placement="Placement.Top" Color="Color.Dark">
-                                    <TooltipContent>
-                                        <div style="text-align:center;padding:4px 2px;">
-                                            <div style="font-weight:700;font-size:13px;letter-spacing:0.5px;">
-                                                @(r.IsHome ? "🏠" : "✈️") @r.HomeScore - @r.AwayScore vs @r.Opponent
-                                            </div>
-                                            @if (!string.IsNullOrEmpty(homeGoals))
-                                            {
-                                                <div style="margin-top:4px;font-size:12px;">⚽ @homeGoals</div>
-                                            }
-                                            @if (!string.IsNullOrEmpty(awayGoals))
-                                            {
-                                                <div style="font-size:12px;">⚽ @awayGoals</div>
-                                            }
-                                        </div>
-                                    </TooltipContent>
-                                    <ChildContent>
-                                        <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;color:#fff;background:@(r.Result == MatchResultCodes.Win ? "#4caf50" : r.Result == MatchResultCodes.Loss ? "#f44336" : "#9e9e9e");cursor:pointer;">@r.Result</span>
-                                    </ChildContent>
-                                </MudTooltip>
-                            }
-                        </div>
-                    </MudTd>
-                </RowTemplate>
-            </MudTable>
+            <LeagueTableView Rows="_result.Groups[0].Rows" Zones="_zones" />
         }
         else
         {
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
-                @foreach (var group in _result.Groups)
-                {
-                    <MudCard Elevation="2" Style="overflow:hidden;">
-                        <div style="background:var(--mud-palette-primary);color:#fff;padding:8px 16px;">
-                            <MudText Typo="Typo.subtitle2" Style="font-weight:700;color:inherit;">@group.GroupName</MudText>
-                        </div>
-                        <MudSimpleTable Dense="true" Hover="true" Style="white-space:nowrap;">
-                            <thead>
-                                <tr>
-                                    <th style="width:24px;"></th>
-                                    <th>Team</th>
-                                    <th style="text-align:center;width:28px;">P</th>
-                                    <th style="text-align:center;width:28px;">W</th>
-                                    <th style="text-align:center;width:28px;">D</th>
-                                    <th style="text-align:center;width:28px;">L</th>
-                                    <th style="text-align:center;width:32px;">GD</th>
-                                    <th style="text-align:center;width:32px;font-weight:700;">Pts</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var row in group.Rows)
-                                {
-                                    <tr>
-                                        <td style="color:var(--mud-palette-text-secondary);">@row.Position</td>
-                                        <td>
-                                            <div class="d-flex align-center gap-2">
-                                                @if (!string.IsNullOrEmpty(row.TeamLogo))
-                                                {
-                                                    <img src="@row.TeamLogo" alt="" style="width:18px;height:18px;" />
-                                                }
-                                                <span style="font-size:0.8125rem;">@row.TeamName</span>
-                                            </div>
-                                        </td>
-                                        <td style="text-align:center;">@row.Played</td>
-                                        <td style="text-align:center;">@row.Won</td>
-                                        <td style="text-align:center;">@row.Drawn</td>
-                                        <td style="text-align:center;">@row.Lost</td>
-                                        <td style="text-align:center;">@row.GoalDifference</td>
-                                        <td style="text-align:center;font-weight:700;">@row.Points</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </MudSimpleTable>
-                    </MudCard>
-                }
-            </div>
+            <MudTabs Elevation="1" Rounded="true" ApplyEffectsToContainer="true" Class="mt-0">
+                <MudTabPanel Text="Group Stage" Icon="@Icons.Material.Filled.Groups">
+                    <GroupStageView Groups="_result.Groups" Zones="_zones" />
+                </MudTabPanel>
+                <MudTabPanel Text="Best 3rd Placed" Icon="@Icons.Material.Filled.EmojiEvents">
+                    <BestThirdPlacedTable Rows="_result.BestThirdPlaced" />
+                </MudTabPanel>
+                <MudTabPanel Text="Knockout" Icon="@Icons.Material.Filled.AccountTree">
+                    <KnockoutBracket Bracket="_bracket" />
+                </MudTabPanel>
+            </MudTabs>
         }
     }
     else if (_selectedSeason is not null)
