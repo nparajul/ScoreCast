@@ -110,7 +110,7 @@ public partial class Scores : IDisposable
         _ => ""
     };
 
-    private record DisplayLine(string Text, string? Minute, double SortKey, bool Bold);
+    private record DisplayLine(MarkupString Markup, string? Minute, double SortKey, bool Bold);
 
     private static List<DisplayLine> GetDisplayLines(List<MatchEventDetail> events, bool isHome, bool includeSubs = true)
     {
@@ -119,8 +119,9 @@ public partial class Scores : IDisposable
         foreach (var e in events.Where(e => e.IsHome == isHome && e.EventType is not EventTypes.SubIn and not EventTypes.SubOut))
         {
             var isGoal = e.EventType is EventTypes.Goal or EventTypes.PenaltyGoal or EventTypes.OwnGoal;
+            var text = isHome ? $"{e.PlayerName} {FormatEvent(e)}" : $"{FormatEvent(e)} {e.PlayerName}";
             lines.Add(new DisplayLine(
-                isHome ? $"{e.PlayerName} {FormatEvent(e)}" : $"{FormatEvent(e)} {e.PlayerName}",
+                new MarkupString(text),
                 e.Minute, ParseMinute(e.Minute), isGoal));
         }
 
@@ -128,7 +129,7 @@ public partial class Scores : IDisposable
         {
             foreach (var s in GetSubPairs(events, isHome))
                 lines.Add(new DisplayLine(
-                    $"🔼 {s.PlayerOn} 🔽 {s.PlayerOff}",
+                    new MarkupString($"<span style=\"color:#4caf50;\">▲</span> {s.PlayerOn} <span style=\"color:#f44336;\">▼</span> {s.PlayerOff}"),
                     s.Minute, ParseMinute(s.Minute), false));
         }
 
