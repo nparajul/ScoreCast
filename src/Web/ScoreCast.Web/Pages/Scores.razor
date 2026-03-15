@@ -115,7 +115,7 @@
                                 }
                                 @if (match.Referee is not null)
                                 {
-                                    <div><MudIcon Icon="@Icons.Material.Filled.RecordVoiceOver" Size="Size.Small" Style="vertical-align:middle;" /> @match.Referee</div>
+                                    <div><MudIcon Icon="@Icons.Material.Filled.Sports" Size="Size.Small" Style="vertical-align:middle;" /> @match.Referee</div>
                                 }
                             </div>
                         }
@@ -127,7 +127,7 @@
                                     @foreach (var line in GetDisplayLines(match.Events, true, !IsMobile))
                                     {
                                         <div style="font-size:@(IsMobile ? "12" : "13")px;margin-bottom:2px;@(line.Bold ? "font-weight:700;" : "")">
-                                            @line.Text @(line.Minute is not null ? $" {line.Minute}" : "")
+                                            @line.Markup @(line.Minute is not null ? $" {line.Minute}" : "")
                                         </div>
                                     }
                                 </div>
@@ -136,7 +136,7 @@
                                     @foreach (var line in GetDisplayLines(match.Events, false, !IsMobile))
                                     {
                                         <div style="font-size:@(IsMobile ? "12" : "13")px;margin-bottom:2px;@(line.Bold ? "font-weight:700;" : "")">
-                                            @(line.Minute is not null ? $"{line.Minute} " : "")@line.Text
+                                            @(line.Minute is not null ? $"{line.Minute} " : "")@line.Markup
                                         </div>
                                     }
                                 </div>
