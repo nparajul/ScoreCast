@@ -31,6 +31,7 @@ public interface IScoreCastDbContext
     DbSet<TeamPlayer> TeamPlayers { get; }
     DbSet<CompetitionZone> CompetitionZones { get; }
     DbSet<MatchEvent> MatchEvents { get; }
+    DbSet<MatchLineup> MatchLineups { get; }
     DbSet<ExternalMapping> ExternalMappings { get; }
     DbSet<AppConfig> AppConfigs { get; }
 }
