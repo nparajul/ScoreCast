@@ -1,54 +1,161 @@
 @if (Rows.Count > 0)
 {
-    <div class="d-flex gap-4 mb-3 mt-2 ms-2 flex-wrap">
-        <div class="d-flex align-center gap-1">
-            <span style="width:12px;height:12px;border-radius:2px;background:#4caf50;display:inline-block;"></span>
-            <MudText Typo="Typo.caption">Qualification next stage</MudText>
+    @* ── MOBILE: pill tabs (Short / Full) ── *@
+    <div class="d-block d-md-none">
+        <div style="display:flex;background:var(--mud-palette-dark);border-radius:20px;padding:3px;margin-bottom:10px;max-width:200px;">
+            @foreach (var tab in new[] { "Short", "Full" })
+            {
+                var isActive = _mobileTab == tab;
+                <div @onclick="@(() => _mobileTab = tab)"
+                     style="flex:1;text-align:center;padding:5px 0;border-radius:17px;font-size:0.75rem;font-weight:700;cursor:pointer;
+                            background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
+                            color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
+                    @tab
+                </div>
+            }
+        </div>
+
+        @if (_mobileTab == "Short")
+        {
+            <MudSimpleTable Dense="true" Elevation="0" Style="background:transparent;">
+                <thead>
+                    <tr style="font-size:0.75rem;color:var(--mud-palette-text-secondary);">
+                        <th style="padding:8px 2px;width:20px;">#</th>
+                        <th style="padding:8px 2px;">Team</th>
+                        <th style="padding:8px 2px;text-align:center;width:22px;">PL</th>
+                        <th style="padding:8px 2px;text-align:center;width:26px;">GD</th>
+                        <th style="padding:8px 4px 8px 2px;text-align:center;width:26px;font-weight:700;">PTS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ var rank = 1; }
+                    @foreach (var row in Rows)
+                    {
+                        var qualified = rank <= 8;
+                        <tr style="font-size:0.875rem;border-bottom:1px solid var(--mud-palette-lines-default);@(qualified ? "border-left:3px solid #4caf50;" : "border-left:3px solid transparent;")">
+                            <td style="padding:10px 2px;font-weight:600;">@(rank++)</td>
+                            <td style="padding:10px 2px;">
+                                <div class="d-flex align-center gap-2">
+                                    @if (!string.IsNullOrEmpty(row.TeamLogo))
+                                    {
+                                        <img src="@row.TeamLogo" alt="" style="width:28px;height:28px;" />
+                                    }
+                                    <span style="font-weight:600;">@(row.TeamShortName ?? row.TeamName)</span>
+                                </div>
+                            </td>
+                            <td style="padding:10px 2px;text-align:center;">@row.Played</td>
+                            <td style="padding:10px 2px;text-align:center;">@row.GoalDifference</td>
+                            <td style="padding:10px 4px 10px 2px;text-align:center;font-weight:700;">@row.Points</td>
+                        </tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        }
+        else
+        {
+            <MudSimpleTable Dense="true" Elevation="0" Style="background:transparent;">
+                <thead>
+                    <tr style="font-size:0.75rem;color:var(--mud-palette-text-secondary);">
+                        <th style="padding:8px 2px;width:20px;">#</th>
+                        <th style="padding:8px 2px;">Team</th>
+                        <th style="padding:8px 2px;text-align:center;width:22px;">PL</th>
+                        <th style="padding:8px 2px;text-align:center;width:18px;">W</th>
+                        <th style="padding:8px 2px;text-align:center;width:18px;">D</th>
+                        <th style="padding:8px 2px;text-align:center;width:18px;">L</th>
+                        <th style="padding:8px 2px;text-align:center;width:40px;">+/-</th>
+                        <th style="padding:8px 2px;text-align:center;width:26px;">GD</th>
+                        <th style="padding:8px 4px 8px 2px;text-align:center;width:26px;font-weight:700;">PTS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ var rank2 = 1; }
+                    @foreach (var row in Rows)
+                    {
+                        var qualified = rank2 <= 8;
+                        <tr style="font-size:0.875rem;border-bottom:1px solid var(--mud-palette-lines-default);@(qualified ? "border-left:3px solid #4caf50;" : "border-left:3px solid transparent;")">
+                            <td style="padding:10px 2px;font-weight:600;">@(rank2++)</td>
+                            <td style="padding:10px 2px;">
+                                <div class="d-flex align-center gap-2">
+                                    @if (!string.IsNullOrEmpty(row.TeamLogo))
+                                    {
+                                        <img src="@row.TeamLogo" alt="" style="width:28px;height:28px;" />
+                                    }
+                                    <span style="font-weight:600;">@(row.TeamShortName ?? row.TeamName)</span>
+                                </div>
+                            </td>
+                            <td style="padding:10px 2px;text-align:center;">@row.Played</td>
+                            <td style="padding:10px 2px;text-align:center;">@row.Won</td>
+                            <td style="padding:10px 2px;text-align:center;">@row.Drawn</td>
+                            <td style="padding:10px 2px;text-align:center;">@row.Lost</td>
+                            <td style="padding:10px 2px;text-align:center;">@row.GoalsFor-@row.GoalsAgainst</td>
+                            <td style="padding:10px 2px;text-align:center;">@row.GoalDifference</td>
+                            <td style="padding:10px 4px 10px 2px;text-align:center;font-weight:700;">@row.Points</td>
+                        </tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        }
+
+        <div class="d-flex gap-4 mt-3 ms-2 flex-wrap">
+            <div class="d-flex align-center gap-1">
+                <span style="width:12px;height:12px;border-radius:2px;background:#4caf50;display:inline-block;"></span>
+                <MudText Typo="Typo.caption">Qualification next stage</MudText>
+            </div>
         </div>
     </div>
-    <MudSimpleTable Dense="true" Hover="true" Elevation="1" Style="max-width:800px;">
-        <thead>
-            <tr>
-                <th style="width:32px;">#</th>
-                <th>Team</th>
-                <th style="text-align:center;width:36px;">P</th>
-                <th style="text-align:center;width:36px;">W</th>
-                <th style="text-align:center;width:36px;">D</th>
-                <th style="text-align:center;width:36px;">L</th>
-                <th style="text-align:center;width:36px;">GF</th>
-                <th style="text-align:center;width:36px;">GA</th>
-                <th style="text-align:center;width:36px;">GD</th>
-                <th style="text-align:center;width:40px;font-weight:700;">Pts</th>
-            </tr>
-        </thead>
-        <tbody>
-            @{ var rank = 1; }
-            @foreach (var row in Rows)
-            {
-                var qualified = rank <= 8;
-                <tr style="@(qualified ? "background:#4caf5015;border-left:3px solid #4caf50;" : "")">
-                    <td>@(rank++)</td>
-                    <td>
-                        <div class="d-flex align-center gap-2">
-                            @if (!string.IsNullOrEmpty(row.TeamLogo))
-                            {
-                                <img src="@row.TeamLogo" alt="" style="width:20px;height:20px;" />
-                            }
-                            @row.TeamName
-                        </div>
-                    </td>
-                    <td style="text-align:center;">@row.Played</td>
-                    <td style="text-align:center;">@row.Won</td>
-                    <td style="text-align:center;">@row.Drawn</td>
-                    <td style="text-align:center;">@row.Lost</td>
-                    <td style="text-align:center;">@row.GoalsFor</td>
-                    <td style="text-align:center;">@row.GoalsAgainst</td>
-                    <td style="text-align:center;">@row.GoalDifference</td>
-                    <td style="text-align:center;font-weight:700;">@row.Points</td>
+
+    @* ── DESKTOP: full table ── *@
+    <div class="d-none d-md-block">
+        <MudSimpleTable Dense="true" Hover="true" Elevation="1" Style="max-width:800px;">
+            <thead>
+                <tr>
+                    <th style="width:32px;">#</th>
+                    <th>Team</th>
+                    <th style="text-align:center;width:36px;">P</th>
+                    <th style="text-align:center;width:36px;">W</th>
+                    <th style="text-align:center;width:36px;">D</th>
+                    <th style="text-align:center;width:36px;">L</th>
+                    <th style="text-align:center;width:36px;">GF</th>
+                    <th style="text-align:center;width:36px;">GA</th>
+                    <th style="text-align:center;width:36px;">GD</th>
+                    <th style="text-align:center;width:40px;font-weight:700;">Pts</th>
                 </tr>
-            }
-        </tbody>
-    </MudSimpleTable>
+            </thead>
+            <tbody>
+                @{ var dRank = 1; }
+                @foreach (var row in Rows)
+                {
+                    var qualified = dRank <= 8;
+                    <tr style="@(qualified ? "background:#4caf5015;border-left:3px solid #4caf50;" : "")">
+                        <td>@(dRank++)</td>
+                        <td>
+                            <div class="d-flex align-center gap-2">
+                                @if (!string.IsNullOrEmpty(row.TeamLogo))
+                                {
+                                    <img src="@row.TeamLogo" alt="" style="width:20px;height:20px;" />
+                                }
+                                @row.TeamName
+                            </div>
+                        </td>
+                        <td style="text-align:center;">@row.Played</td>
+                        <td style="text-align:center;">@row.Won</td>
+                        <td style="text-align:center;">@row.Drawn</td>
+                        <td style="text-align:center;">@row.Lost</td>
+                        <td style="text-align:center;">@row.GoalsFor</td>
+                        <td style="text-align:center;">@row.GoalsAgainst</td>
+                        <td style="text-align:center;">@row.GoalDifference</td>
+                        <td style="text-align:center;font-weight:700;">@row.Points</td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+        <div class="d-flex gap-4 mt-3 ms-2 flex-wrap">
+            <div class="d-flex align-center gap-1">
+                <span style="width:12px;height:12px;border-radius:2px;background:#4caf50;display:inline-block;"></span>
+                <MudText Typo="Typo.caption">Qualification next stage</MudText>
+            </div>
+        </div>
+    </div>
 }
 else
 {

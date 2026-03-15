@@ -1,27 +1,17 @@
 @page "/player-stats"
 
 <PageGuard>
-<MudContainer MaxWidth="MaxWidth.Large" Class="py-4">
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
     <MudText Typo="Typo.h5" Class="mb-3" Style="font-weight:700;">Player Stats</MudText>
 
-    <div class="d-flex flex-column flex-md-row gap-3 mb-4 flex-wrap">
-        <MudSelect T="CompetitionResult" Label="Competition" Value="_selectedCompetition" ValueChanged="OnCompetitionChanged" Variant="Variant.Outlined" Dense="true" Style="max-width:300px;" ToStringFunc="@(c => c?.Name ?? "")">
-            @foreach (var comp in _competitions)
-            {
-                <MudSelectItem Value="@comp">@comp.Name</MudSelectItem>
-            }
-        </MudSelect>
-        <MudSelect T="SeasonResult" Label="Season" Value="_selectedSeason" ValueChanged="OnSeasonChanged" Variant="Variant.Outlined" Dense="true" Style="max-width:300px;" ToStringFunc="@(s => s is null ? "" : $"{s.StartDate.Year}/{s.EndDate.Year}")">
-            @foreach (var season in _seasons)
-            {
-                <MudSelectItem Value="@season">@season.StartDate.Year/@season.EndDate.Year</MudSelectItem>
-            }
-        </MudSelect>
-        <MudSpacer Class="d-none d-md-flex" />
-        <MudTextField @bind-Value="_search" Placeholder="Search player or team..." Variant="Variant.Outlined"
-                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
-                      Style="max-width:300px;" Margin="Margin.Dense" Immediate="true" DebounceInterval="300" />
-    </div>
+    <CompetitionFilter OnStateChanged="OnFilterChanged" />
+
+    <MudTextField @bind-Value="_search" Placeholder="Search player or team..." Variant="Variant.Outlined"
+                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                  Style="max-width:300px;" Margin="Margin.Dense" Immediate="true" DebounceInterval="300" Class="mb-3" />
+</MudContainer>
+
+<MudContainer MaxWidth="MaxWidth.Large">
 
     @if (_rows.Count > 0)
     {
@@ -102,7 +92,7 @@
             </PagerContent>
         </MudTable>
     }
-    else if (_selectedSeason is not null)
+    else if (_selectedSeason is not null && !Loading.IsLoading)
     {
         <MudAlert Severity="Severity.Info">No player stats available. Sync match events first.</MudAlert>
     }

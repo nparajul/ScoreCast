@@ -1,57 +1,66 @@
-<div class="d-flex gap-4 mb-3 mt-2 ms-2 flex-wrap">
+@* ── DESKTOP: 3-column grid ── *@
+<div class="d-none d-md-block">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+        @foreach (var group in Groups)
+        {
+            <GroupCard Group="group" Zones="Zones" />
+        }
+    </div>
+</div>
+
+@* ── MOBILE: single column, compact ── *@
+<div class="d-block d-md-none">
+    @foreach (var group in Groups)
+    {
+        <MudSimpleTable Dense="true" Hover="true" Elevation="1" Style="white-space:nowrap;margin-bottom:12px;">
+            <thead>
+                <tr>
+                    <th style="width:20px;padding:6px 2px;"></th>
+                    <th style="padding:6px 2px;font-weight:700;">@group.GroupName</th>
+                    <th style="text-align:center;width:20px;padding:6px 2px;">P</th>
+                    <th style="text-align:center;width:20px;padding:6px 2px;">W</th>
+                    <th style="text-align:center;width:20px;padding:6px 2px;">D</th>
+                    <th style="text-align:center;width:20px;padding:6px 2px;">L</th>
+                    <th style="text-align:center;width:32px;padding:6px 2px;">+/-</th>
+                    <th style="text-align:center;width:24px;padding:6px 2px;">GD</th>
+                    <th style="text-align:center;width:24px;padding:6px 2px;font-weight:700;">Pts</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in group.Rows)
+                {
+                    var zone = Zones.FirstOrDefault(z => row.Position >= z.StartPosition && row.Position <= z.EndPosition);
+                    <tr style="@(zone is not null ? $"border-left:3px solid {zone.Color};" : "border-left:3px solid transparent;")">
+                        <td style="padding:8px 2px;color:var(--mud-palette-text-secondary);font-size:0.8125rem;">@row.Position</td>
+                        <td style="padding:8px 2px;">
+                            <div class="d-flex align-center gap-2">
+                                @if (!string.IsNullOrEmpty(row.TeamLogo))
+                                {
+                                    <img src="@row.TeamLogo" alt="" style="width:20px;height:20px;" />
+                                }
+                                <span style="font-size:0.8125rem;font-weight:600;">@(row.TeamShortName ?? row.TeamName)</span>
+                            </div>
+                        </td>
+                        <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;">@row.Played</td>
+                        <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;">@row.Won</td>
+                        <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;">@row.Drawn</td>
+                        <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;">@row.Lost</td>
+                        <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;">@row.GoalsFor-@row.GoalsAgainst</td>
+                        <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;">@row.GoalDifference</td>
+                        <td style="text-align:center;padding:8px 2px;font-size:0.8125rem;font-weight:700;">@row.Points</td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+    }
+</div>
+
+<div class="d-flex gap-4 mt-3 ms-2 flex-wrap">
     @foreach (var zone in Zones)
     {
         <div class="d-flex align-center gap-1">
             <span style="width:12px;height:12px;border-radius:2px;background:@zone.Color;display:inline-block;"></span>
             <MudText Typo="Typo.caption">@zone.Name</MudText>
         </div>
-    }
-</div>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
-    @foreach (var group in Groups)
-    {
-        <MudCard Elevation="2" Style="overflow:hidden;">
-            <div style="background:var(--mud-palette-primary);color:#fff;padding:8px 16px;">
-                <MudText Typo="Typo.subtitle2" Style="font-weight:700;color:inherit;">@group.GroupName</MudText>
-            </div>
-            <MudSimpleTable Dense="true" Hover="true" Style="white-space:nowrap;">
-                <thead>
-                    <tr>
-                        <th style="width:24px;"></th>
-                        <th>Team</th>
-                        <th style="text-align:center;width:28px;">P</th>
-                        <th style="text-align:center;width:28px;">W</th>
-                        <th style="text-align:center;width:28px;">D</th>
-                        <th style="text-align:center;width:28px;">L</th>
-                        <th style="text-align:center;width:32px;">GD</th>
-                        <th style="text-align:center;width:32px;font-weight:700;">Pts</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var row in group.Rows)
-                    {
-                        var zone = Zones.FirstOrDefault(z => row.Position >= z.StartPosition && row.Position <= z.EndPosition);
-                        <tr style="@(zone is not null ? $"background:{zone.Color}15;border-left:3px solid {zone.Color};" : "")">
-                            <td style="color:var(--mud-palette-text-secondary);">@row.Position</td>
-                            <td>
-                                <div class="d-flex align-center gap-2">
-                                    @if (!string.IsNullOrEmpty(row.TeamLogo))
-                                    {
-                                        <img src="@row.TeamLogo" alt="" style="width:18px;height:18px;" />
-                                    }
-                                    <span style="font-size:0.8125rem;">@row.TeamName</span>
-                                </div>
-                            </td>
-                            <td style="text-align:center;">@row.Played</td>
-                            <td style="text-align:center;">@row.Won</td>
-                            <td style="text-align:center;">@row.Drawn</td>
-                            <td style="text-align:center;">@row.Lost</td>
-                            <td style="text-align:center;">@row.GoalDifference</td>
-                            <td style="text-align:center;font-weight:700;">@row.Points</td>
-                        </tr>
-                    }
-                </tbody>
-            </MudSimpleTable>
-        </MudCard>
     }
 </div>
