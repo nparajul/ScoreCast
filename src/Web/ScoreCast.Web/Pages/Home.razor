@@ -5,96 +5,143 @@
     <AuthorizeView>
         <NotAuthorized>
             @* Hero *@
-            <MudGrid Justify="Justify.Center" Class="mb-10">
+            <MudGrid Justify="Justify.Center" Class="mb-8">
                 <MudItem xs="12" sm="10" md="8" Class="d-flex flex-column align-center">
                     <MudImage Src="scorecast-logo.svg" Alt="ScoreCast" Width="360" Class="mb-2" />
-                    <MudText Typo="Typo.h5" Color="Color.Secondary" Align="Align.Center" Class="mt-2">
-                        Premier League Predictions
-                    </MudText>
-                    <MudText Typo="Typo.body1" Align="Align.Center" Class="mt-3" Style="max-width:500px;" Color="Color.Inherit">
-                        Predict match scores, compete with friends, and climb the leaderboard — all season long.
+                    <MudText Typo="Typo.h5" Color="Color.Secondary" Align="Align.Center" Class="mt-2" Style="font-weight:700;">
+                        The Score Prediction Game for Football Fans
                     </MudText>
                     <MudButton Variant="Variant.Filled"
                                Color="Color.Tertiary"
                                Size="Size.Large"
-                               Class="mt-6"
+                               Class="mt-5"
                                StartIcon="@Icons.Material.Filled.Login"
                                Href="authentication/login">
-                        Get Started
+                        Get Started — It's Free
                     </MudButton>
                 </MudItem>
             </MudGrid>
 
-            @* Feature cards *@
-            <MudGrid Spacing="4" Justify="Justify.Center">
-                <MudItem xs="12" sm="6" md="4">
+            @* What is ScoreCast *@
+            <MudGrid Justify="Justify.Center" Class="mb-10">
+                <MudItem xs="12" sm="10" md="7">
+                    <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight:700;" Class="mb-3">What is ScoreCast?</MudText>
+                    <MudText Typo="Typo.body1" Align="Align.Center" Style="line-height:1.8;">
+                        ScoreCast is a football predictions game where you predict the exact scoreline of every match.
+                        Create or join a league with your friends, submit your predictions before kickoff, and earn points
+                        based on how close you get. Exact scores earn the most, but you'll still pick up points for getting
+                        the result right. At the end of the season, the person at the top of the leaderboard wins bragging rights.
+                    </MudText>
+                </MudItem>
+            </MudGrid>
+
+            @* Features *@
+            <MudGrid Spacing="4" Justify="Justify.Center" Class="mb-10">
+                <MudItem xs="12" Class="d-flex flex-column align-center mb-2">
+                    <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight:700;">More Than Just Predictions</MudText>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
                     <MudCard Elevation="3" Class="rounded-lg" Style="height:100%;">
                         <MudCardHeader>
                             <CardHeaderAvatar>
-                                <MudAvatar Color="Color.Secondary"><MudIcon Icon="@Icons.Material.Filled.EmojiEvents" /></MudAvatar>
+                                <MudAvatar Color="Color.Secondary"><MudIcon Icon="@Icons.Material.Filled.Scoreboard" /></MudAvatar>
                             </CardHeaderAvatar>
                             <CardHeaderContent>
-                                <MudText Typo="Typo.h6">Predict</MudText>
+                                <MudText Typo="Typo.h6">Live Scores</MudText>
                             </CardHeaderContent>
                         </MudCardHeader>
                         <MudCardContent>
-                            <MudText Typo="Typo.body2">Submit your match predictions before kickoff and earn points for correct results.</MudText>
+                            <MudText Typo="Typo.body2">Follow every match in real time with goals, cards, substitutions, and minute-by-minute events as they happen.</MudText>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
 
-                <MudItem xs="12" sm="6" md="4">
+                <MudItem xs="12" sm="6" md="3">
                     <MudCard Elevation="3" Class="rounded-lg" Style="height:100%;">
                         <MudCardHeader>
                             <CardHeaderAvatar>
-                                <MudAvatar Color="Color.Tertiary"><MudIcon Icon="@Icons.Material.Filled.Leaderboard" /></MudAvatar>
+                                <MudAvatar Color="Color.Tertiary"><MudIcon Icon="@Icons.Material.Filled.BarChart" /></MudAvatar>
                             </CardHeaderAvatar>
                             <CardHeaderContent>
-                                <MudText Typo="Typo.h6">Compete</MudText>
+                                <MudText Typo="Typo.h6">Player Stats</MudText>
                             </CardHeaderContent>
                         </MudCardHeader>
                         <MudCardContent>
-                            <MudText Typo="Typo.body2">Climb the leaderboard and compete against friends in private leagues.</MudText>
+                            <MudText Typo="Typo.body2">Top scorers, assists, clean sheets, and discipline breakdowns — all the numbers you need across every competition.</MudText>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
 
-                <MudItem xs="12" sm="6" md="4">
+                <MudItem xs="12" sm="6" md="3">
                     <MudCard Elevation="3" Class="rounded-lg" Style="height:100%;">
                         <MudCardHeader>
                             <CardHeaderAvatar>
-                                <MudAvatar Color="Color.Primary"><MudIcon Icon="@Icons.Material.Filled.TrendingUp" /></MudAvatar>
+                                <MudAvatar Color="Color.Primary"><MudIcon Icon="@Icons.Material.Filled.TableChart" /></MudAvatar>
                             </CardHeaderAvatar>
                             <CardHeaderContent>
-                                <MudText Typo="Typo.h6">Track</MudText>
+                                <MudText Typo="Typo.h6">Tables & Standings</MudText>
                             </CardHeaderContent>
                         </MudCardHeader>
                         <MudCardContent>
-                            <MudText Typo="Typo.body2">Track your streaks, accuracy, and performance across the season.</MudText>
+                            <MudText Typo="Typo.body2">League tables, group standings, and knockout fixtures — everything you need to follow the tournament at a glance.</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="3" Class="rounded-lg" Style="height:100%;">
+                        <MudCardHeader>
+                            <CardHeaderAvatar>
+                                <MudAvatar Color="Color.Secondary"><MudIcon Icon="@Icons.Material.Filled.Groups" /></MudAvatar>
+                            </CardHeaderAvatar>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Private Leagues</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.body2">Set up a league, invite your mates, and compete head-to-head across the season. No strangers, just your group.</MudText>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
             </MudGrid>
 
-            @* How it works *@
-            <MudGrid Justify="Justify.Center" Class="mt-10">
+            @* Competitions *@
+            <MudGrid Justify="Justify.Center" Class="mb-10">
                 <MudItem xs="12" Class="d-flex flex-column align-center mb-4">
-                    <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Inherit">How It Works</MudText>
+                    <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight:700;">Supported Competitions</MudText>
+                </MudItem>
+                <MudItem xs="6" sm="3" Class="d-flex flex-column align-center">
+                    <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Large" Color="Color.Secondary" />
+                    <MudText Typo="Typo.subtitle1" Class="mt-2" Style="font-weight:600;">Premier League</MudText>
+                    <MudText Typo="Typo.body2" Align="Align.Center" Style="color:var(--mud-palette-text-secondary);">38 matchweeks, full season</MudText>
+                </MudItem>
+                <MudItem xs="6" sm="3" Class="d-flex flex-column align-center">
+                    <MudIcon Icon="@Icons.Material.Filled.Public" Size="Size.Large" Color="Color.Tertiary" />
+                    <MudText Typo="Typo.subtitle1" Class="mt-2" Style="font-weight:600;">FIFA World Cup 2026</MudText>
+                    <MudText Typo="Typo.body2" Align="Align.Center" Style="color:var(--mud-palette-text-secondary);">Groups + knockout bracket</MudText>
+                </MudItem>
+            </MudGrid>
+
+            @* How it works *@
+            <MudGrid Justify="Justify.Center" Class="mt-6 mb-10">
+                <MudItem xs="12" Class="d-flex flex-column align-center mb-4">
+                    <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight:700;">How It Works</MudText>
                 </MudItem>
                 <MudItem xs="12" sm="4" Class="d-flex flex-column align-center">
                     <MudAvatar Color="Color.Secondary" Size="Size.Large"><MudText Typo="Typo.h5">1</MudText></MudAvatar>
-                    <MudText Typo="Typo.subtitle1" Class="mt-2" Color="Color.Inherit">Sign Up</MudText>
-                    <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Inherit">Create your free account in seconds.</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="mt-2" Style="font-weight:600;">Sign Up</MudText>
+                    <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Inherit">Create your free account and join or create a league.</MudText>
                 </MudItem>
                 <MudItem xs="12" sm="4" Class="d-flex flex-column align-center">
                     <MudAvatar Color="Color.Tertiary" Size="Size.Large"><MudText Typo="Typo.h5">2</MudText></MudAvatar>
-                    <MudText Typo="Typo.subtitle1" Class="mt-2" Color="Color.Inherit">Predict</MudText>
-                    <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Inherit">Pick your scores for each gameweek.</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="mt-2" Style="font-weight:600;">Predict</MudText>
+                    <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Inherit">Submit your exact scoreline for every match before kickoff.</MudText>
                 </MudItem>
                 <MudItem xs="12" sm="4" Class="d-flex flex-column align-center">
                     <MudAvatar Color="Color.Secondary" Size="Size.Large"><MudText Typo="Typo.h5">3</MudText></MudAvatar>
-                    <MudText Typo="Typo.subtitle1" Class="mt-2" Color="Color.Inherit">Win</MudText>
-                    <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Inherit">Earn points and top the leaderboard.</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="mt-2" Style="font-weight:600;">Dominate</MudText>
+                    <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Inherit">Earn points, climb the leaderboard, and settle the debate once and for all.</MudText>
                 </MudItem>
             </MudGrid>
         </NotAuthorized>
