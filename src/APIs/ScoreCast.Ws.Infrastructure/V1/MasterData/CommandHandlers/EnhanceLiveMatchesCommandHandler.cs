@@ -22,36 +22,52 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
 {
     public async Task<ScoreCastResponse> ExecuteAsync(EnhanceLiveMatchesCommand command, CancellationToken ct)
     {
-        // 1. Get current season
-        var currentSeason = await DbContext.Seasons
-            .FirstOrDefaultAsync(s => s.Competition.Code == CompetitionCodes.PremierLeague && s.IsCurrent, ct);
-        if (currentSeason is null)
-            return ScoreCastResponse.Error("No current season found.");
+        // 1. Get all current seasons
+        var currentSeasons = await DbContext.Seasons
+            .Include(s => s.Competition)
+            .Where(s => s.IsCurrent)
+            .ToListAsync(ct);
 
-        // 2. FPL — ensure Pulse ID mappings exist for started matches
-        var fplClient = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FplClient));
-        try
+        if (currentSeasons.Count == 0)
+            return ScoreCastResponse.Error("No current seasons found.");
+
+        var totalEnhanced = 0;
+
+        foreach (var season in currentSeasons)
         {
-            var fplFixtures = await fplClient.GetFromJsonAsync<List<FplFixture>>(FplApi.Routes.Fixtures, ct);
-            if (fplFixtures is { Count: > 0 })
-                await EnsurePulseMappingsAsync(fplFixtures, currentSeason, ct);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "FPL fetch failed");
+            var isPremierLeague = season.Competition.Code == CompetitionCodes.PremierLeague;
+
+            if (isPremierLeague)
+            {
+                // FPL — ensure Pulse ID mappings exist for started matches
+                var fplClient = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FplClient));
+                try
+                {
+                    var fplFixtures = await fplClient.GetFromJsonAsync<List<FplFixture>>(FplApi.Routes.Fixtures, ct);
+                    if (fplFixtures is { Count: > 0 })
+                        await EnsurePulseMappingsAsync(fplFixtures, season, ct);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning(ex, "FPL fetch failed");
+                }
+
+                await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(EnhanceLiveMatchesCommand), ct);
+
+                // Pulse — primary for PL
+                var pulseClient = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.PulseClient));
+                var liveMatchIds = await EnrichFromPulseAsync(pulseClient, season, ct);
+                totalEnhanced += liveMatchIds.Count;
+            }
+            else
+            {
+                // Football-data.org — for non-PL competitions (World Cup, etc.)
+                totalEnhanced += await EnrichFromFootballDataAsync(season, ct);
+            }
         }
 
         await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(EnhanceLiveMatchesCommand), ct);
-
-        // 3. Pulse (primary for PL) — get live matches, scores, clock, events
-        var pulseClient = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.PulseClient));
-        var liveMatchIds = await EnrichFromPulseAsync(pulseClient, currentSeason, ct);
-
-        // 4. Football-data.org (secondary) — update non-live matches only (final scores, status transitions)
-        await EnrichFromFootballDataAsync(currentSeason, liveMatchIds, ct);
-
-        await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(EnhanceLiveMatchesCommand), ct);
-        return ScoreCastResponse.Ok($"Enhanced {liveMatchIds.Count} live matches.");
+        return ScoreCastResponse.Ok($"Enhanced {totalEnhanced} matches across {currentSeasons.Count} competitions.");
     }
 
     private async Task EnsurePulseMappingsAsync(List<FplFixture> fplFixtures, Season season, CancellationToken ct)
@@ -266,56 +282,6 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
         _ => MatchStatus.Scheduled
     };
 
-    private async Task EnrichFromFootballDataAsync(Season season, List<long> pulseHandledIds, CancellationToken ct)
-    {
-        try
-        {
-            var fdClient = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FootballDataClient));
-            var fdResponse = await fdClient.GetFromJsonAsync<FootballDataMatchesResponse>(
-                string.Format(FootballDataApi.Routes.Matches, CompetitionCodes.PremierLeague, season.StartDate.Year), ct);
-
-            if (fdResponse?.Matches is not { Count: > 0 }) return;
-
-            var pulseHandledSet = pulseHandledIds.ToHashSet();
-            var dbMatches = await DbContext.Matches
-                .Where(m => m.Gameweek.SeasonId == season.Id && m.ExternalId != null && !pulseHandledSet.Contains(m.Id))
-                .ToDictionaryAsync(m => m.ExternalId!, ct);
-
-            foreach (var apiMatch in fdResponse.Matches)
-            {
-                if (!dbMatches.TryGetValue(apiMatch.Id.ToString(), out var match)) continue;
-
-                var status = MapStatus(apiMatch.Status);
-                match.HomeScore = apiMatch.Score.FullTime?.Home ?? match.HomeScore;
-                match.AwayScore = apiMatch.Score.FullTime?.Away ?? match.AwayScore;
-                match.Status = status;
-                match.Minute = FormatMinute(apiMatch) ?? match.Minute;
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Football-data.org fallback fetch failed");
-        }
-    }
-
-    private static MatchStatus MapStatus(string apiStatus) => apiStatus switch
-    {
-        FootballDataApi.Status.Finished => MatchStatus.Finished,
-        FootballDataApi.Status.InPlay or FootballDataApi.Status.Paused or FootballDataApi.Status.Live => MatchStatus.Live,
-        FootballDataApi.Status.Postponed or FootballDataApi.Status.Suspended => MatchStatus.Postponed,
-        FootballDataApi.Status.Cancelled => MatchStatus.Cancelled,
-        _ => MatchStatus.Scheduled
-    };
-
-    private static string? FormatMinute(FootballDataMatch apiMatch) => apiMatch.Status switch
-    {
-        FootballDataApi.Status.Finished => PulseApi.DisplayLabels.FullTime,
-        FootballDataApi.Status.Paused => PulseApi.DisplayLabels.HalfTime,
-        FootballDataApi.Status.InPlay when apiMatch.Minute.HasValue =>
-            apiMatch.InjuryTime > 0 ? $"{apiMatch.Minute}+{apiMatch.InjuryTime}'" : $"{apiMatch.Minute}'",
-        _ => null
-    };
-
     private static MatchEventType? MapPulseEvent(string type, string? desc) => (type, desc) switch
     {
         ("G", "G") => MatchEventType.Goal,
@@ -329,6 +295,63 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
         ("SP", "SP") => MatchEventType.PenaltySaved,
         ("S", "ON") => MatchEventType.SubIn,
         ("S", "OFF") => MatchEventType.SubOut,
+        _ => null
+    };
+
+    private async Task<int> EnrichFromFootballDataAsync(Season season, CancellationToken ct)
+    {
+        try
+        {
+            var fdClient = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FootballDataClient));
+            var fdResponse = await fdClient.GetFromJsonAsync<FootballDataMatchesResponse>(
+                string.Format(FootballDataApi.Routes.Matches, season.Competition.Code, season.StartDate.Year), ct);
+
+            if (fdResponse?.Matches is not { Count: > 0 }) return 0;
+
+            var dbMatches = await DbContext.Matches
+                .Where(m => m.Gameweek.SeasonId == season.Id && m.ExternalId != null)
+                .ToDictionaryAsync(m => m.ExternalId!, ct);
+
+            var count = 0;
+            foreach (var apiMatch in fdResponse.Matches)
+            {
+                if (!dbMatches.TryGetValue(apiMatch.Id.ToString(), out var match)) continue;
+
+                var status = MapFdStatus(apiMatch.Status);
+                if (status is MatchStatus.Live or MatchStatus.Finished)
+                {
+                    match.HomeScore = apiMatch.Score.FullTime?.Home ?? match.HomeScore;
+                    match.AwayScore = apiMatch.Score.FullTime?.Away ?? match.AwayScore;
+                    match.Status = status;
+                    match.Minute = FormatFdMinute(apiMatch) ?? match.Minute;
+                    if (status == MatchStatus.Live) count++;
+                }
+            }
+
+            return count;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Football-data.org fetch failed for {Competition}", season.Competition.Code);
+            return 0;
+        }
+    }
+
+    private static MatchStatus MapFdStatus(string apiStatus) => apiStatus switch
+    {
+        FootballDataApi.Status.Finished => MatchStatus.Finished,
+        FootballDataApi.Status.InPlay or FootballDataApi.Status.Paused or FootballDataApi.Status.Live => MatchStatus.Live,
+        FootballDataApi.Status.Postponed or FootballDataApi.Status.Suspended => MatchStatus.Postponed,
+        FootballDataApi.Status.Cancelled => MatchStatus.Cancelled,
+        _ => MatchStatus.Scheduled
+    };
+
+    private static string? FormatFdMinute(FootballDataMatch apiMatch) => apiMatch.Status switch
+    {
+        FootballDataApi.Status.Finished => PulseApi.DisplayLabels.FullTime,
+        FootballDataApi.Status.Paused => PulseApi.DisplayLabels.HalfTime,
+        FootballDataApi.Status.InPlay when apiMatch.Minute.HasValue =>
+            apiMatch.InjuryTime > 0 ? $"{apiMatch.Minute}+{apiMatch.InjuryTime}'" : $"{apiMatch.Minute}'",
         _ => null
     };
 }

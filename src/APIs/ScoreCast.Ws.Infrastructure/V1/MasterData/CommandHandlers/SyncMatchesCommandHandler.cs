@@ -27,8 +27,13 @@ internal sealed record SyncMatchesCommandHandler(
         if (competition is null)
             return ScoreCastResponse.Error($"Competition {command.Request.CompetitionCode} not found. Sync the competition first.");
 
-        var seasons = await DbContext.Seasons
-            .Where(s => s.CompetitionId == competition.Id)
+        var seasonsQuery = DbContext.Seasons
+            .Where(s => s.CompetitionId == competition.Id);
+
+        if (!command.Request.SyncAll)
+            seasonsQuery = seasonsQuery.Where(s => s.IsCurrent);
+
+        var seasons = await seasonsQuery
             .OrderByDescending(s => s.StartDate)
             .ToListAsync(ct);
 
