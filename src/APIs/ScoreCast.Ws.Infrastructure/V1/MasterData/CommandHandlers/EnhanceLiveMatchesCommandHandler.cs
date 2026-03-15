@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
+using ScoreCast.Shared.Exceptions;
 using ScoreCast.Ws.Application;
 using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Application.V1.MasterData.Commands;
@@ -21,6 +22,18 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
     ILogger<EnhanceLiveMatchesCommandHandler> Logger) : ICommandHandler<EnhanceLiveMatchesCommand, ScoreCastResponse>
 {
     public async Task<ScoreCastResponse> ExecuteAsync(EnhanceLiveMatchesCommand command, CancellationToken ct)
+    {
+        try
+        {
+            return await ExecuteCoreAsync(command, ct);
+        }
+        catch (ScoreCastException ex)
+        {
+            return ScoreCastResponse.Error(ex.Message);
+        }
+    }
+
+    private async Task<ScoreCastResponse> ExecuteCoreAsync(EnhanceLiveMatchesCommand command, CancellationToken ct)
     {
         // 1. Get all current seasons
         var currentSeasons = await DbContext.Seasons
@@ -56,8 +69,8 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
 
                 // Pulse — primary for PL
                 var pulseClient = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.PulseClient));
-                var liveMatchIds = await EnrichFromPulseAsync(pulseClient, season, ct);
-                totalEnhanced += liveMatchIds.Count;
+                var (liveMatchIds, updatedCount) = await EnrichFromPulseAsync(pulseClient, season, ct);
+                totalEnhanced += updatedCount;
             }
             else
             {
@@ -115,9 +128,10 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
         }
     }
 
-    private async Task<List<long>> EnrichFromPulseAsync(HttpClient pulseClient, Season season, CancellationToken ct)
+    private async Task<(List<long> LiveMatchIds, int UpdatedCount)> EnrichFromPulseAsync(HttpClient pulseClient, Season season, CancellationToken ct)
     {
         var liveMatchIds = new List<long>();
+        var updatedCount = 0;
 
         // Only fetch non-finished matches — no need to re-fetch completed ones
         var candidateMatches = await DbContext.Matches
@@ -125,14 +139,14 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
             .Select(m => m.Id)
             .ToListAsync(ct);
 
-        if (candidateMatches.Count == 0) return liveMatchIds;
+        if (candidateMatches.Count == 0) return (liveMatchIds, updatedCount);
 
         var pulseMappings = await DbContext.ExternalMappings
             .Where(m => m.Source == ExternalSource.Fpl && m.EntityType == EntityType.Match
                         && candidateMatches.Contains(m.EntityId))
             .ToDictionaryAsync(m => m.EntityId, m => int.Parse(m.ExternalCode), ct);
 
-        if (pulseMappings.Count == 0) return liveMatchIds;
+        if (pulseMappings.Count == 0) return (liveMatchIds, updatedCount);
 
         var candidateIds = pulseMappings.Keys.ToList();
 
@@ -177,6 +191,7 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
         {
             if (pulseData is null || !dbMatches.TryGetValue(matchId, out var dbMatch)) continue;
 
+            updatedCount++;
             var pulseStatus = MapPulseStatus(pulseData.Status);
             dbMatch.Status = pulseStatus;
 
@@ -199,13 +214,13 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
             {
                 var pulseHome = pulseData.Teams.FirstOrDefault(t => t.Team is not null && pulseTeamMap.TryGetValue(t.Team.Id.ToString(), out var tid) && tid == mt.HomeTeamId);
                 var pulseAway = pulseData.Teams.FirstOrDefault(t => t.Team is not null && pulseTeamMap.TryGetValue(t.Team.Id.ToString(), out var tid) && tid == mt.AwayTeamId);
-                if (pulseHome is not null) dbMatch.HomeScore = pulseHome.Score;
-                if (pulseAway is not null) dbMatch.AwayScore = pulseAway.Score;
+                if (pulseHome is not null) dbMatch.HomeScore = (int?)pulseHome.Score;
+                if (pulseAway is not null) dbMatch.AwayScore = (int?)pulseAway.Score;
             }
         }
 
         // Events enrichment — only for live matches
-        if (liveMatchIds.Count == 0) return liveMatchIds;
+        if (liveMatchIds.Count == 0) return (liveMatchIds, updatedCount);
 
         var existingEvents = await DbContext.MatchEvents
             .Where(e => liveMatchIds.Contains(e.MatchId))
@@ -272,7 +287,7 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
         }
 
         Logger.LogInformation("Enhanced {Count} live matches, added {Events} events", liveMatchIds.Count, eventCount);
-        return liveMatchIds;
+        return (liveMatchIds, updatedCount);
     }
 
     private static MatchStatus MapPulseStatus(string? status) => status switch
@@ -300,13 +315,19 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
 
     private async Task<int> EnrichFromFootballDataAsync(Season season, CancellationToken ct)
     {
+        var fdClient = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FootballDataClient));
+        FootballDataMatchesResponse? fdResponse;
         try
         {
-            var fdClient = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FootballDataClient));
-            var fdResponse = await fdClient.GetFromJsonAsync<FootballDataMatchesResponse>(
+            fdResponse = await fdClient.GetFromJsonAsync<FootballDataMatchesResponse>(
                 string.Format(FootballDataApi.Routes.Matches, season.Competition.Code, season.StartDate.Year), ct);
+        }
+        catch (Exception ex)
+        {
+            throw new ScoreCastException($"Football-data.org matches API failed for {season.Competition.Code}", ex);
+        }
 
-            if (fdResponse?.Matches is not { Count: > 0 }) return 0;
+        if (fdResponse?.Matches is not { Count: > 0 }) return 0;
 
             var dbMatches = await DbContext.Matches
                 .Where(m => m.Gameweek.SeasonId == season.Id && m.ExternalId != null)
@@ -329,12 +350,6 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
             }
 
             return count;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Football-data.org fetch failed for {Competition}", season.Competition.Code);
-            return 0;
-        }
     }
 
     private static MatchStatus MapFdStatus(string apiStatus) => apiStatus switch

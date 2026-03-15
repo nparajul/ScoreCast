@@ -3,6 +3,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Shared.Constants;
+using ScoreCast.Shared.Exceptions;
 using ScoreCast.Ws.Application.V1.MasterData.Commands;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
 using ScoreCast.Shared.Enums;
@@ -19,6 +20,18 @@ internal sealed record SyncCompetitionCommandHandler(
 {
     public async Task<ScoreCastResponse> ExecuteAsync(SyncCompetitionCommand command, CancellationToken ct)
     {
+        try
+        {
+            return await ExecuteCoreAsync(command, ct);
+        }
+        catch (ScoreCastException ex)
+        {
+            return ScoreCastResponse.Error(ex.Message);
+        }
+    }
+
+    private async Task<ScoreCastResponse> ExecuteCoreAsync(SyncCompetitionCommand command, CancellationToken ct)
+    {
         var client = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FootballDataClient));
 
         FootballDataCompetition? apiResponse;
@@ -29,28 +42,18 @@ internal sealed record SyncCompetitionCommandHandler(
         }
         catch (Exception ex)
         {
-            return ScoreCastResponse.Error($"Failed to fetch competition {command.Request.CompetitionCode}: {ex.Message}");
+            throw new ScoreCastException($"Football-data.org competition API failed for {command.Request.CompetitionCode}", ex);
         }
 
         if (apiResponse is null)
             return ScoreCastResponse.Error($"No data returned for competition {command.Request.CompetitionCode}");
 
-        await using var transaction = await UnitOfWork.BeginTransactionAsync(ct);
-        try
-        {
-            var country = await UpsertCountryAsync(apiResponse.Area, ct);
-            var competition = await UpsertCompetitionAsync(apiResponse, country, ct);
-            await UpsertSeasonsAsync(apiResponse, competition, country, ct);
+        var country = await UpsertCountryAsync(apiResponse.Area, ct);
+        var competition = await UpsertCompetitionAsync(apiResponse, country, ct);
+        await UpsertSeasonsAsync(apiResponse, competition, country, ct);
 
-            await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(SyncCompetitionCommand), ct);
-            await transaction.CommitAsync(ct);
-            return ScoreCastResponse.Ok($"Synced {apiResponse.Name} with {apiResponse.Seasons.Count} seasons");
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync(ct);
-            return ScoreCastResponse.Error($"Failed to sync competition {command.Request.CompetitionCode}: {ex.Message}");
-        }
+        await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(SyncCompetitionCommand), ct);
+        return ScoreCastResponse.Ok($"Synced {apiResponse.Name} with {apiResponse.Seasons.Count} seasons");
     }
 
     private async Task<Country> UpsertCountryAsync(FootballDataArea area, CancellationToken ct)
