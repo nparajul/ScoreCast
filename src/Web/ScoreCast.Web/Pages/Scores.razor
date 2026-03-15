@@ -59,20 +59,20 @@
                     }
                     <div class="d-flex align-center justify-space-between">
                         <div class="d-flex align-center gap-1" style="flex:1;justify-content:flex-end;overflow:hidden;">
-                            <span style="font-weight:600;font-size:13px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@match.HomeTeamShortName</span>
+                            <span style="font-weight:600;font-size:@(IsMobile ? "13" : "15")px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@match.HomeTeamShortName</span>
                             @if (match.HomeTeamLogo is not null)
                             {
-                                <img src="@match.HomeTeamLogo" alt="" style="width:20px;height:20px;flex-shrink:0;" />
+                                <img src="@match.HomeTeamLogo" alt="" style="width:@(IsMobile ? "20" : "26")px;height:@(IsMobile ? "20" : "26")px;flex-shrink:0;" />
                             }
                         </div>
                         <div style="min-width:60px;text-align:center;flex-shrink:0;">
                             @if (match.Status == nameof(MatchStatus.Finished))
                             {
-                                <span style="font-weight:700;font-size:14px;">@match.HomeScore - @match.AwayScore</span>
+                                <span style="font-weight:700;font-size:@(IsMobile ? "14" : "17")px;">@match.HomeScore - @match.AwayScore</span>
                             }
                             else if (match.Status == nameof(MatchStatus.Live))
                             {
-                                <span style="font-weight:700;font-size:14px;color:#4caf50;">@(match.HomeScore ?? 0) - @(match.AwayScore ?? 0)</span>
+                                <span style="font-weight:700;font-size:@(IsMobile ? "14" : "17")px;color:#4caf50;">@(match.HomeScore ?? 0) - @(match.AwayScore ?? 0)</span>
                                 <div style="display:flex;align-items:center;justify-content:center;gap:3px;margin-top:1px;">
                                     <span class="live-pulse"></span>
                                     <span style="font-size:9px;font-weight:700;color:#f44336;letter-spacing:1px;">LIVE</span>
@@ -88,9 +88,9 @@
                         <div class="d-flex align-center gap-1" style="flex:1;overflow:hidden;">
                             @if (match.AwayTeamLogo is not null)
                             {
-                                <img src="@match.AwayTeamLogo" alt="" style="width:20px;height:20px;flex-shrink:0;" />
+                                <img src="@match.AwayTeamLogo" alt="" style="width:@(IsMobile ? "20" : "26")px;height:@(IsMobile ? "20" : "26")px;flex-shrink:0;" />
                             }
-                            <span style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@match.AwayTeamShortName</span>
+                            <span style="font-weight:600;font-size:@(IsMobile ? "13" : "15")px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@match.AwayTeamShortName</span>
                         </div>
                     </div>
                     <div class="d-flex align-center justify-center" style="margin-top:2px;">

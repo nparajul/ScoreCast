@@ -4,8 +4,6 @@ namespace ScoreCast.Web.Layout;
 
 public partial class MainLayout : IDisposable
 {
-    private MudThemeProvider _themeProvider = default!;
-    private bool _isDarkMode = false;
     private bool _drawerOpen = false;
     private bool _isMobile = false;
     private long _selectedRoleId;
@@ -60,7 +58,6 @@ public partial class MainLayout : IDisposable
             await OnRoleChanged(roleId);
     }
 
-    private void ToggleDarkMode() => _isDarkMode = !_isDarkMode;
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
 
     public void AlertChanged() => StateHasChanged();

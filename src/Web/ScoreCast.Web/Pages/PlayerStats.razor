@@ -5,10 +5,6 @@
     <MudText Typo="Typo.h5" Class="mb-3" Style="font-weight:700;">Player Stats</MudText>
 
     <CompetitionFilter OnStateChanged="OnFilterChanged" />
-
-    <MudTextField @bind-Value="_search" Placeholder="Search player or team..." Variant="Variant.Outlined"
-                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
-                  Style="max-width:300px;" Margin="Margin.Dense" Immediate="true" DebounceInterval="300" Class="mb-3" />
 </MudContainer>
 
 <MudContainer MaxWidth="MaxWidth.Large">
@@ -17,6 +13,9 @@
     {
         @if (IsMobile)
         {
+            <MudTextField @bind-Value="_search" Placeholder="Search Players/Teams" Variant="Variant.Text"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                          Margin="Margin.Dense" Immediate="true" DebounceInterval="300" Class="mb-2" />
             <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:3px;margin-bottom:12px;overflow-x:auto;">
                 @foreach (var tab in new[] { "Overall", "Goals", "Assists", "Clean Sheets", "Discipline" })
                 {
@@ -111,6 +110,12 @@
         else
         {
         <MudTabs Elevation="1" Rounded="true" ApplyEffectsToContainer="true" Class="mt-0">
+            <Header>
+                <MudTextField @bind-Value="_search" Placeholder="Search Players/Teams" Variant="Variant.Outlined"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                              Style="max-width:200px;margin-left:auto;margin-right:12px;" Margin="Margin.Dense" Immediate="true" DebounceInterval="300" />
+            </Header>
+            <ChildContent>
             <MudTabPanel Text="Outfield" Icon="@Icons.Material.Filled.SportsSoccer">
         <MudTable Items="@SortedRows" Dense="true" Hover="true" Striped="true" Elevation="1" Style="border-radius:8px;"
                   RowsPerPage="25">
@@ -231,6 +236,7 @@
             </PagerContent>
         </MudTable>
             </MudTabPanel>
+            </ChildContent>
         </MudTabs>
         }
     }
