@@ -1,7 +1,8 @@
 @if (Rows.Count > 0)
 {
     @* ── MOBILE: pill tabs (Short / Full) ── *@
-    <div class="d-block d-md-none">
+    @if (IsMobile)
+    {
         <div style="display:flex;background:var(--mud-palette-dark);border-radius:20px;padding:3px;margin-bottom:10px;max-width:200px;">
             @foreach (var tab in new[] { "Short", "Full" })
             {
@@ -102,10 +103,9 @@
                 <MudText Typo="Typo.caption">Qualification next stage</MudText>
             </div>
         </div>
-    </div>
-
-    @* ── DESKTOP: full table ── *@
-    <div class="d-none d-md-block">
+    }
+    else
+    {
         <MudSimpleTable Dense="true" Hover="true" Elevation="1" Style="max-width:800px;">
             <thead>
                 <tr>
@@ -155,7 +155,7 @@
                 <MudText Typo="Typo.caption">Qualification next stage</MudText>
             </div>
         </div>
-    </div>
+    }
 }
 else
 {

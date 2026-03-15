@@ -112,7 +112,7 @@ public partial class Scores : IDisposable
 
     private record DisplayLine(string Text, string? Minute, double SortKey, bool Bold);
 
-    private static List<DisplayLine> GetDisplayLines(List<MatchEventDetail> events, bool isHome)
+    private static List<DisplayLine> GetDisplayLines(List<MatchEventDetail> events, bool isHome, bool includeSubs = true)
     {
         var lines = new List<DisplayLine>();
 
@@ -124,10 +124,13 @@ public partial class Scores : IDisposable
                 e.Minute, ParseMinute(e.Minute), isGoal));
         }
 
-        foreach (var s in GetSubPairs(events, isHome))
-            lines.Add(new DisplayLine(
-                $"🔼 {s.PlayerOn} 🔽 {s.PlayerOff}",
-                s.Minute, ParseMinute(s.Minute), false));
+        if (includeSubs)
+        {
+            foreach (var s in GetSubPairs(events, isHome))
+                lines.Add(new DisplayLine(
+                    $"🔼 {s.PlayerOn} 🔽 {s.PlayerOff}",
+                    s.Minute, ParseMinute(s.Minute), false));
+        }
 
         return lines.OrderBy(l => l.SortKey).ToList();
     }

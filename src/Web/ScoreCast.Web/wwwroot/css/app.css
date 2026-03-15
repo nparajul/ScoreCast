@@ -3,8 +3,8 @@
     margin-top: var(--mud-appbar-height);
     padding-top: 12px !important;
     padding-bottom: 48px !important;
-    padding-left: 16px !important;
-    padding-right: 16px !important;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
 }
 
 @media (min-width: 960px) {
@@ -36,6 +36,9 @@
     }
     .main-container {
         padding-top: 8px !important;
+    }
+    .mud-simple-table table {
+        width: 100% !important;
     }
     .filter-bar {
         gap: 4px !important;
