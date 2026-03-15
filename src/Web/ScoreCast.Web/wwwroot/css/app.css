@@ -70,3 +70,24 @@
         padding-right: 8px !important;
     }
 }
+
+/* Bracket slide animations */
+.bracket-slide {
+    animation-duration: 0.3s;
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+}
+.slide-from-right {
+    animation-name: slideFromRight;
+}
+.slide-from-left {
+    animation-name: slideFromLeft;
+}
+@keyframes slideFromRight {
+    from { transform: translateX(60px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideFromLeft {
+    from { transform: translateX(-60px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
