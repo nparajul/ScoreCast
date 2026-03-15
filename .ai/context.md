@@ -1,7 +1,7 @@
 # ScoreCast — Project Context
 
 ## Overview
-Premier League predictions app where users predict match outcomes and scorelines. Points awarded based on accuracy with leaderboards across prediction leagues. Built with .NET 10 and clean architecture.
+Football predictions app where users predict match outcomes and scorelines across multiple competitions (Premier League, FIFA World Cup 2026). Points awarded based on accuracy with leaderboards across prediction leagues. Built with .NET 10 and clean architecture. Light mode only.
 
 ## Tech Stack
 - .NET 10 (SDK 10.0.101), C# latest
@@ -61,26 +61,56 @@ Web.Server → Web (WASM) → Web.Components → Models, ApiClient
 - **Competition / Season / Gameweek** — football hierarchy
 - **Team / Player / TeamPlayer / SeasonTeam** — squad management
 - **Match / MatchEvent** — fixtures with scores, status, minute, goal/card events
+- **MatchLineup** — tracks match starters (is_starter=true) and substitutes (is_starter=false) from Pulse TeamLists data
 - **Prediction** — per-user per-season per-match scoreline predictions
 - **PredictionLeague / PredictionLeagueMember** — leagues with invite codes
 - **PredictionScoringRule** — configurable scoring rules (points computed on the fly)
 - **ExternalMapping** — maps internal entities to external API IDs (Pulse, FPL, FootballData)
 
 ## External Data Sources
-- **Pulse API** (primary for PL) — fixtures, scores, clock, events, teams
+- **Pulse API** (primary for PL) — fixtures, scores, clock, events, teams, lineups
 - **Football-data.org** (secondary) — fallback for non-PL or when Pulse fails
 - **FPL API** — player data enrichment, Pulse ID mappings
 - Pulse compSeason mapping stored in `external_mapping` table (e.g. Season 474 → Pulse 777)
 
+## Data Sync Schedule
+- **EnhanceLive**: every 60-90s (safe 24/7, no-ops when no live matches)
+- **Sync Matches** (football-data.org): every 5 min (rate limit: 10 req/min free tier)
+- **Calculate Predictions**: every 5 min after Sync Matches
+- **FPL + Pulse Events**: once after all matches finish (post-match)
+- All can run 24/7 — they short-circuit when nothing to do
+
 ## Key Pages
-- `/` — landing page (anonymous) or redirect to `/leagues` (authenticated)
+- `/` — landing page with branding, features, competitions (anonymous) or redirect to `/leagues` (authenticated)
 - `/leagues` — prediction tile + league list
 - `/leagues/{id}` — league detail with standings
 - `/predict` — submit predictions (season-scoped)
-- `/scores` — live scores with match minute, goal scorers
-- `/points-table` — standings with competition zones (league) or group tables (World Cup)
-- `/player-stats` — sortable player statistics
+- `/scores` — live scores with match events (goals, cards, subs with colored arrows, referee whistle icon). Desktop has larger text/logos.
+- `/points-table` — league standings with competition zones, or group tables + best 3rd placed + knockout bracket (World Cup). Mobile uses pill tabs + FotMob-style bracket with swipe navigation.
+- `/player-stats` — mobile: pill tabs (Overall/Goals/Assists/Clean Sheets/Discipline). Desktop: Outfield + Clean Sheets tabs with search bar in tab header. Position abbreviations shown next to player names.
 - `/master-data-sync` — admin data sync operations
+
+## Player Stats — Clean Sheet Rules
+- GK started, not subbed off → clean sheet if team conceded 0
+- GK started, subbed off ≥ 60' → clean sheet if team conceded 0
+- GK started, subbed off < 60' → no clean sheet
+- GK subbed on < 30' → clean sheet if opponent scored 0 goals after sub-on minute
+- GKs with 0 match events but clean sheets are included via MatchLineup data
+
+## Player Positions
+- `PlayerPositions` constants class in `ScoreCast.Shared.Constants`
+- 15 positions from DB + `ToShortName()` mapping (e.g. Centre-Back → CB, Defence → CB, Midfield → CM, Offence → CF)
+
+## Mobile UI Patterns
+- Pill tabs: dark background rounded container with flex items, `0.65rem` font
+- Tables: `MudSimpleTable` with tight padding, emoji headers for stats columns
+- Knockout bracket: FotMob-style two-column layout (65% current round + 35% next round preview with opacity), CSS connector lines, swipe navigation with slide animation
+- Scores: absolute-positioned minute marker, colored sub arrows (green ▲ / red ▼)
+
+## Theme
+- Light mode only (dark mode removed)
+- Primary: `#0A1929` (navy), Secondary: `#37003C` (PL purple), Tertiary: `#FF6B35` (orange)
+- AppBar: navy with white text
 
 ## Running Locally
 1. `docker compose up -d` (Keycloak + DBs)

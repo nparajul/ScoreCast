@@ -16,7 +16,7 @@
 - [ ] No compiler warnings (TreatWarningsAsErrors is on)
 - [ ] Nullable reference types handled properly — no `!` operator unless justified
 - [ ] Async all the way — no `.Result` or `.Wait()` calls
-- [ ] No magic strings — use constants classes or `nameof(EnumValue)`
+- [ ] No magic strings — use constants classes or `nameof(EnumValue)` (e.g., `PlayerPositions.Goalkeeper` not `"Goalkeeper"`)
 - [ ] No hardcoded URLs, status codes, or API values — everything via constants
 - [ ] Records with primary constructors for commands, queries, handlers, DTOs
 - [ ] `SaveChangesAsync` uses `request.AppName ?? nameof(XxxCommand)` pattern
@@ -35,6 +35,7 @@
 - [ ] Queries use `AsNoTracking()` where appropriate
 - [ ] Points NEVER stored — computed on the fly from `Outcome` + `scoring_rules` table
 - [ ] Use `ScoreCastDateTime.Now` instead of `DateTime.UtcNow`
+- [ ] When creating entities, don't use `required` on FK IDs — just use `long` and pass actual entity references
 
 ## Endpoints & API
 - [ ] POST endpoints: all data from `[Body]` request model — no route `{parameter}` placeholders
@@ -47,6 +48,10 @@
 - [ ] All API client calls wrapped in `Loading.While`
 - [ ] ViewModels in `ScoreCast.Web/ViewModels/`
 - [ ] Pages inject Refit interfaces directly (no controller layer)
+- [ ] Light mode only — no dark mode references
+- [ ] Mobile tables use `MudSimpleTable` with tight padding, emoji headers
+- [ ] Desktop tables use `MudTable` with sorting, paging, elevation
+- [ ] Position abbreviations use `PlayerPositions.ToShortName()` — never hardcode position strings
 
 ## External APIs
 - [ ] Pulse is primary data source for Premier League
@@ -54,6 +59,8 @@
 - [ ] FPL API used for Pulse ID mappings
 - [ ] New Pulse endpoints added to `PulseApi.Routes` constants
 - [ ] Pulse response models use `[property: JsonPropertyName]` for case-sensitive deserialization
+- [ ] Pulse events sync always marks finished matches as synced after processing (prevents infinite loop)
+- [ ] Lineup data saved from Pulse TeamLists (starters + substitutes) during events sync
 
 ## Security
 - [ ] No secrets in code or config files
