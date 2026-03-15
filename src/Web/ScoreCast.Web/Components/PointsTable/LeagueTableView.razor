@@ -1,6 +1,185 @@
 @using ScoreCast.Shared.Constants
 
-<div class="d-flex gap-4 mb-3 flex-wrap">
+@* ── MOBILE: tabbed views ── *@
+<div class="d-block d-md-none">
+    <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:4px;margin-bottom:12px;">
+        @foreach (var tab in new[] { "Short", "Full", "Form" })
+        {
+            var isActive = _mobileTab == tab;
+            <div @onclick="@(() => _mobileTab = tab)"
+                 style="flex:1;text-align:center;padding:8px 0;border-radius:24px;font-size:0.875rem;font-weight:700;cursor:pointer;
+                        background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
+                        color:@(isActive ? "var(--mud-palette-primary)" : "var(--mud-palette-text-secondary)");">
+                @tab
+            </div>
+        }
+    </div>
+
+    @if (_mobileTab == "Short")
+    {
+        <MudTable Items="Rows" Dense="false" Hover="true" Elevation="1" RowStyleFunc="RowStyleFunc" Breakpoint="Breakpoint.None" Class="mobile-table">
+            <HeaderContent>
+                <MudTh Style="width:24px;">#</MudTh>
+                <MudTh>Team</MudTh>
+                <MudTh Style="text-align:center;width:28px;">PL</MudTh>
+                <MudTh Style="text-align:center;width:30px;">GD</MudTh>
+                <MudTh Style="text-align:center;width:30px;font-weight:700;">PTS</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Style="font-weight:600;">@context.Position</MudTd>
+                <MudTd>
+                    <div class="d-flex align-center gap-2">
+                        @if (!string.IsNullOrEmpty(context.TeamLogo))
+                        {
+                            <img src="@context.TeamLogo" alt="" style="width:28px;height:28px;" />
+                        }
+                        <span style="font-weight:600;">@(context.TeamShortName ?? context.TeamName)</span>
+                    </div>
+                </MudTd>
+                <MudTd Style="text-align:center;">@context.Played</MudTd>
+                <MudTd Style="text-align:center;">@context.GoalDifference</MudTd>
+                <MudTd Style="text-align:center;font-weight:700;">@context.Points</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else if (_mobileTab == "Full")
+    {
+        <MudTable Items="Rows" Dense="false" Hover="true" Elevation="1" RowStyleFunc="RowStyleFunc" Breakpoint="Breakpoint.None" Class="mobile-table">
+            <HeaderContent>
+                <MudTh Style="width:24px;">#</MudTh>
+                <MudTh>Team</MudTh>
+                <MudTh Style="text-align:center;width:28px;">PL</MudTh>
+                <MudTh Style="text-align:center;width:24px;">W</MudTh>
+                <MudTh Style="text-align:center;width:24px;">D</MudTh>
+                <MudTh Style="text-align:center;width:24px;">L</MudTh>
+                <MudTh Style="text-align:center;width:44px;">+/-</MudTh>
+                <MudTh Style="text-align:center;width:30px;">GD</MudTh>
+                <MudTh Style="text-align:center;width:30px;font-weight:700;">PTS</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Style="font-weight:600;">@context.Position</MudTd>
+                <MudTd>
+                    <div class="d-flex align-center gap-2">
+                        @if (!string.IsNullOrEmpty(context.TeamLogo))
+                        {
+                            <img src="@context.TeamLogo" alt="" style="width:28px;height:28px;" />
+                        }
+                        <span style="font-weight:600;">@(context.TeamShortName ?? context.TeamName)</span>
+                    </div>
+                </MudTd>
+                <MudTd Style="text-align:center;">@context.Played</MudTd>
+                <MudTd Style="text-align:center;">@context.Won</MudTd>
+                <MudTd Style="text-align:center;">@context.Drawn</MudTd>
+                <MudTd Style="text-align:center;">@context.Lost</MudTd>
+                <MudTd Style="text-align:center;">@context.GoalsFor-@context.GoalsAgainst</MudTd>
+                <MudTd Style="text-align:center;">@context.GoalDifference</MudTd>
+                <MudTd Style="text-align:center;font-weight:700;">@context.Points</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudTable Items="Rows" Dense="false" Hover="true" Elevation="1" RowStyleFunc="RowStyleFunc" Breakpoint="Breakpoint.None" Class="mobile-table">
+            <HeaderContent>
+                <MudTh>#</MudTh>
+                <MudTh>Team</MudTh>
+                <MudTh Style="text-align:center;">Form</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Style="font-weight:600;">@context.Position</MudTd>
+                <MudTd>
+                    <div class="d-flex align-center gap-2">
+                        @if (!string.IsNullOrEmpty(context.TeamLogo))
+                        {
+                            <img src="@context.TeamLogo" alt="" style="width:28px;height:28px;" />
+                        }
+                        <span style="font-weight:600;">@(context.TeamShortName ?? context.TeamName)</span>
+                    </div>
+                </MudTd>
+                <MudTd>
+                    <div class="d-flex gap-1">
+                        @foreach (var r in context.RecentForm)
+                        {
+                            <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;color:#fff;background:@(r.Result == MatchResultCodes.Win ? "#4caf50" : r.Result == MatchResultCodes.Loss ? "#f44336" : "#9e9e9e");">@r.Result</span>
+                        }
+                    </div>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</div>
+
+@* ── DESKTOP: full table ── *@
+<div class="d-none d-md-block">
+    <MudTable Items="Rows" Dense="true" Hover="true" Elevation="1" RowStyleFunc="RowStyleFunc" FixedHeader="true" Breakpoint="Breakpoint.None">
+        <HeaderContent>
+            <MudTh Style="width:30px;">#</MudTh>
+            <MudTh>Team</MudTh>
+            <MudTh Style="text-align:center;"><MudTooltip Text="Played">PL</MudTooltip></MudTh>
+            <MudTh Style="text-align:center;"><MudTooltip Text="Won">W</MudTooltip></MudTh>
+            <MudTh Style="text-align:center;"><MudTooltip Text="Drawn">D</MudTooltip></MudTh>
+            <MudTh Style="text-align:center;"><MudTooltip Text="Lost">L</MudTooltip></MudTh>
+            <MudTh Style="text-align:center;"><MudTooltip Text="Goals For">GF</MudTooltip></MudTh>
+            <MudTh Style="text-align:center;"><MudTooltip Text="Goals Against">GA</MudTooltip></MudTh>
+            <MudTh Style="text-align:center;"><MudTooltip Text="Goal Difference">GD</MudTooltip></MudTh>
+            <MudTh Style="text-align:center;font-weight:700;"><MudTooltip Text="Points">Pts</MudTooltip></MudTh>
+            <MudTh Style="text-align:center;"><MudTooltip Text="Last 5 matches (most recent first)">Form</MudTooltip></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="#">@context.Position</MudTd>
+            <MudTd DataLabel="Team">
+                <div class="d-flex align-center gap-2">
+                    @if (!string.IsNullOrEmpty(context.TeamLogo))
+                    {
+                        <img src="@context.TeamLogo" alt="" style="width:24px;height:24px;" />
+                    }
+                    <MudText>@context.TeamName</MudText>
+                </div>
+            </MudTd>
+            <MudTd DataLabel="PL" Style="text-align:center;">@context.Played</MudTd>
+            <MudTd DataLabel="W" Style="text-align:center;">@context.Won</MudTd>
+            <MudTd DataLabel="D" Style="text-align:center;">@context.Drawn</MudTd>
+            <MudTd DataLabel="L" Style="text-align:center;">@context.Lost</MudTd>
+            <MudTd DataLabel="GF" Style="text-align:center;">@context.GoalsFor</MudTd>
+            <MudTd DataLabel="GA" Style="text-align:center;">@context.GoalsAgainst</MudTd>
+            <MudTd DataLabel="GD" Style="text-align:center;">@context.GoalDifference</MudTd>
+            <MudTd DataLabel="Pts" Style="text-align:center;font-weight:700;">@context.Points</MudTd>
+            <MudTd DataLabel="Form" Style="text-align:center;">
+                <div class="d-flex gap-1 justify-center">
+                    @foreach (var r in context.RecentForm)
+                    {
+                        var homeGoals = string.Join(", ", r.Goals.Where(g => g.IsHome).Select(g =>
+                            $"{g.PlayerName}{(g.Count > 1 ? $" x{g.Count}" : "")}{(g.IsOwnGoal ? " (OG)" : "")}"));
+                        var awayGoals = string.Join(", ", r.Goals.Where(g => !g.IsHome).Select(g =>
+                            $"{g.PlayerName}{(g.Count > 1 ? $" x{g.Count}" : "")}{(g.IsOwnGoal ? " (OG)" : "")}"));
+                        <MudTooltip Arrow="true" Placement="Placement.Top" Color="Color.Dark">
+                            <TooltipContent>
+                                <div style="text-align:center;padding:4px 2px;">
+                                    <div style="font-weight:700;font-size:13px;letter-spacing:0.5px;">
+                                        @(r.IsHome ? "🏠" : "✈️") @r.HomeScore - @r.AwayScore vs @r.Opponent
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(homeGoals))
+                                    {
+                                        <div style="margin-top:4px;font-size:12px;">⚽ @homeGoals</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(awayGoals))
+                                    {
+                                        <div style="font-size:12px;">⚽ @awayGoals</div>
+                                    }
+                                </div>
+                            </TooltipContent>
+                            <ChildContent>
+                                <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;color:#fff;background:@(r.Result == MatchResultCodes.Win ? "#4caf50" : r.Result == MatchResultCodes.Loss ? "#f44336" : "#9e9e9e");cursor:pointer;">@r.Result</span>
+                            </ChildContent>
+                        </MudTooltip>
+                    }
+                </div>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</div>
+
+<div class="d-flex gap-4 mt-3 flex-wrap">
     @foreach (var zone in Zones)
     {
         <div class="d-flex align-center gap-1">
@@ -9,70 +188,3 @@
         </div>
     }
 </div>
-
-<MudTable Items="Rows" Dense="true" Hover="true" Elevation="1" RowStyleFunc="RowStyleFunc" Breakpoint="Breakpoint.Sm" FixedHeader="true">
-    <HeaderContent>
-        <MudTh Style="width:50px;">#</MudTh>
-        <MudTh>Team</MudTh>
-        <MudTh Style="text-align:center;"><MudTooltip Text="Played">P</MudTooltip></MudTh>
-        <MudTh Style="text-align:center;"><MudTooltip Text="Won">W</MudTooltip></MudTh>
-        <MudTh Style="text-align:center;"><MudTooltip Text="Drawn">D</MudTooltip></MudTh>
-        <MudTh Style="text-align:center;"><MudTooltip Text="Lost">L</MudTooltip></MudTh>
-        <MudTh Style="text-align:center;"><MudTooltip Text="Goals For">GF</MudTooltip></MudTh>
-        <MudTh Style="text-align:center;"><MudTooltip Text="Goals Against">GA</MudTooltip></MudTh>
-        <MudTh Style="text-align:center;"><MudTooltip Text="Goal Difference">GD</MudTooltip></MudTh>
-        <MudTh Style="text-align:center;font-weight:700;"><MudTooltip Text="Points">Pts</MudTooltip></MudTh>
-        <MudTh Style="text-align:center;"><MudTooltip Text="Last 5 matches (most recent first)">Form</MudTooltip></MudTh>
-    </HeaderContent>
-    <RowTemplate>
-        <MudTd DataLabel="#">@context.Position</MudTd>
-        <MudTd DataLabel="Team">
-            <div class="d-flex align-center gap-2">
-                @if (!string.IsNullOrEmpty(context.TeamLogo))
-                {
-                    <img src="@context.TeamLogo" alt="" style="width:24px;height:24px;" />
-                }
-                <MudText>@context.TeamName</MudText>
-            </div>
-        </MudTd>
-        <MudTd DataLabel="P" Style="text-align:center;">@context.Played</MudTd>
-        <MudTd DataLabel="W" Style="text-align:center;">@context.Won</MudTd>
-        <MudTd DataLabel="D" Style="text-align:center;">@context.Drawn</MudTd>
-        <MudTd DataLabel="L" Style="text-align:center;">@context.Lost</MudTd>
-        <MudTd DataLabel="GF" Style="text-align:center;">@context.GoalsFor</MudTd>
-        <MudTd DataLabel="GA" Style="text-align:center;">@context.GoalsAgainst</MudTd>
-        <MudTd DataLabel="GD" Style="text-align:center;">@context.GoalDifference</MudTd>
-        <MudTd DataLabel="Pts" Style="text-align:center;font-weight:700;">@context.Points</MudTd>
-        <MudTd DataLabel="Form" Style="text-align:center;">
-            <div class="d-flex gap-1 justify-center">
-                @foreach (var r in context.RecentForm)
-                {
-                    var homeGoals = string.Join(", ", r.Goals.Where(g => g.IsHome).Select(g =>
-                        $"{g.PlayerName}{(g.Count > 1 ? $" x{g.Count}" : "")}{(g.IsOwnGoal ? " (OG)" : "")}"));
-                    var awayGoals = string.Join(", ", r.Goals.Where(g => !g.IsHome).Select(g =>
-                        $"{g.PlayerName}{(g.Count > 1 ? $" x{g.Count}" : "")}{(g.IsOwnGoal ? " (OG)" : "")}"));
-                    <MudTooltip Arrow="true" Placement="Placement.Top" Color="Color.Dark">
-                        <TooltipContent>
-                            <div style="text-align:center;padding:4px 2px;">
-                                <div style="font-weight:700;font-size:13px;letter-spacing:0.5px;">
-                                    @(r.IsHome ? "🏠" : "✈️") @r.HomeScore - @r.AwayScore vs @r.Opponent
-                                </div>
-                                @if (!string.IsNullOrEmpty(homeGoals))
-                                {
-                                    <div style="margin-top:4px;font-size:12px;">⚽ @homeGoals</div>
-                                }
-                                @if (!string.IsNullOrEmpty(awayGoals))
-                                {
-                                    <div style="font-size:12px;">⚽ @awayGoals</div>
-                                }
-                            </div>
-                        </TooltipContent>
-                        <ChildContent>
-                            <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;color:#fff;background:@(r.Result == MatchResultCodes.Win ? "#4caf50" : r.Result == MatchResultCodes.Loss ? "#f44336" : "#9e9e9e");cursor:pointer;">@r.Result</span>
-                        </ChildContent>
-                    </MudTooltip>
-                }
-            </div>
-        </MudTd>
-    </RowTemplate>
-</MudTable>

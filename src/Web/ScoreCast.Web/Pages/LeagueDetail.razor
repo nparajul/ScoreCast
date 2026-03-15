@@ -9,7 +9,7 @@
 
     @if (_standings is not null)
     {
-        <div class="d-flex justify-space-between align-center mb-4">
+        <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center gap-2 mb-4">
             <div>
                 <MudText Typo="Typo.h5" Style="font-weight:700;">@_standings.LeagueName</MudText>
                 <MudText Typo="Typo.caption" Color="Color.Secondary">@_standings.Standings.Count member@(_standings.Standings.Count != 1 ? "s" : "")</MudText>
