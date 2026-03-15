@@ -1,5 +1,21 @@
 window.bracketLines = {
+    _resizeHandler: null,
     draw: function (containerId) {
+        if (this._resizeHandler) {
+            window.removeEventListener('resize', this._resizeHandler);
+        }
+
+        this._drawLines(containerId);
+
+        var self = this;
+        var timeout;
+        this._resizeHandler = function () {
+            clearTimeout(timeout);
+            timeout = setTimeout(function () { self._drawLines(containerId); }, 16);
+        };
+        window.addEventListener('resize', this._resizeHandler);
+    },
+    _drawLines: function (containerId) {
         var container = document.getElementById(containerId);
         if (!container) return;
 
@@ -7,11 +23,14 @@ window.bracketLines = {
         if (old) old.remove();
 
         var rect = container.getBoundingClientRect();
+        var scrollLeft = container.scrollLeft;
+        var scrollTop = container.scrollTop;
+
         var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.classList.add('bracket-svg-overlay');
         svg.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;overflow:visible;';
-        svg.setAttribute('width', rect.width);
-        svg.setAttribute('height', rect.height);
+        svg.setAttribute('width', container.scrollWidth);
+        svg.setAttribute('height', container.scrollHeight);
 
         var colMap = {};
         container.querySelectorAll('[data-bracket-col]').forEach(function (col) {
@@ -20,23 +39,18 @@ window.bracketLines = {
             col.querySelectorAll('[data-bracket-card]').forEach(function (card) {
                 var cr = card.getBoundingClientRect();
                 colMap[idx].push({
-                    midY: (cr.top + cr.bottom) / 2 - rect.top,
-                    left: cr.left - rect.left,
-                    right: cr.right - rect.left
+                    midY: (cr.top + cr.bottom) / 2 - rect.top + scrollTop,
+                    left: cr.left - rect.left + scrollLeft,
+                    right: cr.right - rect.left + scrollLeft
                 });
             });
         });
 
-        // Left half: R32(0) -> R16(1) -> QF(2) -> SF(3) -> Final(4)
-        // Each connection: source cards merge in pairs into destination cards
-        // Source is on the left, lines go right
         drawMerge(svg, colMap, '0', '1', 'right');
         drawMerge(svg, colMap, '1', '2', 'right');
         drawMerge(svg, colMap, '2', '3', 'right');
         drawStraight(svg, colMap, '3', '4', 'right');
 
-        // Right half: R32(8) -> R16(7) -> QF(6) -> SF(5) -> Final(4)
-        // Source is on the right, lines go left
         drawMerge(svg, colMap, '8', '7', 'left');
         drawMerge(svg, colMap, '7', '6', 'left');
         drawMerge(svg, colMap, '6', '5', 'left');

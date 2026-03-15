@@ -9,6 +9,8 @@ public partial class KnockoutBracket
     [Parameter] public BracketResult? Bracket { get; set; }
     [Inject] private IJSRuntime Js { get; set; } = default!;
 
+    private int MobileRoundIndex { get; set; }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (Bracket is not null && Bracket.Rounds.Count > 0)
