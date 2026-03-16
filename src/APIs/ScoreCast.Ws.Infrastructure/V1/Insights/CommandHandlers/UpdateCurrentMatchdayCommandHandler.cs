@@ -21,24 +21,38 @@ internal sealed record UpdateCurrentMatchdayCommandHandler(
         var updated = 0;
         foreach (var season in seasons)
         {
-            // Find the first gameweek that has any non-finished match
-            var firstIncomplete = await DbContext.Gameweeks
-                .Where(g => g.SeasonId == season.Id && !g.IsDeleted)
-                .Where(g => g.Matches.Any(m => m.Status != MatchStatus.Finished && !m.IsDeleted))
-                .OrderBy(g => g.Number)
+            // Active gameweek = the one currently in play
+            var activeGw = await DbContext.Gameweeks
+                .Where(g => g.SeasonId == season.Id && g.Status == GameweekStatus.Active && !g.IsDeleted)
                 .Select(g => (int?)g.Number)
                 .FirstOrDefaultAsync(ct);
 
-            var newMatchday = firstIncomplete ?? season.CurrentMatchday;
-            if (newMatchday is not null && newMatchday != season.CurrentMatchday)
+            if (activeGw is not null && activeGw != season.CurrentMatchday)
             {
-                season.CurrentMatchday = newMatchday;
+                season.CurrentMatchday = activeGw;
                 updated++;
+            }
+
+            // Also advance gameweek statuses: if all matches finished → Completed, if any in progress → Active
+            var gameweeks = await DbContext.Gameweeks
+                .Include(g => g.Matches)
+                .Where(g => g.SeasonId == season.Id && g.Status != GameweekStatus.Completed && !g.IsDeleted)
+                .OrderBy(g => g.Number)
+                .ToListAsync(ct);
+
+            foreach (var gw in gameweeks)
+            {
+                var matches = gw.Matches.Where(m => !m.IsDeleted).ToList();
+                if (matches.Count == 0) continue;
+
+                if (matches.All(m => m.Status == MatchStatus.Finished))
+                    gw.Status = GameweekStatus.Completed;
+                else if (matches.Any(m => m.Status is MatchStatus.Live or MatchStatus.Finished))
+                    gw.Status = GameweekStatus.Active;
             }
         }
 
-        if (updated > 0)
-            await UnitOfWork.SaveChangesAsync(nameof(UpdateCurrentMatchdayCommand), ct);
+        await UnitOfWork.SaveChangesAsync(nameof(UpdateCurrentMatchdayCommand), ct);
 
         return ScoreCastResponse.Ok($"Updated {updated} season(s)");
     }
