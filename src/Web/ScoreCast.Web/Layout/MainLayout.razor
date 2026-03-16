@@ -23,6 +23,13 @@
                        Edge="Edge.Start"
                        OnClick="ToggleDrawer"
                        Class="d-flex d-md-none" />
+        @if (_showBackButton)
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                           Color="Color.Inherit"
+                           OnClick="GoBack"
+                           aria-label="Go back" />
+        }
         <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="36" Height="36" Class="mr-2" />
         <MudText Typo="Typo.h6" Class="mr-4 d-none d-sm-flex">ScoreCast</MudText>
 

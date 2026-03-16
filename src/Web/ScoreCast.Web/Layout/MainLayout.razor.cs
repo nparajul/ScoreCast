@@ -1,12 +1,20 @@
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.JSInterop;
 
 namespace ScoreCast.Web.Layout;
 
 public partial class MainLayout : IDisposable
 {
+    [Inject] private NavigationManager Nav { get; set; } = null!;
+    [Inject] private IJSRuntime Js { get; set; } = null!;
+
     private bool _drawerOpen = false;
     private bool _isMobile = false;
     private long _selectedRoleId;
+    private bool _showBackButton;
+
+    private static readonly string[] RootPaths = ["/", "/leagues", ""];
 
     private string? WrapperClass { get; set; }
 
@@ -30,6 +38,8 @@ public partial class MainLayout : IDisposable
         Notify.Register(this);
         Loading.IsLoading = true;
         RoleNav.OnChanged += StateHasChanged;
+        Nav.LocationChanged += OnLocationChanged;
+        UpdateBackButton();
         await base.OnInitializedAsync();
     }
 
@@ -60,7 +70,26 @@ public partial class MainLayout : IDisposable
 
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
 
+    private async Task GoBack() => await Js.InvokeVoidAsync("history.back");
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        UpdateBackButton();
+        StateHasChanged();
+    }
+
+    private void UpdateBackButton()
+    {
+        var relativePath = Nav.ToBaseRelativePath(Nav.Uri).TrimEnd('/');
+        _showBackButton = !RootPaths.Contains($"/{relativePath}", StringComparer.OrdinalIgnoreCase)
+                          && !RootPaths.Contains(relativePath, StringComparer.OrdinalIgnoreCase);
+    }
+
     public void AlertChanged() => StateHasChanged();
 
-    public void Dispose() => RoleNav.OnChanged -= StateHasChanged;
+    public void Dispose()
+    {
+        RoleNav.OnChanged -= StateHasChanged;
+        Nav.LocationChanged -= OnLocationChanged;
+    }
 }
