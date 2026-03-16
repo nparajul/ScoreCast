@@ -2,16 +2,18 @@
 
 <AuthorizeView>
     <Authorized>
-        <MudPaper Class="d-flex d-md-none bottom-nav" Elevation="4">
-            @foreach (var tab in Tabs)
-            {
-                <MudButton Class="@TabClass(tab.Url)" OnClick="@(() => Navigate(tab.Url))">
-                    <div class="d-flex flex-column align-center">
+        <div class="d-flex d-md-none bottom-nav">
+            <div class="bottom-nav-scroll" @ref="_scrollContainer">
+                @for (var i = 0; i < Tabs.Length; i++)
+                {
+                    var tab = Tabs[i];
+                    var index = i;
+                    <button class="@TabClass(tab.Url)" id="@($"bnav-{index}")" @onclick="@(() => OnTabClick(tab.Url, index))">
                         <MudIcon Icon="@tab.Icon" Size="Size.Small" />
-                        <MudText Typo="Typo.caption">@tab.Label</MudText>
-                    </div>
-                </MudButton>
-            }
-        </MudPaper>
+                        <span class="bottom-nav-label">@tab.Label</span>
+                    </button>
+                }
+            </div>
+        </div>
     </Authorized>
 </AuthorizeView>
