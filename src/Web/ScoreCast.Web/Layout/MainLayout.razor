@@ -22,7 +22,7 @@
                        Color="Color.Inherit"
                        Edge="Edge.Start"
                        OnClick="ToggleDrawer"
-                       Class="d-flex d-md-none" />
+                       Class="d-none d-md-flex" />
         @if (_showBackButton)
         {
             <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
@@ -42,11 +42,7 @@
 
         <MudSpacer />
 
-        @if (RoleNav.Roles.Count == 1)
-        {
-            <MudText Typo="Typo.body2" Class="d-none d-sm-inline mr-2" Style="opacity:0.8;">@RoleNav.Roles[0].Name</MudText>
-        }
-        else if (RoleNav.Roles.Count > 1)
+        @if (RoleNav.Roles.Count > 1)
         {
             <select @onchange="OnRoleChangedFromSelect" class="d-none d-sm-inline" style="background:transparent; color:inherit; border:1px solid rgba(255,255,255,0.3); border-radius:4px; padding:4px 8px; margin-right:8px;">
                 @foreach (var role in RoleNav.Roles)
@@ -67,12 +63,7 @@
                     @onePage.PageName
                 </MudNavLink>
             }
-            @if (RoleNav.Roles.Count == 1)
-            {
-                <MudDivider Class="my-2" />
-                <MudText Typo="Typo.body2" Class="px-4 py-2" Style="opacity:0.6;">@RoleNav.Roles[0].Name</MudText>
-            }
-            else if (RoleNav.Roles.Count > 1)
+            @if (RoleNav.Roles.Count > 1)
             {
                 <MudDivider Class="my-2" />
                 @foreach (var role in RoleNav.Roles)
