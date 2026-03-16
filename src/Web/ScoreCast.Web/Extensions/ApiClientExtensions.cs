@@ -1,9 +1,8 @@
-using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Refit;
-using ScoreCast.Web.Auth;
 
 namespace ScoreCast.Web.Extensions;
 
@@ -25,27 +24,15 @@ public static class ApiClientExtensions
     {
         var apiBaseUrl = builder.Configuration["Api:BaseUrl"]!;
 
-        builder.Services.AddTransient<ApiAuthHandler>();
+        builder.Services.AddScoped<BaseAddressAuthorizationMessageHandler>();
 
         builder.Services
             .AddRefitClient<IScoreCastApiClient>(RefitSettings)
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-            .AddHttpMessageHandler<ApiAuthHandler>();
+            .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
         builder.Services
             .AddRefitClient<IAuthApi>(RefitSettings)
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
-    }
-}
-
-internal sealed class ApiAuthHandler(ScoreCastAuthStateProvider authProvider) : DelegatingHandler
-{
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-    {
-        var token = await authProvider.GetAccessTokenAsync();
-        if (token is not null)
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        return await base.SendAsync(request, cancellationToken);
     }
 }
