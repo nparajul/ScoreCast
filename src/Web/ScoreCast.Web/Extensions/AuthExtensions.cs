@@ -20,6 +20,7 @@ public static class AuthExtensions
             options.ProviderOptions.DefaultScopes.Add("profile");
             options.ProviderOptions.DefaultScopes.Add("email");
             options.ProviderOptions.DefaultScopes.Add("roles");
+            options.ProviderOptions.DefaultScopes.Add("offline_access");
 
             options.UserOptions.RoleClaim = "roles";
             options.UserOptions.NameClaim = "preferred_username";
