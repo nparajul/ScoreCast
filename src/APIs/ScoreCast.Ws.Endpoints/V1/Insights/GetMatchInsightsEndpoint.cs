@@ -52,25 +52,39 @@ public sealed class GetMatchInsightsEndpoint
             .Select(m => new { m.HomeTeamId, m.AwayTeamId, m.HomeScore, m.AwayScore })
             .ToListAsync(ct);
 
-        var teamForm = teamIds.ToDictionary(id => id, id =>
+        // Build form string (W/D/L) and points for each team
+        var teamStats = teamIds.ToDictionary(id => id, id =>
         {
-            var results = recentResults
-                .Where(r => r.HomeTeamId == id || r.AwayTeamId == id)
-                .Take(5)
-                .Select(r =>
-                {
-                    var isHome = r.HomeTeamId == id;
-                    var scored = isHome ? r.HomeScore ?? 0 : r.AwayScore ?? 0;
-                    var conceded = isHome ? r.AwayScore ?? 0 : r.HomeScore ?? 0;
-                    return scored > conceded ? 3 : scored == conceded ? 1 : 0;
-                }).ToList();
-            return results.Count > 0 ? (double)results.Sum() / (results.Count * 3) : 0.5;
+            var all = recentResults.Where(r => r.HomeTeamId == id || r.AwayTeamId == id).ToList();
+            var last5 = all.Take(5).Select(r =>
+            {
+                var isHome = r.HomeTeamId == id;
+                var scored = isHome ? r.HomeScore ?? 0 : r.AwayScore ?? 0;
+                var conceded = isHome ? r.AwayScore ?? 0 : r.HomeScore ?? 0;
+                return scored > conceded ? "W" : scored == conceded ? "D" : "L";
+            }).ToList();
+            var pts = all.Sum(r =>
+            {
+                var isHome = r.HomeTeamId == id;
+                var scored = isHome ? r.HomeScore ?? 0 : r.AwayScore ?? 0;
+                var conceded = isHome ? r.AwayScore ?? 0 : r.HomeScore ?? 0;
+                return scored > conceded ? 3 : scored == conceded ? 1 : 0;
+            });
+            var formStr = last5.Count > 0 ? string.Join("", last5) : "?";
+            var formPct = last5.Count > 0 ? (double)last5.Count(f => f == "W") * 3 / (last5.Count * 3)
+                + (double)last5.Count(f => f == "D") / (last5.Count * 3) : 0.5;
+            return (Form: formStr, Points: pts, Played: all.Count, FormPct: formPct);
         });
+
+        // Rank teams by points for league position
+        var ranked = teamStats.OrderByDescending(t => t.Value.Points).Select((t, i) => (t.Key, Pos: i + 1)).ToDictionary(x => x.Key, x => x.Pos);
 
         var insights = matches.Select(m =>
         {
-            var homeStr = teamForm.GetValueOrDefault(m.HomeId, 0.5);
-            var awayStr = teamForm.GetValueOrDefault(m.AwayId, 0.5);
+            var homeStr = teamStats.GetValueOrDefault(m.HomeId).FormPct;
+            var awayStr = teamStats.GetValueOrDefault(m.AwayId).FormPct;
+            if (homeStr == 0) homeStr = 0.5;
+            if (awayStr == 0) awayStr = 0.5;
             homeStr = Math.Min(1.0, homeStr + 0.1);
             var total = homeStr + awayStr + 0.3;
             var homePct = (int)(homeStr / total * 100);
@@ -83,9 +97,25 @@ public sealed class GetMatchInsightsEndpoint
 
         if (chatClient is not null)
         {
-            var prompt = "You are a football pundit. For each match, write ONE exciting 1-2 sentence hype line. Be bold. Return ONLY a JSON array of strings, same order.\n\nMatches:\n"
-                + string.Join("\n", insights.Select((ins, i) =>
-                    $"{i + 1}. {ins.HomeTeamName} vs {ins.AwayTeamName} (Home {ins.HomeWinPct}%, Draw {ins.DrawPct}%, Away {ins.AwayWinPct}%)"));
+            var totalTeams = teamStats.Count > 0 ? ranked.Values.Max() : 20;
+            var matchContext = insights.Select((ins, i) =>
+            {
+                var hId = matches[i].HomeId;
+                var aId = matches[i].AwayId;
+                var hs = teamStats.GetValueOrDefault(hId);
+                var aStats = teamStats.GetValueOrDefault(aId);
+                var hPos = ranked.GetValueOrDefault(hId);
+                var aPos = ranked.GetValueOrDefault(aId);
+                return $"{i + 1}. {ins.HomeTeamName} (#{hPos}, {hs.Points}pts, form:{hs.Form}) vs {ins.AwayTeamName} (#{aPos}, {aStats.Points}pts, form:{aStats.Form}) — Home win {ins.HomeWinPct}%, Draw {ins.DrawPct}%, Away {ins.AwayWinPct}%";
+            });
+
+            var prompt = $"""
+You are an insightful Premier League pundit. For each match write ONE punchy 1-2 sentence preview that references the teams' league position, recent form, and what's at stake (title race, top 4, relegation battle, mid-table etc). Be specific, not generic. {totalTeams} teams in the league.
+Return ONLY a JSON array of strings, one per match, same order.
+
+Matches:
+{string.Join("\n", matchContext)}
+""";
 
             try
             {
