@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using ScoreCast.Web.Auth;
+using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
 
@@ -7,10 +8,10 @@ public partial class Register
 {
     [Inject] private ScoreCastAuthStateProvider Auth { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
+    [Inject] private ILoadingService Loading { get; set; } = null!;
 
     private readonly RegisterModel _model = new();
     private string? _error;
-    private bool _loading;
 
     protected override async Task OnInitializedAsync()
     {
@@ -24,16 +25,14 @@ public partial class Register
         _error = Validate();
         if (_error is not null) return;
 
-        _loading = true;
+        (bool success, string? error) result = default;
+        await Loading.While(async () =>
+            result = await Auth.RegisterAsync(_model.Email, _model.Username, _model.Password));
 
-        var (success, error) = await Auth.RegisterAsync(_model.Email, _model.Username, _model.Password);
-
-        if (success)
+        if (result.success)
             Nav.NavigateTo("/dashboard", replace: true);
         else
-            _error = error;
-
-        _loading = false;
+            _error = result.error;
     }
 
     private string? Validate()
