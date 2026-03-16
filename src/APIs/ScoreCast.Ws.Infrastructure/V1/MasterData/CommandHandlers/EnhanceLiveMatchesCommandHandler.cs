@@ -6,6 +6,7 @@ using ScoreCast.Models.V1.Responses;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
 using ScoreCast.Shared.Exceptions;
+using ScoreCast.Shared.Types;
 using ScoreCast.Ws.Application;
 using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Application.V1.MasterData.Commands;
@@ -323,13 +324,15 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
     private async Task<(int Count, string? Warning)> EnrichFromFootballDataBulkAsync(List<Season> seasons, CancellationToken ct)
     {
         var fdClient = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FootballDataClient));
-        var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var today = ScoreCastDateTime.Now.Date;
+        var dateFrom = today.ToString("yyyy-MM-dd");
+        var dateTo = today.AddDays(1).ToString("yyyy-MM-dd");
 
         FootballDataMatchesResponse? fdResponse;
         try
         {
             fdResponse = await fdClient.GetFromJsonAsync<FootballDataMatchesResponse>(
-                string.Format(FootballDataApi.Routes.MatchesByDate, today, today), ct);
+                string.Format(FootballDataApi.Routes.MatchesByDate, dateFrom, dateTo), ct);
         }
         catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.TooManyRequests)
         {

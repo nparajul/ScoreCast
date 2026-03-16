@@ -10,7 +10,6 @@ public sealed class GetCompetitionsEndpoint : EndpointWithoutRequest<ScoreCastRe
     {
         Get("/competitions");
         Group<FootballGroup>();
-        AllowAnonymous();
         Summary(s =>
         {
             s.Summary = "Get Competitions";

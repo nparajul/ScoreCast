@@ -11,7 +11,6 @@ public sealed class GetPlayerStatsEndpoint : Endpoint<GetPlayerStatsRequest, Sco
     {
         Get("/seasons/{SeasonId}/player-stats");
         Group<FootballGroup>();
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(GetPlayerStatsRequest request, CancellationToken ct)
