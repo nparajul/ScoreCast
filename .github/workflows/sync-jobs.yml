@@ -8,6 +8,8 @@ on:
     - cron: '*/2 12-23 * * *'
     # Calculate Points — every 10 minutes during match hours
     - cron: '*/10 12-23 * * *'
+    # Generate AI Insights — daily at 6 AM UTC
+    - cron: '0 6 * * *'
   workflow_dispatch:
     inputs:
       job:
@@ -19,6 +21,7 @@ on:
           - enhance-live
           - calculate-points
           - sync-pl-events
+          - generate-insights
 
 env:
   API_BASE_URL: ${{ secrets.SCORECAST_API_URL }}
@@ -104,3 +107,13 @@ jobs:
             [ "$COMPLETE" = "true" ] || [ "$PROCESSED" = "0" ] && break
             sleep 1
           done
+
+  generate-insights:
+    if: github.event.schedule == '0 6 * * *' || github.event.inputs.job == 'generate-insights'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate AI insights
+        run: |
+          RESULT=$(curl --max-time 120 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+            "$API_BASE_URL/api/v1/master-data/generate-insights" || echo '{"message":"Request failed"}')
+          echo "Result: $(echo $RESULT | jq -r '.message // "done"')"
