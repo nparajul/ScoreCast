@@ -70,6 +70,12 @@ public partial class MainLayout : IDisposable
 
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
 
+    private void NavigateAndCloseDrawer(string? url)
+    {
+        _drawerOpen = false;
+        if (url is not null) Nav.NavigateTo(url);
+    }
+
     private async Task GoBack() => await Js.InvokeVoidAsync("history.back");
 
     private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
