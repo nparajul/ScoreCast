@@ -1,5 +1,20 @@
 @page "/authentication/{action}"
 
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-
-<RemoteAuthenticatorView Action="@Action" />
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
+    <MudPaper Elevation="3" Class="pa-8 d-flex flex-column align-center rounded-lg">
+        <MudImage Src="scorecast-logo.svg" Alt="ScoreCast" Width="300" Class="mb-4" />
+        <MudText Typo="Typo.h5" Align="Align.Center" Color="Color.Inherit" Class="mb-2">
+            You've been logged out
+        </MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Inherit" Class="mb-6" Style="opacity:0.7;">
+            Thanks for playing — see you next gameweek!
+        </MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.Login" Href="/login">
+            Log Back In
+        </MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" Class="mt-2" Href="/">
+            Go to Home
+        </MudButton>
+    </MudPaper>
+</MudContainer>

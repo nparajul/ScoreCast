@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using ScoreCast.Models.V1.Requests.UserManagement;
 using ScoreCast.Models.V1.Responses.UserManagement;
 using ScoreCast.Web.Components.Helpers;
@@ -9,6 +8,7 @@ namespace ScoreCast.Web.Pages;
 public partial class Settings
 {
     [Inject] private IScoreCastApiClient Api { get; set; } = null!;
+    [Inject] private IAuthService Auth { get; set; } = null!;
     [Inject] private ILoadingService Loading { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
@@ -51,6 +51,9 @@ public partial class Settings
         });
     }
 
-    private void Logout() =>
-        Nav.NavigateToLogout("authentication/logout");
+    private async Task Logout()
+    {
+        await Auth.LogoutAsync();
+        Nav.NavigateTo("/", replace: true);
+    }
 }
