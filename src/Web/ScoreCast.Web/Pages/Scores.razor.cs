@@ -2,6 +2,7 @@ using Microsoft.JSInterop;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
+using ScoreCast.Shared.Types;
 using ScoreCast.Web.Components;
 using ScoreCast.Web.Components.Helpers;
 
@@ -108,7 +109,7 @@ public partial class Scores : IDisposable
     {
         if (_gameweek is null) return [];
 
-        var today = DateOnly.FromDateTime(DateTime.Now);
+        var today = ScoreCastDateTime.Now.Date;
         return _gameweek.Matches
             .GroupBy(m => m.KickoffTime.HasValue ? DateOnly.FromDateTime(m.KickoffTime.Value.ToLocalTime()) : (DateOnly?)null)
             .OrderBy(g => g.Key)

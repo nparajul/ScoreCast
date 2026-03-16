@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <Target Name="RunArchTests" AfterTargets="Build">
+    <Exec Command="dotnet test &quot;$(MSBuildProjectFullPath)&quot; --no-build --verbosity quiet" />
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\APIs\ScoreCast.Ws.Application\ScoreCast.Ws.Application.csproj" />
+    <ProjectReference Include="..\..\src\APIs\ScoreCast.Ws.Endpoints\ScoreCast.Ws.Endpoints.csproj" />
+    <ProjectReference Include="..\..\src\APIs\ScoreCast.Ws.Infrastructure\ScoreCast.Ws.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
