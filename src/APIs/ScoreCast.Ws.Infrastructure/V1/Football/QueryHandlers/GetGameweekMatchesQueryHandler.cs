@@ -72,8 +72,8 @@ internal sealed record GetGameweekMatchesQueryHandler(
 
         var result = matches.Select(m => new MatchDetail(
             m.Id, m.KickoffTime, m.Status.ToString(),
-            m.HomeTeamName, m.HomeTeamLogo, m.HomeTeamShortName,
-            m.AwayTeamName, m.AwayTeamLogo, m.AwayTeamShortName,
+            m.HomeTeamId, m.HomeTeamName, m.HomeTeamLogo, m.HomeTeamShortName,
+            m.AwayTeamId, m.AwayTeamName, m.AwayTeamLogo, m.AwayTeamShortName,
             m.HomeScore, m.AwayScore, m.Venue, m.Referee, m.Minute,
             eventsByMatch.GetValueOrDefault(m.Id, []).OrderBy(e => ParseMinute(e.Minute)).Select(e =>
             {

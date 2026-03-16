@@ -8,7 +8,7 @@ namespace ScoreCast.Web.Components.PointsTable;
 public partial class KnockoutBracket
 {
     [Parameter] public BracketResult? Bracket { get; set; }
-    [Inject] private IJSRuntime Js { get; set; } = default!;
+    [Inject] private IJSRuntime Js { get; set; } = null!;
 
     private string _mobileRound = "R32";
     private List<string> _mobileRounds = [];
