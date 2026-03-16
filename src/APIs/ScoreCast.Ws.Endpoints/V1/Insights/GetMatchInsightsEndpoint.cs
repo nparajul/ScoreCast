@@ -90,7 +90,14 @@ public sealed class GetMatchInsightsEndpoint
             try
             {
                 var response = await chatClient.GetResponseAsync(prompt, cancellationToken: ct);
-                var text = response.Text?.Trim().TrimStart('[').TrimEnd(']') ?? "";
+                var raw = response.Text?.Trim() ?? "";
+                // Strip markdown code fences if present
+                if (raw.StartsWith("```"))
+                {
+                    raw = raw.Split('\n', 2).Length > 1 ? raw.Split('\n', 2)[1] : raw;
+                    raw = raw.TrimEnd('`').Trim();
+                }
+                var text = raw.TrimStart('[').TrimEnd(']');
                 var summaries = text.Split("\",")
                     .Select(s => s.Trim().Trim('"').Trim())
                     .Where(s => !string.IsNullOrWhiteSpace(s))
