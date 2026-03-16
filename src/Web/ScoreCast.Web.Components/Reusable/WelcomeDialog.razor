@@ -1,79 +1,65 @@
-<MudDialog>
+@using ScoreCast.Models.V1.Responses.Football
+
+<MudDialog Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, NoHeader = true })">
     <DialogContent>
-        <div class="d-flex flex-column align-center">
-            <div class="d-flex flex-column align-center pa-6 rounded-t-lg" style="background:linear-gradient(135deg, #0A1929 0%, #37003C 100%); width:100%; margin:-24px -24px 0 -24px; padding:2rem;">
-                <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="56" Height="56" Class="mb-2" />
-                <MudText Typo="Typo.h4" Style="color:#FFFFFF; font-weight:700;">Welcome, @Username!</MudText>
-                <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.7);">Let's set up your profile</MudText>
-            </div>
+        <div class="d-flex flex-column align-center"
+             style="background:linear-gradient(135deg, #0A1929 0%, #37003C 100%); margin:-24px; padding:28px 24px 20px;">
+            <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="48" Height="48" Class="mb-2" />
+            <MudText Typo="Typo.h5" Style="color:#FFFFFF; font-weight:700;">Welcome, @Username!</MudText>
+            <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.65);">Set up your profile</MudText>
+        </div>
 
-            <div class="pa-6" style="width:100%;">
-                <MudText Typo="Typo.body1" Color="Color.Inherit" Align="Align.Center" Class="mb-6">
-                    Choose a display name and pick your favourite team.
-                </MudText>
+        <div class="pa-4 pt-5" style="margin:0 -24px -24px;">
 
-                <MudPaper Elevation="0" Class="pa-4 mb-4 rounded-lg" Style="border:1px solid;">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2" Style="font-weight:600; letter-spacing:0.5px;">
-                        DISPLAY NAME
-                    </MudText>
-                    <MudTextField @bind-Value="DisplayName"
-                                  Placeholder="What should other players call you?"
-                                  Variant="Variant.Outlined"
-                                  Immediate="true"
-                                  MaxLength="30"
-                                  Counter="30"
-                                  Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Filled.Person"
-                                  AutoFocus="true"
-                                  Margin="Margin.Dense"
-                                  FullWidth="true" />
-                </MudPaper>
+            <MudTextField @bind-Value="DisplayName"
+                          Label="Display Name"
+                          Placeholder="What should others call you?"
+                          Variant="Variant.Outlined"
+                          Immediate="true"
+                          MaxLength="30"
+                          Counter="30"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Person"
+                          AutoFocus="true"
+                          Class="mb-4 px-2" />
 
-                <MudPaper Elevation="0" Class="pa-4 mb-4 rounded-lg" Style="border:1px solid;">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2" Style="font-weight:600; letter-spacing:0.5px;">
-                        COMPETITION
-                    </MudText>
-                    <MudSelect T="string"
-                               @bind-Value="SelectedCompetition"
-                               Placeholder="Select a competition..."
-                               Variant="Variant.Outlined"
-                               Adornment="Adornment.Start"
-                               AdornmentIcon="@Icons.Material.Filled.EmojiEvents"
-                               Margin="Margin.Dense"
-                               FullWidth="true">
-                        @foreach (var comp in _competitions)
+            <MudAutocomplete T="TeamResult"
+                             Label="Favourite Team"
+                             Placeholder="Search any team..."
+                             @bind-Value="_selectedTeam"
+                             SearchFunc="SearchTeams"
+                             ToStringFunc="@(t => t?.Name ?? "")"
+                             Variant="Variant.Outlined"
+                             Adornment="Adornment.Start"
+                             AdornmentIcon="@Icons.Material.Filled.Shield"
+                             Clearable="true"
+                             CoerceValue="false"
+                             MinCharacters="0"
+                             MaxItems="50"
+                             Class="mb-4 px-2">
+                <ItemTemplate Context="team">
+                    <div class="d-flex align-center gap-2">
+                        @if (!string.IsNullOrWhiteSpace(team.LogoUrl))
                         {
-                            <MudSelectItem Value="@comp.Name">@comp.Name</MudSelectItem>
+                            <MudImage Src="@team.LogoUrl" Width="24" Height="24" ObjectFit="ObjectFit.Contain" />
                         }
-                    </MudSelect>
-                </MudPaper>
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Small" />
+                        }
+                        <MudText Typo="Typo.body2">@team.Name</MudText>
+                    </div>
+                </ItemTemplate>
+            </MudAutocomplete>
 
-                <MudPaper Elevation="0" Class="pa-4 rounded-lg" Style="border:1px solid;">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2" Style="font-weight:600; letter-spacing:0.5px;">
-                        FAVOURITE TEAM
-                    </MudText>
-                    <MudAutocomplete T="string"
-                                     @bind-Value="FavoriteTeam"
-                                     Placeholder="@(_teams.Count == 0 ? "Select a competition first..." : "Start typing to search...")"
-                                     Variant="Variant.Outlined"
-                                     Adornment="Adornment.Start"
-                                     AdornmentIcon="@Icons.Material.Filled.Shield"
-                                     SearchFunc="SearchTeams"
-                                     Clearable="true"
-                                     CoerceValue="true"
-                                     Disabled="@(_teams.Count == 0)"
-                                     Margin="Margin.Dense"
-                                     FullWidth="true" />
-                </MudPaper>
+            <div class="d-flex justify-end gap-2 px-2 pb-2">
+                <MudButton OnClick="Skip" Variant="Variant.Text" Color="Color.Default">Skip</MudButton>
+                <MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Tertiary"
+                           StartIcon="@Icons.Material.Filled.RocketLaunch"
+                           Disabled="@(string.IsNullOrWhiteSpace(DisplayName) && _selectedTeam is null)">
+                    Let's Go!
+                </MudButton>
             </div>
         </div>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Skip" Variant="Variant.Text" Color="Color.Default" Size="Size.Large">Skip for now</MudButton>
-        <MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Tertiary" Size="Size.Large"
-                   StartIcon="@Icons.Material.Filled.RocketLaunch"
-                   Disabled="@(string.IsNullOrWhiteSpace(DisplayName) && string.IsNullOrWhiteSpace(FavoriteTeam))">
-            Let's Go!
-        </MudButton>
-    </DialogActions>
 </MudDialog>

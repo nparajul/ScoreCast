@@ -7,10 +7,13 @@ public partial class Home
 
     [Inject] private NavigationManager Nav { get; set; } = null!;
 
+    private bool _isAuthenticated;
+
     protected override async Task OnInitializedAsync()
     {
         var state = await AuthState;
-        if (state.User.Identity?.IsAuthenticated == true)
+        _isAuthenticated = state.User.Identity?.IsAuthenticated == true;
+        if (_isAuthenticated)
             Nav.NavigateTo("/dashboard", replace: true);
     }
 }

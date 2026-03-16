@@ -1,5 +1,7 @@
 @page "/"
 
+@if (!_isAuthenticated)
+{
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
 
     <AuthorizeView>
@@ -16,7 +18,7 @@
                                Size="Size.Large"
                                Class="mt-5"
                                StartIcon="@Icons.Material.Filled.Login"
-                               Href="authentication/login">
+                               Href="/login">
                         Get Started — It's Free
                     </MudButton>
                 </MudItem>
@@ -145,29 +147,7 @@
                 </MudItem>
             </MudGrid>
         </NotAuthorized>
-
-        <Authorized>
-            <MudGrid Justify="Justify.Center" Class="mb-6">
-                <MudItem xs="12" Class="d-flex flex-column align-center">
-                    <MudIcon Icon="@Icons.Material.Filled.SportsSoccer" Size="Size.Large" Color="Color.Secondary" />
-                    <MudText Typo="Typo.h4" Class="mt-2" Align="Align.Center">
-                        Welcome back, @context.User.Identity?.Name!
-                    </MudText>
-                    <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Align="Align.Center">
-                        Ready to make your predictions?
-                    </MudText>
-                </MudItem>
-            </MudGrid>
-
-            <MudGrid Spacing="4" Justify="Justify.Center">
-                <MudItem xs="12" sm="6" md="4">
-                    <MudButton Variant="Variant.Filled" Color="Color.Tertiary" FullWidth="true"
-                               Size="Size.Large" StartIcon="@Icons.Material.Filled.PlayArrow">
-                        Start Predicting
-                    </MudButton>
-                </MudItem>
-            </MudGrid>
-        </Authorized>
     </AuthorizeView>
 
 </MudContainer>
+}
