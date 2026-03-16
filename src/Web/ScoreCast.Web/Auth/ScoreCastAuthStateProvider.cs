@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -10,6 +11,7 @@ using ScoreCast.Web.Components.Helpers;
 namespace ScoreCast.Web.Auth;
 
 public sealed class ScoreCastAuthStateProvider(
+    IHttpClientFactory httpFactory,
     IJSRuntime js,
     IConfiguration config) : AuthenticationStateProvider, IAuthService
 {
@@ -19,9 +21,6 @@ public sealed class ScoreCastAuthStateProvider(
     private ClaimsPrincipal _currentUser = new(new ClaimsIdentity());
     private string? _accessToken;
     private DateTimeOffset _tokenExpiry;
-
-    private string TokenEndpoint => $"{config["Keycloak:Authority"]}/protocol/openid-connect/token";
-    private string ClientId => config["Keycloak:ClientId"]!;
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
@@ -48,30 +47,17 @@ public sealed class ScoreCastAuthStateProvider(
 
     public async Task<AuthResult> LoginAsync(string username, string password)
     {
-        var result = await PostToKeycloak(TokenEndpoint, new Dictionary<string, string>
+        var response = await PostTokenRequest(new
         {
-            ["grant_type"] = "password",
-            ["client_id"] = ClientId,
-            ["username"] = username,
-            ["password"] = password,
-            ["scope"] = "openid profile email offline_access"
+            grantType = "password",
+            username,
+            password
         });
 
-        if (result.Status != 200)
-        {
-            var errorDesc = "Invalid username or password";
-            try
-            {
-                using var doc = JsonDocument.Parse(result.Body);
-                if (doc.RootElement.TryGetProperty("error_description", out var desc))
-                    errorDesc = desc.GetString() ?? errorDesc;
-            }
-            catch { /* use default */ }
+        if (!response.Success)
+            return new AuthResult(false, response.Message ?? "Invalid username or password");
 
-            return new AuthResult(false, errorDesc);
-        }
-
-        await ApplyTokenResponse(result.Body);
+        await ApplyTokenData(response.Data);
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         return new AuthResult(true);
     }
@@ -81,13 +67,12 @@ public sealed class ScoreCastAuthStateProvider(
         var refreshToken = await GetFromStorage(RefreshTokenKey);
         if (refreshToken is not null)
         {
-            var logoutEndpoint = $"{config["Keycloak:Authority"]}/protocol/openid-connect/logout";
             try
             {
-                await PostToKeycloak(logoutEndpoint, new Dictionary<string, string>
+                await PostTokenRequest(new
                 {
-                    ["client_id"] = ClientId,
-                    ["refresh_token"] = refreshToken
+                    grantType = "refresh_token",
+                    refreshToken
                 });
             }
             catch { /* best effort */ }
@@ -101,8 +86,9 @@ public sealed class ScoreCastAuthStateProvider(
     public string GetRegistrationUrl(string returnUrl)
     {
         var authority = config["Keycloak:Authority"]!;
+        var clientId = config["Keycloak:ClientId"]!;
         return $"{authority}/protocol/openid-connect/registrations" +
-               $"?client_id={ClientId}" +
+               $"?client_id={clientId}" +
                "&response_type=code" +
                "&scope=openid" +
                $"&redirect_uri={Uri.EscapeDataString(returnUrl)}";
@@ -122,24 +108,39 @@ public sealed class ScoreCastAuthStateProvider(
 
     private async Task<bool> RefreshTokenAsync(string refreshToken)
     {
-        var result = await PostToKeycloak(TokenEndpoint, new Dictionary<string, string>
+        var response = await PostTokenRequest(new
         {
-            ["grant_type"] = "refresh_token",
-            ["client_id"] = ClientId,
-            ["refresh_token"] = refreshToken
+            grantType = "refresh_token",
+            refreshToken
         });
 
-        if (result.Status != 200) return false;
+        if (!response.Success) return false;
 
-        await ApplyTokenResponse(result.Body);
+        await ApplyTokenData(response.Data);
         return true;
     }
 
-    private async Task ApplyTokenResponse(string json)
+    private async Task<TokenApiResponse> PostTokenRequest(object body)
     {
+        var http = httpFactory.CreateClient("ScoreCastAuth");
+        var response = await http.PostAsJsonAsync("/api/v1/auth/token", body);
+        var json = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(json);
-        var accessToken = doc.RootElement.GetProperty("access_token").GetString()!;
-        var refreshToken = doc.RootElement.GetProperty("refresh_token").GetString()!;
+        var root = doc.RootElement;
+
+        var success = root.TryGetProperty("resultType", out var rt) && rt.GetString() == "Ok";
+        var message = root.TryGetProperty("message", out var msg) ? msg.GetString() : null;
+        JsonElement? data = root.TryGetProperty("data", out var d) ? d : null;
+
+        return new TokenApiResponse(success, message, data);
+    }
+
+    private async Task ApplyTokenData(JsonElement? data)
+    {
+        if (data is null) return;
+
+        var accessToken = data.Value.GetProperty("access_token").GetString()!;
+        var refreshToken = data.Value.GetProperty("refresh_token").GetString()!;
 
         _accessToken = accessToken;
         var handler = new JwtSecurityTokenHandler();
@@ -184,12 +185,5 @@ public sealed class ScoreCastAuthStateProvider(
         catch { return null; }
     }
 
-    private async Task<(int Status, string Body)> PostToKeycloak(string url, Dictionary<string, string> parameters)
-    {
-        var json = await js.InvokeAsync<string>("scoreCastAuth.postForm", url, parameters);
-        using var doc = JsonDocument.Parse(json);
-        var status = doc.RootElement.GetProperty("status").GetInt32();
-        var body = doc.RootElement.GetProperty("body").GetString() ?? "";
-        return (status, body);
-    }
+    private sealed record TokenApiResponse(bool Success, string? Message, JsonElement? Data);
 }
