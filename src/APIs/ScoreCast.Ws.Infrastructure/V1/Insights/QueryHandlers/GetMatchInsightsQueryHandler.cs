@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Enums;
@@ -17,6 +18,7 @@ internal sealed record GetMatchInsightsQueryHandler(
     IScoreCastDbContext DbContext,
     IUnitOfWork UnitOfWork,
     IHttpClientFactory HttpClientFactory,
+    IConfiguration Configuration,
     IChatClient? ChatClient = null)
     : IQueryHandler<GetMatchInsightsQuery, ScoreCastResponse<List<MatchInsightResult>>>
 {
@@ -50,9 +52,10 @@ internal sealed record GetMatchInsightsQueryHandler(
 
         // Scrape real standings + news from BBC
         var bbcSlug = GetBbcSlug(season.Competition.Code);
+        var bbcBaseUrl = Configuration["Scraping:BbcBaseUrl"] ?? "https://www.bbc.co.uk/sport/football";
         var http = HttpClientFactory.CreateClient();
-        var standingsTask = ScrapeStandings(http, bbcSlug, ct);
-        var headlinesTask = ScrapeHeadlines(http, bbcSlug, ct);
+        var standingsTask = ScrapeStandings(http, bbcBaseUrl, bbcSlug, ct);
+        var headlinesTask = ScrapeHeadlines(http, bbcBaseUrl, bbcSlug, ct);
         await Task.WhenAll(standingsTask, headlinesTask);
         var standings = standingsTask.Result;
         var headlines = headlinesTask.Result;
@@ -155,11 +158,11 @@ internal sealed record GetMatchInsightsQueryHandler(
     };
 
     private static async Task<Dictionary<string, StandingRow>> ScrapeStandings(
-        HttpClient http, string slug, CancellationToken ct)
+        HttpClient http, string baseUrl, string slug, CancellationToken ct)
     {
         try
         {
-            var html = await http.GetStringAsync($"https://www.bbc.co.uk/sport/football/{slug}/table", ct);
+            var html = await http.GetStringAsync($"{baseUrl}/{slug}/table", ct);
             var result = new Dictionary<string, StandingRow>(StringComparer.OrdinalIgnoreCase);
 
             // Pattern: position, team name, played, won, drawn, lost, GF, GA, GD, points
@@ -208,11 +211,11 @@ internal sealed record GetMatchInsightsQueryHandler(
     }
 
     private static async Task<List<string>> ScrapeHeadlines(
-        HttpClient http, string slug, CancellationToken ct)
+        HttpClient http, string baseUrl, string slug, CancellationToken ct)
     {
         try
         {
-            var html = await http.GetStringAsync($"https://www.bbc.co.uk/sport/football/{slug}", ct);
+            var html = await http.GetStringAsync($"{baseUrl}/{slug}", ct);
             var headlines = Regex.Matches(html, @"<h3[^>]*>(.*?)</h3>", RegexOptions.Singleline)
                 .Select(m => Regex.Replace(m.Groups[1].Value, "<[^>]+>", "").Trim())
                 .Where(h => h.Length > 10 && h.Length < 200)
