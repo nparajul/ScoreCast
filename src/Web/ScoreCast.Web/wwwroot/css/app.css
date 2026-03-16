@@ -11,6 +11,25 @@
     padding-right: 0px !important;
 }
 
+/* Mobile menu popup */
+.menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1300;
+}
+
+.menu-popup {
+    position: fixed;
+    top: 64px;
+    right: 12px;
+    left: 12px;
+    z-index: 1301;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
 /* Prediction tiles */
 .prediction-tile {
     width: calc(50% - 12px);

@@ -5,6 +5,7 @@ namespace ScoreCast.Web.Components.Shared;
 
 public partial class LoginDisplay
 {
+    [Parameter] public string? Class { get; set; }
     [Inject] private NavigationManager Navigation { get; set; } = null!;
     [Inject] private IAuthService Auth { get; set; } = null!;
 
