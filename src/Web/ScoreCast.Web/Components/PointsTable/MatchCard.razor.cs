@@ -4,5 +4,5 @@ namespace ScoreCast.Web.Components.PointsTable;
 
 public partial class MatchCard
 {
-    [Parameter, EditorRequired] public BracketSlot Slot { get; set; } = default!;
+    [Parameter, EditorRequired] public BracketSlot Slot { get; set; } = null!;
 }

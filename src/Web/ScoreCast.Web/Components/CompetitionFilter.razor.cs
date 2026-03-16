@@ -6,7 +6,7 @@ namespace ScoreCast.Web.Components;
 
 public partial class CompetitionFilter
 {
-    [Inject] private IScoreCastApiClient Api { get; set; } = default!;
+    [Inject] private IScoreCastApiClient Api { get; set; } = null!;
 
     [Parameter] public EventCallback<CompetitionFilterState> OnStateChanged { get; set; }
 

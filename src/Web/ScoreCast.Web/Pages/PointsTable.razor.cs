@@ -8,9 +8,9 @@ namespace ScoreCast.Web.Pages;
 
 public partial class PointsTable
 {
-    [Inject] private IScoreCastApiClient Api { get; set; } = default!;
-    [Inject] private ILoadingService Loading { get; set; } = default!;
-    [Inject] private IAlertService Alert { get; set; } = default!;
+    [Inject] private IScoreCastApiClient Api { get; set; } = null!;
+    [Inject] private ILoadingService Loading { get; set; } = null!;
+    [Inject] private IAlertService Alert { get; set; } = null!;
 
     private PointsTableResult? _result;
     private BracketResult? _bracket;

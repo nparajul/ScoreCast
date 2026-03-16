@@ -45,6 +45,7 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
             return ScoreCastResponse.Error("No current seasons found.");
 
         var totalEnhanced = 0;
+        var warnings = new List<string>();
 
         foreach (var season in currentSeasons)
         {
@@ -72,15 +73,21 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
                 var (liveMatchIds, updatedCount) = await EnrichFromPulseAsync(pulseClient, season, ct);
                 totalEnhanced += updatedCount;
             }
-            else
-            {
-                // Football-data.org — for non-PL competitions (World Cup, etc.)
-                totalEnhanced += await EnrichFromFootballDataAsync(season, ct);
-            }
+        }
+
+        // Football-data.org — single bulk call for all non-PL competitions
+        var nonPlSeasons = currentSeasons.Where(s => s.Competition.Code != CompetitionCodes.PremierLeague).ToList();
+        if (nonPlSeasons.Count > 0)
+        {
+            var (count, warning) = await EnrichFromFootballDataBulkAsync(nonPlSeasons, ct);
+            totalEnhanced += count;
+            if (warning is not null) warnings.Add(warning);
         }
 
         await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(EnhanceLiveMatchesCommand), ct);
-        return ScoreCastResponse.Ok($"Enhanced {totalEnhanced} matches across {currentSeasons.Count} competitions.");
+        var msg = $"Enhanced {totalEnhanced} matches across {currentSeasons.Count} competitions.";
+        if (warnings.Count > 0) msg += $" Skipped: {string.Join("; ", warnings)}";
+        return ScoreCastResponse.Ok(msg);
     }
 
     private async Task EnsurePulseMappingsAsync(List<FplFixture> fplFixtures, Season season, CancellationToken ct)
@@ -313,43 +320,57 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
         _ => null
     };
 
-    private async Task<int> EnrichFromFootballDataAsync(Season season, CancellationToken ct)
+    private async Task<(int Count, string? Warning)> EnrichFromFootballDataBulkAsync(List<Season> seasons, CancellationToken ct)
     {
         var fdClient = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FootballDataClient));
+        var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+
         FootballDataMatchesResponse? fdResponse;
         try
         {
             fdResponse = await fdClient.GetFromJsonAsync<FootballDataMatchesResponse>(
-                string.Format(FootballDataApi.Routes.Matches, season.Competition.Code, season.StartDate.Year), ct);
+                string.Format(FootballDataApi.Routes.MatchesByDate, today, today), ct);
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.TooManyRequests)
+        {
+            var reason = ex.StatusCode == System.Net.HttpStatusCode.Forbidden ? "Restricted" : "Rate limited";
+            return (0, $"Bulk matches: {reason}");
         }
         catch (Exception ex)
         {
-            throw new ScoreCastException($"Football-data.org matches API failed for {season.Competition.Code}", ex);
+            throw new ScoreCastException("Football-data.org bulk matches API failed", ex);
         }
 
-        if (fdResponse?.Matches is not { Count: > 0 }) return 0;
+        if (fdResponse?.Matches is not { Count: > 0 }) return (0, null);
 
-            var dbMatches = await DbContext.Matches
-                .Where(m => m.Gameweek.SeasonId == season.Id && m.ExternalId != null)
-                .ToDictionaryAsync(m => m.ExternalId!, ct);
+        // Build lookup: competition code → season
+        var seasonByCode = seasons.ToDictionary(s => s.Competition.Code, s => s);
 
-            var count = 0;
-            foreach (var apiMatch in fdResponse.Matches)
+        // Load all external-id-mapped matches across these seasons
+        var seasonIds = seasons.Select(s => s.Id).ToList();
+        var dbMatches = await DbContext.Matches
+            .Where(m => seasonIds.Contains(m.Gameweek.SeasonId) && m.ExternalId != null)
+            .ToDictionaryAsync(m => m.ExternalId!, ct);
+
+        var count = 0;
+        foreach (var apiMatch in fdResponse.Matches)
+        {
+            if (apiMatch.Competition?.Code is null) continue;
+            if (!seasonByCode.ContainsKey(apiMatch.Competition.Code)) continue;
+            if (!dbMatches.TryGetValue(apiMatch.Id.ToString(), out var match)) continue;
+
+            var status = MapFdStatus(apiMatch.Status);
+            if (status is MatchStatus.Live or MatchStatus.Finished)
             {
-                if (!dbMatches.TryGetValue(apiMatch.Id.ToString(), out var match)) continue;
-
-                var status = MapFdStatus(apiMatch.Status);
-                if (status is MatchStatus.Live or MatchStatus.Finished)
-                {
-                    match.HomeScore = apiMatch.Score.FullTime?.Home ?? match.HomeScore;
-                    match.AwayScore = apiMatch.Score.FullTime?.Away ?? match.AwayScore;
-                    match.Status = status;
-                    match.Minute = FormatFdMinute(apiMatch) ?? match.Minute;
-                    if (status == MatchStatus.Live) count++;
-                }
+                match.HomeScore = apiMatch.Score.FullTime?.Home ?? match.HomeScore;
+                match.AwayScore = apiMatch.Score.FullTime?.Away ?? match.AwayScore;
+                match.Status = status;
+                match.Minute = FormatFdMinute(apiMatch) ?? match.Minute;
+                if (status == MatchStatus.Live) count++;
             }
+        }
 
-            return count;
+        return (count, null);
     }
 
     private static MatchStatus MapFdStatus(string apiStatus) => apiStatus switch

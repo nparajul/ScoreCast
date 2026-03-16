@@ -6,9 +6,9 @@ namespace ScoreCast.Web.Pages;
 
 public partial class PlayerStats
 {
-    [Inject] private IScoreCastApiClient Api { get; set; } = default!;
-    [Inject] private ILoadingService Loading { get; set; } = default!;
-    [Inject] private IAlertService Alert { get; set; } = default!;
+    [Inject] private IScoreCastApiClient Api { get; set; } = null!;
+    [Inject] private ILoadingService Loading { get; set; } = null!;
+    [Inject] private IAlertService Alert { get; set; } = null!;
 
     private SeasonResult? _selectedSeason;
     private List<PlayerStatRow> _rows = [];
