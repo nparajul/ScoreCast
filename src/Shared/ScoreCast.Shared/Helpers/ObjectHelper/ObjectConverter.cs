@@ -11,7 +11,7 @@ namespace ScoreCast.Shared.Helpers.ObjectHelper;
 
 public static class ObjectConverter
 {
-    private static readonly JsonSerializerOptions SerializeOptions = new()
+    private static readonly JsonSerializerOptions _serializeOptions = new()
     {
         WriteIndented = true,
         IncludeFields = true,
@@ -24,7 +24,7 @@ public static class ObjectConverter
     };
 
 
-    private static readonly JsonSerializerOptions SerializeOptionsNoCamel = new()
+    private static readonly JsonSerializerOptions _serializeOptionsNoCamel = new()
     {
         ReferenceHandler = ReferenceHandler.IgnoreCycles,
         WriteIndented = true,
@@ -64,7 +64,7 @@ public static class ObjectConverter
                     RequestBody = httpReq.Content is not null
                         ? ReadContentSync(httpReq.Content)
                         : string.Empty
-                }, SerializeOptions),
+                }, _serializeOptions),
                 HttpResponseMessage httpResp => JsonSerializer.Serialize(new
                 {
                     Message = httpResp.ReasonPhrase,
@@ -77,8 +77,8 @@ public static class ObjectConverter
                         httpResp.Content?.Headers is null
                             ? []
                             : httpResp.Content.Headers.SelectMany(hdr => hdr.Value.Select(v => $"{hdr.Key}:{v}")))
-                }, SerializeOptions) ?? string.Empty,
-                _ => JsonSerializer.Serialize(objInput, SerializeOptions) ?? string.Empty
+                }, _serializeOptions) ?? string.Empty,
+                _ => JsonSerializer.Serialize(objInput, _serializeOptions) ?? string.Empty
             } ?? string.Empty;
         }
         catch (Exception exp)
@@ -179,7 +179,7 @@ public static class ObjectConverter
                     RequestBody = httpReq.Content is not null
                         ? ReadContentSync(httpReq.Content)
                         : string.Empty
-                }, SerializeOptions),
+                }, _serializeOptions),
                 HttpResponseMessage httpResp => JsonSerializer.Serialize(new
                 {
                     Message = httpResp.ReasonPhrase,
@@ -196,8 +196,8 @@ public static class ObjectConverter
                         httpResp.Content?.Headers is null
                             ? []
                             : httpResp.Content.Headers.SelectMany(hdr => hdr.Value.Select(v => $"{hdr.Key}:{v}")))
-                }, SerializeOptions),
-                _ => JsonSerializer.Serialize(obj, SerializeOptionsNoCamel)
+                }, _serializeOptions),
+                _ => JsonSerializer.Serialize(obj, _serializeOptionsNoCamel)
             };
         }
         catch (Exception exp)
@@ -222,7 +222,7 @@ public static class ObjectConverter
         try
         {
             return jsonContent.IsJsonContent()
-                ? JsonSerializer.Deserialize<T>(jsonContent, SerializeOptions)
+                ? JsonSerializer.Deserialize<T>(jsonContent, _serializeOptions)
                 : default;
         }
         catch (Exception exp)

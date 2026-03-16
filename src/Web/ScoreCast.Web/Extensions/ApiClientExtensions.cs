@@ -7,7 +7,7 @@ namespace ScoreCast.Web.Extensions;
 
 public static class ApiClientExtensions
 {
-    private static readonly RefitSettings RefitSettings = new()
+    private static readonly RefitSettings _refitSettings = new()
     {
         ContentSerializer = new SystemTextJsonContentSerializer(new JsonSerializerOptions
         {
@@ -26,7 +26,7 @@ public static class ApiClientExtensions
         builder.Services.AddTransient<ApiAuthHandler>();
 
         builder.Services
-            .AddRefitClient<IScoreCastApiClient>(RefitSettings)
+            .AddRefitClient<IScoreCastApiClient>(_refitSettings)
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
             .AddHttpMessageHandler<ApiAuthHandler>();
     }

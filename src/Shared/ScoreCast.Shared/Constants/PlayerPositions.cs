@@ -18,7 +18,7 @@ public static class PlayerPositions
     public const string CentreForward = "Centre-Forward";
     public const string Offence = "Offence";
 
-    private static readonly Dictionary<string, string> ShortNames = new()
+    private static readonly Dictionary<string, string> _shortNames = new()
     {
         [Goalkeeper] = "GK",
         [CentreBack] = "CB",
@@ -38,5 +38,5 @@ public static class PlayerPositions
     };
 
     public static string ToShortName(string? position) =>
-        position is not null && ShortNames.TryGetValue(position, out var s) ? s : "—";
+        position is not null && _shortNames.TryGetValue(position, out var s) ? s : "—";
 }

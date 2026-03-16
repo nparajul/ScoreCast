@@ -10,7 +10,6 @@ public sealed class GetSeasonsEndpoint : EndpointWithoutRequest<ScoreCastRespons
     {
         Get("/competitions/{competitionCode}/seasons");
         Group<FootballGroup>();
-        AllowAnonymous();
         Summary(s =>
         {
             s.Summary = "Get Seasons";

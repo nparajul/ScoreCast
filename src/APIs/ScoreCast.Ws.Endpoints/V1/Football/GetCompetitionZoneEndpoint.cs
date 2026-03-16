@@ -10,7 +10,6 @@ public sealed class GetCompetitionZonesEndpoint : EndpointWithoutRequest<ScoreCa
     {
         Get("/competitions/{competitionCode}/zones");
         Group<FootballGroup>();
-        AllowAnonymous();
         Summary(s =>
         {
             s.Summary = "Get Competition Zones";

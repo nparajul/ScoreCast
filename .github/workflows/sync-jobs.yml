@@ -1,0 +1,106 @@
+name: ScoreCast Sync Jobs
+
+on:
+  schedule:
+    # Sync Matches — every 6 hours
+    - cron: '0 */6 * * *'
+    # Enhance Live — every 2 minutes during typical match hours (12:00-23:00 UTC)
+    - cron: '*/2 12-23 * * *'
+    # Calculate Points — every 10 minutes during match hours
+    - cron: '*/10 12-23 * * *'
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Job to run'
+        required: true
+        type: choice
+        options:
+          - sync-matches
+          - enhance-live
+          - calculate-points
+          - sync-pl-events
+
+env:
+  API_BASE_URL: ${{ secrets.SCORECAST_API_URL }}
+  API_KEY: ${{ secrets.SCORECAST_API_KEY }}
+
+jobs:
+  sync-matches:
+    if: github.event.schedule == '0 */6 * * *' || github.event.inputs.job == 'sync-matches'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get competitions
+        id: competitions
+        run: |
+          CODES=$(curl -sf -H "X-Api-Key: $API_KEY" "$API_BASE_URL/api/v1/football/competitions" \
+            | jq -r '.data[].code')
+          echo "codes=$CODES" >> $GITHUB_OUTPUT
+
+      - name: Sync matches per competition
+        run: |
+          for CODE in ${{ steps.competitions.outputs.codes }}; do
+            echo "Syncing $CODE..."
+            RESULT=$(curl -sf -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+              -d "{\"competitionCode\":\"$CODE\",\"appName\":\"GITHUB-ACTIONS:SYNC-MATCHES\"}" \
+              "$API_BASE_URL/api/v1/master-data/sync/matches" || echo '{"message":"Request failed"}')
+            echo "$CODE: $(echo $RESULT | jq -r '.message // "done"')"
+          done
+
+  enhance-live:
+    if: github.event.schedule == '*/2 12-23 * * *' || github.event.inputs.job == 'enhance-live'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enhance live matches
+        run: |
+          curl -sf -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+            -d '{"appName":"GITHUB-ACTIONS:ENHANCE-LIVE"}' \
+            "$API_BASE_URL/api/v1/master-data/enhance-live"
+
+  calculate-points:
+    if: github.event.schedule == '*/10 12-23 * * *' || github.event.inputs.job == 'calculate-points'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get seasons
+        id: seasons
+        run: |
+          COMPETITIONS=$(curl -sf -H "X-Api-Key: $API_KEY" "$API_BASE_URL/api/v1/football/competitions")
+          CODES=$(echo $COMPETITIONS | jq -r '.data[].code')
+          SEASON_IDS=""
+          for CODE in $CODES; do
+            SID=$(curl -sf -H "X-Api-Key: $API_KEY" "$API_BASE_URL/api/v1/football/competitions/$CODE/seasons" \
+              | jq -r '.data[] | select(.isCurrent) | .id')
+            [ -n "$SID" ] && SEASON_IDS="$SEASON_IDS $SID"
+          done
+          echo "ids=$SEASON_IDS" >> $GITHUB_OUTPUT
+
+      - name: Calculate outcomes per season
+        run: |
+          for SID in ${{ steps.seasons.outputs.ids }}; do
+            echo "Calculating season $SID..."
+            curl -sf -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+              -d "{\"seasonId\":$SID}" \
+              "$API_BASE_URL/api/v1/prediction/calculate-outcomes" || echo "Season $SID failed"
+          done
+
+  sync-pl-events:
+    if: github.event.inputs.job == 'sync-pl-events'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync FPL data
+        run: |
+          curl -sf -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+            -d '{"competitionCode":"PL","appName":"GITHUB-ACTIONS:SYNC-PL-EVENTS"}' \
+            "$API_BASE_URL/api/v1/master-data/sync/fpl"
+
+      - name: Sync Pulse events (batched)
+        run: |
+          while true; do
+            RESULT=$(curl -sf -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+              -d '{"competitionCode":"PL","batchSize":50,"appName":"GITHUB-ACTIONS:SYNC-PL-EVENTS"}' \
+              "$API_BASE_URL/api/v1/master-data/sync/pulse-events")
+            COMPLETE=$(echo $RESULT | jq -r '.data.complete')
+            PROCESSED=$(echo $RESULT | jq -r '.data.processed')
+            echo "Processed: $PROCESSED, Complete: $COMPLETE"
+            [ "$COMPLETE" = "true" ] || [ "$PROCESSED" = "0" ] && break
+            sleep 1
+          done

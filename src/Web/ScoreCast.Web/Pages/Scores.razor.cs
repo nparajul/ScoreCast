@@ -1,6 +1,8 @@
+using Microsoft.JSInterop;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
+using ScoreCast.Shared.Types;
 using ScoreCast.Web.Components;
 using ScoreCast.Web.Components.Helpers;
 
@@ -9,11 +11,12 @@ namespace ScoreCast.Web.Pages;
 public partial class Scores : IDisposable
 {
     private CancellationTokenSource? _pollCts;
-    [Inject] private IScoreCastApiClient Api { get; set; } = default!;
-    [Inject] private ILoadingService Loading { get; set; } = default!;
-    [Inject] private IAlertService Alert { get; set; } = default!;
+    [Inject] private IScoreCastApiClient Api { get; set; } = null!;
+    [Inject] private ILoadingService Loading { get; set; } = null!;
+    [Inject] private IAlertService Alert { get; set; } = null!;
+    [Inject] private IJSRuntime Js { get; set; } = null!;
 
-    private const string AppName = "SCORES";
+    private const string _appName = "SCORES";
 
     private SeasonResult? _selectedSeason;
     private GameweekMatchesResult? _gameweek;
@@ -29,6 +32,8 @@ public partial class Scores : IDisposable
         StateHasChanged();
     }
 
+    private string? _scrollToAnchor;
+
     private async Task LoadGameweekAsync(long seasonId, int gameweekNumber)
     {
         _expandedMatches.Clear();
@@ -41,6 +46,7 @@ public partial class Scores : IDisposable
                 Alert.Add("Failed to load matches", Severity.Error);
         });
         StartOrStopPolling();
+        QueueScrollToFocusGroup();
     }
 
     private void StartOrStopPolling()
@@ -97,68 +103,48 @@ public partial class Scores : IDisposable
             _expandedMatches.Add(matchId);
     }
 
-    private static string FormatEvent(MatchEventDetail e) => e.EventType switch
+    private record DateGroup(string Label, string AnchorId, List<MatchDetail> Matches);
+
+    private List<DateGroup> GetMatchesByDate()
     {
-        EventTypes.Goal => e.Value > 1 ? $"⚽ x{e.Value}" : "⚽",
-        EventTypes.PenaltyGoal => "⚽ (P)",
-        EventTypes.OwnGoal => "⚽ (OG)",
-        EventTypes.Assist => "🅰️",
-        EventTypes.YellowCard => "🟨",
-        EventTypes.RedCard => "🟥",
-        EventTypes.PenaltySaved => "🧤",
-        EventTypes.PenaltyMissed => "❌",
-        _ => ""
-    };
+        if (_gameweek is null) return [];
 
-    private record DisplayLine(MarkupString Markup, string? Minute, double SortKey, bool Bold);
-
-    private static List<DisplayLine> GetDisplayLines(List<MatchEventDetail> events, bool isHome, bool includeSubs = true)
-    {
-        var lines = new List<DisplayLine>();
-
-        foreach (var e in events.Where(e => e.IsHome == isHome && e.EventType is not EventTypes.SubIn and not EventTypes.SubOut))
-        {
-            var isGoal = e.EventType is EventTypes.Goal or EventTypes.PenaltyGoal or EventTypes.OwnGoal;
-            var text = isHome ? $"{e.PlayerName} {FormatEvent(e)}" : $"{FormatEvent(e)} {e.PlayerName}";
-            lines.Add(new DisplayLine(
-                new MarkupString(text),
-                e.Minute, ParseMinute(e.Minute), isGoal));
-        }
-
-        if (includeSubs)
-        {
-            foreach (var s in GetSubPairs(events, isHome))
-                lines.Add(new DisplayLine(
-                    new MarkupString($"<span style=\"color:#4caf50;\">▲</span> {s.PlayerOn} <span style=\"color:#f44336;\">▼</span> {s.PlayerOff}"),
-                    s.Minute, ParseMinute(s.Minute), false));
-        }
-
-        return lines.OrderBy(l => l.SortKey).ToList();
+        var today = ScoreCastDateTime.Now.Date;
+        return _gameweek.Matches
+            .GroupBy(m => m.KickoffTime.HasValue ? DateOnly.FromDateTime(m.KickoffTime.Value.ToLocalTime()) : (DateOnly?)null)
+            .OrderBy(g => g.Key)
+            .Select(g =>
+            {
+                var label = g.Key switch
+                {
+                    null => "TBD",
+                    var d when d == today => "Today",
+                    var d when d == today.AddDays(1) => "Tomorrow",
+                    var d when d == today.AddDays(-1) => "Yesterday",
+                    var d => d.Value.ToString("dddd, MMMM d")
+                };
+                var anchorId = $"date-{g.Key?.ToString("yyyy-MM-dd") ?? "tbd"}";
+                return new DateGroup(label, anchorId, g.ToList());
+            })
+            .ToList();
     }
 
-    private static double ParseMinute(string? minute)
+    private void QueueScrollToFocusGroup()
     {
-        if (minute is null) return 999;
-        var clean = minute.Replace("'", "").Replace(" ", "");
-        var parts = clean.Split('+');
-        if (double.TryParse(parts[0], out var main))
-            return parts.Length > 1 && double.TryParse(parts[1], out var added) ? main + added * 0.01 : main;
-        return 999;
+        if (_gameweek is null) return;
+        var groups = GetMatchesByDate();
+        var target = groups.FirstOrDefault(g => g.Label == "Today") ?? groups.FirstOrDefault();
+        _scrollToAnchor = target?.AnchorId;
     }
 
-    private record SubPair(string PlayerOn, string PlayerOff, string? Minute);
-
-    private static List<SubPair> GetSubPairs(List<MatchEventDetail> events, bool isHome)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var subs = events.Where(e => e.IsHome == isHome).ToList();
-        var subIns = subs.Where(e => e.EventType == EventTypes.SubIn).ToList();
-        var subOffs = subs.Where(e => e.EventType == EventTypes.SubOut).ToList();
-
-        return subIns.Select(si =>
+        if (_scrollToAnchor is not null)
         {
-            var off = subOffs.FirstOrDefault(so => so.Minute == si.Minute);
-            if (off is not null) subOffs.Remove(off);
-            return new SubPair(si.PlayerName, off?.PlayerName ?? "", si.Minute);
-        }).ToList();
+            var anchor = _scrollToAnchor;
+            _scrollToAnchor = null;
+            await Js.InvokeVoidAsync("eval",
+                $"(function(){{var c=document.getElementById('scores-scroll-area');var e=document.getElementById('{anchor}');if(c&&e){{var r=e.getBoundingClientRect();var cr=c.getBoundingClientRect();c.scrollTop+=r.top-cr.top;}}}})()");
+        }
     }
 }

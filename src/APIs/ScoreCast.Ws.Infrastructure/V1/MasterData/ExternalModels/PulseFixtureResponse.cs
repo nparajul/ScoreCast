@@ -13,14 +13,14 @@ internal sealed record PulseFixtureResponse(
 
 internal sealed record PulseTeamScore(
     PulseTeamRef? Team,
-    int? Score);
+    double? Score);
 
 internal sealed record PulseTeamList(
     PulseTeamRef? Team,
     List<PulsePlayer>? Lineup,
     List<PulsePlayer>? Substitutes);
 
-internal sealed record PulseTeamRef(int Id, string? Name);
+internal sealed record PulseTeamRef(double Id, string? Name);
 
 internal sealed record PulsePlayer(
     int Id,
@@ -46,7 +46,7 @@ internal sealed record PulseEvent(
     string? Description);
 
 internal sealed record PulseClock(
-    int Secs,
+    double? Secs,
     string Label);
 
 internal sealed record PulseGround(
