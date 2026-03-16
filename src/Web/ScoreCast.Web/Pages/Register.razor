@@ -22,14 +22,14 @@
                           InputType="InputType.Email"
                           Required="true"
                           Class="mb-4"
-                          Disabled="_loading" />
+                           />
 
             <MudTextField @bind-Value="_model.Username"
                           Label="Username"
                           Variant="Variant.Outlined"
                           Required="true"
                           Class="mb-4"
-                          Disabled="_loading" />
+                           />
 
             <MudTextField @bind-Value="_model.Password"
                           Label="Password"
@@ -37,7 +37,7 @@
                           InputType="InputType.Password"
                           Required="true"
                           Class="mb-2"
-                          Disabled="_loading" />
+                           />
 
             <MudTextField @bind-Value="_model.ConfirmPassword"
                           Label="Confirm Password"
@@ -45,7 +45,7 @@
                           InputType="InputType.Password"
                           Required="true"
                           Class="mb-2"
-                          Disabled="_loading" />
+                           />
 
             <MudText Typo="Typo.caption" Style="opacity:0.5;" Class="mb-4">
                 At least 8 characters, 1 uppercase, 1 lowercase, 1 digit, and 1 special character.
@@ -57,12 +57,7 @@
                        Color="Color.Tertiary"
                        FullWidth="true"
                        Size="Size.Large"
-                       Disabled="_loading"
                        Class="mb-4">
-                @if (_loading)
-                {
-                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                }
                 Create Account
             </MudButton>
         </EditForm>
