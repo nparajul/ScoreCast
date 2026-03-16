@@ -9,7 +9,6 @@ public static class AuthExtensions
 {
     public static void AddScoreCastAuth(this WebAssemblyHostBuilder builder)
     {
-        builder.Services.AddScoped(sp => new HttpClient());
         builder.Services.AddScoped<ScoreCastAuthStateProvider>();
         builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
             sp.GetRequiredService<ScoreCastAuthStateProvider>());

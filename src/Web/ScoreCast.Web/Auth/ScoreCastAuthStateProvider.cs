@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.WebAssembly.Http;
 using Microsoft.JSInterop;
 
 using ScoreCast.Shared.Types;
@@ -11,7 +10,6 @@ using ScoreCast.Web.Components.Helpers;
 namespace ScoreCast.Web.Auth;
 
 public sealed class ScoreCastAuthStateProvider(
-    HttpClient http,
     IJSRuntime js,
     IConfiguration config) : AuthenticationStateProvider, IAuthService
 {
@@ -50,7 +48,7 @@ public sealed class ScoreCastAuthStateProvider(
 
     public async Task<AuthResult> LoginAsync(string username, string password)
     {
-        var content = new FormUrlEncodedContent(new Dictionary<string, string>
+        var result = await PostToKeycloak(TokenEndpoint, new Dictionary<string, string>
         {
             ["grant_type"] = "password",
             ["client_id"] = ClientId,
@@ -59,18 +57,12 @@ public sealed class ScoreCastAuthStateProvider(
             ["scope"] = "openid profile email offline_access"
         });
 
-        var request = new HttpRequestMessage(HttpMethod.Post, TokenEndpoint) { Content = content };
-        request.SetBrowserRequestMode(BrowserRequestMode.Cors);
-        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Omit);
-
-        var response = await http.SendAsync(request);
-        if (!response.IsSuccessStatusCode)
+        if (result.Status != 200)
         {
-            var error = await response.Content.ReadAsStringAsync();
             var errorDesc = "Invalid username or password";
             try
             {
-                using var doc = JsonDocument.Parse(error);
+                using var doc = JsonDocument.Parse(result.Body);
                 if (doc.RootElement.TryGetProperty("error_description", out var desc))
                     errorDesc = desc.GetString() ?? errorDesc;
             }
@@ -79,7 +71,7 @@ public sealed class ScoreCastAuthStateProvider(
             return new AuthResult(false, errorDesc);
         }
 
-        await ApplyTokenResponse(response);
+        await ApplyTokenResponse(result.Body);
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         return new AuthResult(true);
     }
@@ -90,17 +82,13 @@ public sealed class ScoreCastAuthStateProvider(
         if (refreshToken is not null)
         {
             var logoutEndpoint = $"{config["Keycloak:Authority"]}/protocol/openid-connect/logout";
-            var content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                ["client_id"] = ClientId,
-                ["refresh_token"] = refreshToken
-            });
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, logoutEndpoint) { Content = content };
-                request.SetBrowserRequestMode(BrowserRequestMode.Cors);
-                request.SetBrowserRequestCredentials(BrowserRequestCredentials.Omit);
-                await http.SendAsync(request);
+                await PostToKeycloak(logoutEndpoint, new Dictionary<string, string>
+                {
+                    ["client_id"] = ClientId,
+                    ["refresh_token"] = refreshToken
+                });
             }
             catch { /* best effort */ }
         }
@@ -134,27 +122,21 @@ public sealed class ScoreCastAuthStateProvider(
 
     private async Task<bool> RefreshTokenAsync(string refreshToken)
     {
-        var content = new FormUrlEncodedContent(new Dictionary<string, string>
+        var result = await PostToKeycloak(TokenEndpoint, new Dictionary<string, string>
         {
             ["grant_type"] = "refresh_token",
             ["client_id"] = ClientId,
             ["refresh_token"] = refreshToken
         });
 
-        var request = new HttpRequestMessage(HttpMethod.Post, TokenEndpoint) { Content = content };
-        request.SetBrowserRequestMode(BrowserRequestMode.Cors);
-        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Omit);
+        if (result.Status != 200) return false;
 
-        var response = await http.SendAsync(request);
-        if (!response.IsSuccessStatusCode) return false;
-
-        await ApplyTokenResponse(response);
+        await ApplyTokenResponse(result.Body);
         return true;
     }
 
-    private async Task ApplyTokenResponse(HttpResponseMessage response)
+    private async Task ApplyTokenResponse(string json)
     {
-        var json = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(json);
         var accessToken = doc.RootElement.GetProperty("access_token").GetString()!;
         var refreshToken = doc.RootElement.GetProperty("refresh_token").GetString()!;
@@ -200,5 +182,14 @@ public sealed class ScoreCastAuthStateProvider(
     {
         try { return await js.InvokeAsync<string?>("localStorage.getItem", key); }
         catch { return null; }
+    }
+
+    private async Task<(int Status, string Body)> PostToKeycloak(string url, Dictionary<string, string> parameters)
+    {
+        var json = await js.InvokeAsync<string>("scoreCastAuth.postForm", url, parameters);
+        using var doc = JsonDocument.Parse(json);
+        var status = doc.RootElement.GetProperty("status").GetInt32();
+        var body = doc.RootElement.GetProperty("body").GetString() ?? "";
+        return (status, body);
     }
 }
