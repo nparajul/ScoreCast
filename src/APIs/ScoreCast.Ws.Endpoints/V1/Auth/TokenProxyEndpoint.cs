@@ -51,7 +51,16 @@ public sealed class TokenProxyEndpoint(IConfiguration config, IHttpClientFactory
 
         if (!response.IsSuccessStatusCode)
         {
-            await Send.OkAsync(ScoreCastResponse<string>.Error(body, "AUTH_FAILED"), ct);
+            var errorMsg = "Invalid username or password";
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(body);
+                if (doc.RootElement.TryGetProperty("error_description", out var desc))
+                    errorMsg = desc.GetString() ?? errorMsg;
+            }
+            catch { /* use default */ }
+
+            await Send.OkAsync(ScoreCastResponse<string>.Error(errorMsg, "AUTH_FAILED"), ct);
             return;
         }
 
