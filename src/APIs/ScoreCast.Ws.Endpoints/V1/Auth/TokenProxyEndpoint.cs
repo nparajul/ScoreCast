@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using ScoreCast.Models.V1.Responses;
+using ScoreCast.Models.V1.Responses.Auth;
 
 namespace ScoreCast.Ws.Endpoints.V1.Auth;
 
 public sealed class TokenProxyEndpoint(IConfiguration config, IHttpClientFactory httpClientFactory)
-    : Endpoint<TokenProxyRequest, ScoreCastResponse<string>>
+    : Endpoint<TokenProxyRequest, ScoreCastResponse<TokenProxyResult>>
 {
     public override void Configure()
     {
@@ -41,7 +42,7 @@ public sealed class TokenProxyEndpoint(IConfiguration config, IHttpClientFactory
                 parameters["refresh_token"] = req.RefreshToken ?? "";
                 break;
             default:
-                await Send.OkAsync(ScoreCastResponse<string>.Error("Unsupported grant type", "INVALID_GRANT"), ct);
+                await Send.OkAsync(ScoreCastResponse<TokenProxyResult>.Error("Unsupported grant type", "INVALID_GRANT"), ct);
                 return;
         }
 
@@ -60,10 +61,10 @@ public sealed class TokenProxyEndpoint(IConfiguration config, IHttpClientFactory
             }
             catch { /* use default */ }
 
-            await Send.OkAsync(ScoreCastResponse<string>.Error(errorMsg, "AUTH_FAILED"), ct);
+            await Send.OkAsync(ScoreCastResponse<TokenProxyResult>.Error(errorMsg, "AUTH_FAILED"), ct);
             return;
         }
 
-        await Send.OkAsync(ScoreCastResponse<string>.Ok(body, "Token issued"), ct);
+        await Send.OkAsync(ScoreCastResponse<TokenProxyResult>.Ok(new TokenProxyResult(body), "Token issued"), ct);
     }
 }
