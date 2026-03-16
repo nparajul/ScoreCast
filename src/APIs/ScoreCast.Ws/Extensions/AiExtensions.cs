@@ -13,8 +13,10 @@ public static class AiExtensions
 
         var model = builder.Configuration["AI:Model"] ?? "gpt-4o-mini";
 
+        var endpoint = builder.Configuration["AI:Endpoint"] ?? "https://models.inference.ai.azure.com";
+
         var client = new OpenAIClient(new ApiKeyCredential(token),
-            new OpenAIClientOptions { Endpoint = new Uri("https://models.inference.ai.azure.com") });
+            new OpenAIClientOptions { Endpoint = new Uri(endpoint) });
 
         builder.Services.AddSingleton<IChatClient>(client.GetChatClient(model).AsIChatClient());
     }
