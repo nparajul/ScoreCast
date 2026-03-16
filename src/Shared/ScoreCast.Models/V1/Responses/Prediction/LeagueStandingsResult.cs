@@ -7,4 +7,5 @@ public record LeagueStandingsResult(
 
 public record LeagueStandingRow(
     long UserId, string DisplayName, string? AvatarUrl,
-    int TotalPoints, int ExactScores, int CorrectResults, int PredictionCount);
+    int TotalPoints, int ExactScores, int CorrectResults, int PredictionCount,
+    int GameweekPoints = 0, int GameweekNumber = 0);

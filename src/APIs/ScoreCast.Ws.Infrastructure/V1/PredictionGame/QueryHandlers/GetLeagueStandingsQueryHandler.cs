@@ -84,6 +84,32 @@ internal sealed record GetLeagueStandingsQueryHandler(
             .GroupBy(r => r.UserId)
             .ToDictionaryAsync(g => g.Key, g => g.Sum(r => r.BonusPoints ?? 0), ct);
 
+        // Find current or latest gameweek with predictions
+        var gwWithPredictions = scopedPredictions.Select(p => p.GameweekId).Distinct().ToHashSet();
+        var latestGw = await DbContext.Gameweeks.AsNoTracking()
+            .Where(g => g.SeasonId == league.SeasonId && gwWithPredictions.Contains(g.Id))
+            .OrderByDescending(g => g.Number)
+            .Select(g => new { g.Id, g.Number })
+            .FirstOrDefaultAsync(ct);
+
+        var gwPredPoints = latestGw is null
+            ? new Dictionary<long, int>()
+            : scopedPredictions
+                .Where(p => p.GameweekId == latestGw.Id)
+                .GroupBy(p => p.UserId)
+                .ToDictionary(g => g.Key, g => g.Sum(p => scoringRules.GetValueOrDefault(p.Outcome!.Value, 0)));
+
+        var gwRiskBonus = latestGw is null
+            ? new Dictionary<long, int>()
+            : await DbContext.RiskPlays.AsNoTracking()
+                .Where(r => r.SeasonId == league.SeasonId && r.IsResolved == true
+                            && !r.IsDeleted && memberUserIds.Contains(r.UserId)
+                            && r.GameweekId == latestGw.Id)
+                .GroupBy(r => r.UserId)
+                .ToDictionaryAsync(g => g.Key, g => g.Sum(r => r.BonusPoints ?? 0), ct);
+
+        var gwNumber = latestGw?.Number ?? 0;
+
         var standings = members
             .Select(m =>
             {
@@ -96,7 +122,9 @@ internal sealed record GetLeagueStandingsQueryHandler(
                     (stats?.TotalPoints ?? 0) + riskBonus,
                     stats?.ExactScores ?? 0,
                     stats?.CorrectResults ?? 0,
-                    stats?.Count ?? 0);
+                    stats?.Count ?? 0,
+                    gwPredPoints.GetValueOrDefault(m.UserId) + gwRiskBonus.GetValueOrDefault(m.UserId),
+                    gwNumber);
             })
             .OrderByDescending(s => s.TotalPoints)
             .ToList();
