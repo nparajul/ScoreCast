@@ -21,7 +21,7 @@ public sealed class TokenProxyEndpoint(IConfiguration config, IHttpClientFactory
     public override async Task HandleAsync(TokenProxyRequest req, CancellationToken ct)
     {
         var authority = config["Keycloak:Authority"]!;
-        var clientId = config["Keycloak:Audience"]!;
+        var clientId = config["Keycloak:WebClientId"] ?? "scorecast-web";
         var tokenUrl = $"{authority}/protocol/openid-connect/token";
 
         var parameters = new Dictionary<string, string>
