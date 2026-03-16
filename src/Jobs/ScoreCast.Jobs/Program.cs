@@ -23,7 +23,7 @@ try
         .UseSimpleAssemblyNameTypeSerializer()
         .UseRecommendedSerializerSettings()
         .UsePostgreSqlStorage(options =>
-            options.UseNpgsqlConnection(builder.Configuration.GetConnectionString("HangfireDb")!)));
+            options.UseNpgsqlConnection(builder.Configuration.GetConnectionString("ScoreCastDb")!)));
 
     builder.Services.AddHangfireServer();
 

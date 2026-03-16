@@ -2,7 +2,7 @@ using ScoreCast.Models.V1.Responses.UserManagement;
 
 namespace ScoreCast.Web.Components.Helpers;
 
-public sealed class RoleNavigationService(IScoreCastApiClient Api) : IRoleNavigationService
+public sealed class RoleNavigationService(IScoreCastApiClient api) : IRoleNavigationService
 {
     public List<RoleResult> Roles { get; private set; } = [];
     public RoleResult? SelectedRole { get; private set; }
@@ -11,7 +11,7 @@ public sealed class RoleNavigationService(IScoreCastApiClient Api) : IRoleNaviga
 
     public async Task LoadRolesAsync()
     {
-        var response = await Api.GetMyRolesAsync(CancellationToken.None);
+        var response = await api.GetMyRolesAsync(CancellationToken.None);
         if (response.Success && response.Data is not null)
             Roles = response.Data;
 
@@ -22,7 +22,7 @@ public sealed class RoleNavigationService(IScoreCastApiClient Api) : IRoleNaviga
     public async Task SelectRoleAsync(RoleResult role)
     {
         SelectedRole = role;
-        var response = await Api.GetRolePagesAsync(role.Id, CancellationToken.None);
+        var response = await api.GetRolePagesAsync(role.Id, CancellationToken.None);
         if (response.Success && response.Data is not null)
             Pages = response.Data;
 

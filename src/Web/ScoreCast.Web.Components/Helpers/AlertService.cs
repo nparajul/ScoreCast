@@ -10,18 +10,18 @@ namespace ScoreCast.Web.Components.Helpers;
 public sealed partial class AlertService : IAlertService, IDisposable
 {
     private readonly Dictionary<Severity, List<ScoreCastAlert>> _alerts = [];
-    private readonly IDialogService Dialog;
-    private readonly NavigationManager Navigation;
-    private readonly INotifyService Notify;
+    private readonly IDialogService _dialog;
+    private readonly NavigationManager _navigation;
+    private readonly INotifyService _notify;
 
     private MaxWidth _width = MaxWidth.Large;
 
     public AlertService(INotifyService notify, IDialogService dialog, NavigationManager navigation)
     {
-        Notify = notify;
-        Dialog = dialog;
-        Navigation = navigation;
-        Navigation.LocationChanged += LocationChanged;
+        _notify = notify;
+        _dialog = dialog;
+        _navigation = navigation;
+        _navigation.LocationChanged += LocationChanged;
     }
 
     public IEnumerable<ScoreCastAlert> Alerts => _alerts.Values.SelectMany(x => x);
@@ -32,7 +32,7 @@ public sealed partial class AlertService : IAlertService, IDisposable
         set
         {
             _width = value;
-            Notify.Notify();
+            _notify.Notify();
         }
     }
 
@@ -48,7 +48,7 @@ public sealed partial class AlertService : IAlertService, IDisposable
         if (overwrite && severity == Severity.Success)
             ClearErrors();
 
-        Notify.Notify();
+        _notify.Notify();
     }
 
     public void ClearAndAdd(OneOf<string, MarkupString, RenderFragment> content, Severity severity, bool overwrite = true,
@@ -68,7 +68,7 @@ public sealed partial class AlertService : IAlertService, IDisposable
             ["Severity"] = severity
         };
 
-        await Dialog.ShowAsync<ExceptionDialog>("An Exception Occured", parameters, options);
+        await _dialog.ShowAsync<ExceptionDialog>("An Exception Occured", parameters, options);
     }
 
     public async Task ShowDialog(OneOf<string, MarkupString, RenderFragment> content, Severity severity,
@@ -76,13 +76,13 @@ public sealed partial class AlertService : IAlertService, IDisposable
     {
         options ??= new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small };
         var alert = GetScoreCastAlert(content, severity);
-        await Dialog.ShowAsync<AlertServiceDialog>(title, new DialogParameters { ["Alert"] = alert, ["Title"] = title }, options);
+        await _dialog.ShowAsync<AlertServiceDialog>(title, new DialogParameters { ["Alert"] = alert, ["Title"] = title }, options);
     }
 
     public void ClearErrors()
     {
         _alerts[Severity.Error] = _alerts[Severity.Warning] = [];
-        Notify.Notify();
+        _notify.Notify();
     }
 
     public void Clear(Severity severity)
@@ -90,14 +90,14 @@ public sealed partial class AlertService : IAlertService, IDisposable
         if (_alerts.ContainsKey(severity))
         {
             _alerts[severity].Clear();
-            Notify.Notify();
+            _notify.Notify();
         }
     }
 
     public void Clear()
     {
         _alerts.Clear();
-        Notify.Notify();
+        _notify.Notify();
     }
 
     public bool HasError()
@@ -119,12 +119,12 @@ public sealed partial class AlertService : IAlertService, IDisposable
             return;
 
         _alerts[alert.Severity].Remove(alert);
-        Notify.Notify();
+        _notify.Notify();
     }
 
     public void Dispose()
     {
-        Navigation.LocationChanged -= LocationChanged;
+        _navigation.LocationChanged -= LocationChanged;
     }
 
     [GeneratedRegex(@"(<br\s*\/?\s*>|\r\n|\n|\r)")]

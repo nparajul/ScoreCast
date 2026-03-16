@@ -64,7 +64,7 @@ public partial class ExceptionDialog
 
     private async Task CopyToClipboard(string text)
     {
-        try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", text); }
+        try { await Js.InvokeVoidAsync("navigator.clipboard.writeText", text); }
         catch { Snackbar.Add("Could not copy to clipboard", Severity.Warning); }
     }
 }

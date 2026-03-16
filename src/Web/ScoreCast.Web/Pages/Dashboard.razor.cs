@@ -9,7 +9,7 @@ namespace ScoreCast.Web.Pages;
 
 public partial class Dashboard
 {
-    private const string AppName = "DASHBOARD";
+    private const string _appName = "DASHBOARD";
     [Inject] private IScoreCastApiClient Api { get; set; } = default!;
     [Inject] private ILoadingService Loading { get; set; } = default!;
     [Inject] private IAlertService Alert { get; set; } = default!;

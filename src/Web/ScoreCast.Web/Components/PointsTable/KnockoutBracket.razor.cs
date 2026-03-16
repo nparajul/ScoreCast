@@ -90,14 +90,14 @@ public partial class KnockoutBracket
         _ => roundName
     };
 
-    private static readonly string[] RoundOrder = ["Round of 32", "Round of 16", "Quarter-Finals", "Semi-Finals", "Final"];
+    private static readonly string[] _roundOrder = ["Round of 32", "Round of 16", "Quarter-Finals", "Semi-Finals", "Final"];
 
     private static List<BracketSlot>? GetNextRound(Dictionary<string, BracketRound> roundMap, string currentLabel)
     {
-        var currentFull = RoundOrder.FirstOrDefault(r => GetRoundLabel(r) == currentLabel);
+        var currentFull = _roundOrder.FirstOrDefault(r => GetRoundLabel(r) == currentLabel);
         if (currentFull is null) return null;
-        var idx = Array.IndexOf(RoundOrder, currentFull);
-        if (idx < 0 || idx + 1 >= RoundOrder.Length) return null;
-        return roundMap.TryGetValue(RoundOrder[idx + 1], out var next) && next.Slots.Count > 0 ? next.Slots : null;
+        var idx = Array.IndexOf(_roundOrder, currentFull);
+        if (idx < 0 || idx + 1 >= _roundOrder.Length) return null;
+        return roundMap.TryGetValue(_roundOrder[idx + 1], out var next) && next.Slots.Count > 0 ? next.Slots : null;
     }
 }
