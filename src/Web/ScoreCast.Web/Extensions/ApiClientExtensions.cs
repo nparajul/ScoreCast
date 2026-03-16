@@ -31,6 +31,10 @@ public static class ApiClientExtensions
             .AddRefitClient<IScoreCastApiClient>(RefitSettings)
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
             .AddHttpMessageHandler<ApiAuthHandler>();
+
+        builder.Services
+            .AddRefitClient<IAuthApi>(RefitSettings)
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
     }
 }
 
