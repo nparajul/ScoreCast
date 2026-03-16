@@ -9,11 +9,11 @@ namespace ScoreCast.ArchTests;
 
 public class ConventionTests
 {
-    private static readonly Assembly ApplicationAssembly = typeof(IQuery).Assembly;
-    private static readonly Assembly InfrastructureAssembly = typeof(InfrastructureGroup).Assembly;
-    private static readonly Assembly EndpointsAssembly = typeof(EndpointsGroup).Assembly;
+    private static readonly Assembly _applicationAssembly = typeof(IQuery).Assembly;
+    private static readonly Assembly _infrastructureAssembly = typeof(InfrastructureGroup).Assembly;
+    private static readonly Assembly _endpointsAssembly = typeof(EndpointsGroup).Assembly;
 
-    private static readonly string SrcRoot = Path.GetFullPath(
+    private static readonly string _srcRoot = Path.GetFullPath(
         Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "src"));
 
     // ── Query / Command interface rules ──
@@ -21,7 +21,7 @@ public class ConventionTests
     [Fact]
     public void Queries_Must_Implement_IQuery()
     {
-        var violations = ApplicationAssembly.GetTypes()
+        var violations = _applicationAssembly.GetTypes()
             .Where(t => t.Name.EndsWith("Query") && t is { IsClass: true, IsAbstract: false })
             .Where(t => !ImplementsOpenGeneric(t, typeof(IQuery<>)) && !typeof(IQuery).IsAssignableFrom(t))
             .Select(t => t.Name)
@@ -34,7 +34,7 @@ public class ConventionTests
     [Fact]
     public void Commands_Must_Implement_ICommand()
     {
-        var violations = ApplicationAssembly.GetTypes()
+        var violations = _applicationAssembly.GetTypes()
             .Where(t => t.Name.EndsWith("Command") && t is { IsClass: true, IsAbstract: false })
             .Where(t => !ImplementsOpenGeneric(t, typeof(ICommand<>)) && !typeof(ICommand).IsAssignableFrom(t))
             .Select(t => t.Name)
@@ -47,7 +47,7 @@ public class ConventionTests
     [Fact]
     public void QueryHandlers_Must_Implement_IQueryHandler()
     {
-        var violations = InfrastructureAssembly.GetTypes()
+        var violations = _infrastructureAssembly.GetTypes()
             .Where(t => t.Name.EndsWith("QueryHandler") && t is { IsClass: true, IsAbstract: false })
             .Where(t => !ImplementsOpenGeneric(t, typeof(IQueryHandler<,>)))
             .Select(t => t.Name)
@@ -60,7 +60,7 @@ public class ConventionTests
     [Fact]
     public void CommandHandlers_Must_Implement_ICommandHandler()
     {
-        var violations = InfrastructureAssembly.GetTypes()
+        var violations = _infrastructureAssembly.GetTypes()
             .Where(t => t.Name.EndsWith("CommandHandler") && t is { IsClass: true, IsAbstract: false })
             .Where(t => !ImplementsOpenGeneric(t, typeof(ICommandHandler<,>)))
             .Select(t => t.Name)
@@ -73,7 +73,7 @@ public class ConventionTests
     [Fact]
     public void QueryHandlers_Must_Not_Implement_ICommandHandler_Directly()
     {
-        var violations = InfrastructureAssembly.GetTypes()
+        var violations = _infrastructureAssembly.GetTypes()
             .Where(t => t.Name.EndsWith("QueryHandler") && t is { IsClass: true, IsAbstract: false })
             .Where(t => ImplementsOpenGenericDirectly(t, typeof(ICommandHandler<,>))
                         && !ImplementsOpenGeneric(t, typeof(IQueryHandler<,>)))
@@ -87,7 +87,7 @@ public class ConventionTests
     [Fact]
     public void CommandHandlers_Must_Not_Implement_IQueryHandler()
     {
-        var violations = InfrastructureAssembly.GetTypes()
+        var violations = _infrastructureAssembly.GetTypes()
             .Where(t => t.Name.EndsWith("CommandHandler") && t is { IsClass: true, IsAbstract: false })
             .Where(t => ImplementsOpenGeneric(t, typeof(IQueryHandler<,>)))
             .Select(t => t.Name)
@@ -102,7 +102,7 @@ public class ConventionTests
     [Fact]
     public void Handlers_Must_Be_Internal_Sealed()
     {
-        var violations = InfrastructureAssembly.GetTypes()
+        var violations = _infrastructureAssembly.GetTypes()
             .Where(t => (t.Name.EndsWith("QueryHandler") || t.Name.EndsWith("CommandHandler"))
                         && t is { IsClass: true, IsAbstract: false })
             .Where(t => t.IsPublic || !t.IsSealed)
@@ -119,7 +119,7 @@ public class ConventionTests
     public void Endpoints_Must_Not_Have_AllowAnonymous()
     {
         var endpointFiles = Directory.GetFiles(
-            Path.Combine(SrcRoot, "APIs", "ScoreCast.Ws.Endpoints"), "*.cs", SearchOption.AllDirectories)
+            Path.Combine(_srcRoot, "APIs", "ScoreCast.Ws.Endpoints"), "*.cs", SearchOption.AllDirectories)
             .Where(f => !f.Contains("/obj/") && !f.Contains("/bin/"))
             .Where(f => !f.Contains("/Health/"));
 
@@ -137,8 +137,8 @@ public class ConventionTests
     [Fact]
     public void No_Raw_DateTime_Now()
     {
-        var csFiles = Directory.GetFiles(SrcRoot, "*.cs", SearchOption.AllDirectories)
-            .Concat(Directory.GetFiles(SrcRoot, "*.razor", SearchOption.AllDirectories))
+        var csFiles = Directory.GetFiles(_srcRoot, "*.cs", SearchOption.AllDirectories)
+            .Concat(Directory.GetFiles(_srcRoot, "*.razor", SearchOption.AllDirectories))
             .Where(f => !f.Contains("/obj/") && !f.Contains("/bin/"))
             .Where(f => !Path.GetFileName(f).StartsWith("ScoreCastDateTime"));
 
@@ -166,7 +166,7 @@ public class ConventionTests
     public void Razor_Files_Must_Not_Have_Code_Blocks()
     {
         var razorFiles = Directory.GetFiles(
-            Path.Combine(SrcRoot, "Web"), "*.razor", SearchOption.AllDirectories)
+            Path.Combine(_srcRoot, "Web"), "*.razor", SearchOption.AllDirectories)
             .Where(f => !f.Contains("/obj/") && !f.Contains("_Imports.razor"));
 
         var violations = razorFiles

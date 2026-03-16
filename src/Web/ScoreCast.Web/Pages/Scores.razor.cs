@@ -16,7 +16,7 @@ public partial class Scores : IDisposable
     [Inject] private IAlertService Alert { get; set; } = null!;
     [Inject] private IJSRuntime Js { get; set; } = null!;
 
-    private const string AppName = "SCORES";
+    private const string _appName = "SCORES";
 
     private SeasonResult? _selectedSeason;
     private GameweekMatchesResult? _gameweek;

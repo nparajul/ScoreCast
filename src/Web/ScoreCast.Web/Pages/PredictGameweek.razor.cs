@@ -9,7 +9,7 @@ namespace ScoreCast.Web.Pages;
 
 public partial class PredictGameweek
 {
-    private const string AppName = "PREDICT GAMEWEEK";
+    private const string _appName = "PREDICT GAMEWEEK";
     [Inject] private IScoreCastApiClient Api { get; set; } = null!;
     [Inject] private ILoadingService Loading { get; set; } = null!;
     [Inject] private IAlertService Alert { get; set; } = null!;

@@ -29,7 +29,7 @@ internal sealed record GetBracketQueryHandler(
         if (templateJson is null)
             return ScoreCastResponse<BracketResult>.Ok(new BracketResult([]));
 
-        var templateRounds = JsonSerializer.Deserialize<List<BracketTemplateRound>>(templateJson, JsonOptions)
+        var templateRounds = JsonSerializer.Deserialize<List<BracketTemplateRound>>(templateJson, _jsonOptions)
             ?? [];
 
         // Build group standings lookup for resolving labels like 1A, 2B
@@ -157,5 +157,5 @@ internal sealed record GetBracketQueryHandler(
     private record BracketTemplateRound(string Name, List<BracketTemplateSlot> Slots);
     private record BracketTemplateSlot(string Home, string Away, string? Date);
 
-    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+    private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 }
