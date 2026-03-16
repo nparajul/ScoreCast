@@ -25,9 +25,9 @@ public sealed class GetMatchInsightsEndpoint
         var matches = await db.Matches
             .AsNoTracking()
             .Where(m => m.Gameweek.SeasonId == req.SeasonId
-                        && m.Gameweek.Number == req.GameweekNumber
+                        && (m.Gameweek.Number == req.GameweekNumber || m.Gameweek.Number == req.GameweekNumber + 1)
                         && m.Status == MatchStatus.Scheduled)
-            .OrderBy(m => m.KickoffTime)
+            .OrderBy(m => m.Gameweek.Number).ThenBy(m => m.KickoffTime)
             .Select(m => new
             {
                 m.Id, m.KickoffTime,
