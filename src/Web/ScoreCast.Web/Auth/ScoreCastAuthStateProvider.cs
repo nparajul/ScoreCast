@@ -11,8 +11,7 @@ namespace ScoreCast.Web.Auth;
 
 public sealed class ScoreCastAuthStateProvider(
     IAuthApi authApi,
-    IJSRuntime js,
-    IConfiguration config) : AuthenticationStateProvider, IAuthService
+    IJSRuntime js) : AuthenticationStateProvider, IAuthService
 {
     private const string AccessTokenKey = "sc_access_token";
     private const string RefreshTokenKey = "sc_refresh_token";
@@ -82,15 +81,21 @@ public sealed class ScoreCastAuthStateProvider(
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
     }
 
-    public string GetRegistrationUrl(string returnUrl)
+    public async Task<(bool Success, string? Error)> RegisterAsync(string email, string username, string password)
     {
-        var authority = config["Keycloak:Authority"]!;
-        var clientId = config["Keycloak:ClientId"]!;
-        return $"{authority}/protocol/openid-connect/registrations" +
-               $"?client_id={clientId}" +
-               "&response_type=code" +
-               "&scope=openid" +
-               $"&redirect_uri={Uri.EscapeDataString(returnUrl)}";
+        var result = await authApi.RegisterAsync(new ScoreCast.Models.V1.Requests.Auth.RegisterRequest
+        {
+            Email = email,
+            Username = username,
+            Password = password
+        });
+
+        if (!result.Success)
+            return (false, result.Message ?? "Registration failed");
+
+        await ApplyTokenData(result.Data?.TokenJson);
+        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        return (true, null);
     }
 
     public async Task<string?> GetAccessTokenAsync()

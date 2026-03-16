@@ -1,14 +1,13 @@
-@page "/login"
-@layout ScoreCast.Web.Layout.MainLayout
+@page "/register"
 
-<PageTitle>Log In — ScoreCast</PageTitle>
+<PageTitle>Create Account — ScoreCast</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="mt-8 mt-md-16">
     <MudPaper Elevation="3" Class="pa-6 pa-md-8 rounded-lg">
         <div class="d-flex flex-column align-center mb-6">
             <MudImage Src="scorecast-icon.svg" Alt="ScoreCast" Width="64" Height="64" Class="mb-2" />
-            <MudText Typo="Typo.h5" Style="font-weight:700;">Welcome Back</MudText>
-            <MudText Typo="Typo.body2" Style="opacity:0.6;">Sign in to make your predictions</MudText>
+            <MudText Typo="Typo.h5" Style="font-weight:700;">Create Account</MudText>
+            <MudText Typo="Typo.body2" Style="opacity:0.6;">Join the prediction game</MudText>
         </div>
 
         @if (_error is not null)
@@ -16,13 +15,20 @@
             <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4" Variant="Variant.Filled">@_error</MudAlert>
         }
 
-        <EditForm Model="_model" OnValidSubmit="HandleLogin">
+        <EditForm Model="_model" OnValidSubmit="HandleRegister">
+            <MudTextField @bind-Value="_model.Email"
+                          Label="Email"
+                          Variant="Variant.Outlined"
+                          InputType="InputType.Email"
+                          Required="true"
+                          Class="mb-4"
+                          Disabled="_loading" />
+
             <MudTextField @bind-Value="_model.Username"
-                          Label="Username or Email"
+                          Label="Username"
                           Variant="Variant.Outlined"
                           Required="true"
                           Class="mb-4"
-                          Immediate="true"
                           Disabled="_loading" />
 
             <MudTextField @bind-Value="_model.Password"
@@ -44,19 +50,16 @@
                 {
                     <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
                 }
-                Log In
+                Create Account
             </MudButton>
         </EditForm>
 
         <MudDivider Class="my-4" />
 
         <div class="d-flex flex-column align-center">
-            <MudText Typo="Typo.body2" Style="opacity:0.6;" Class="mb-2">Don't have an account?</MudText>
-            <MudButton Variant="Variant.Outlined"
-                       Color="Color.Primary"
-                       FullWidth="true"
-                       Href="/register">
-                Create Account
+            <MudText Typo="Typo.body2" Style="opacity:0.6;" Class="mb-2">Already have an account?</MudText>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true" Href="/login">
+                Log In
             </MudButton>
         </div>
     </MudPaper>
