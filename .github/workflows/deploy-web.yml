@@ -1,0 +1,30 @@
+name: Deploy Web to Cloudflare Pages
+
+on:
+  push:
+    branches: [production]
+    paths:
+      - 'src/Web/**'
+      - 'src/Shared/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish WASM
+        run: dotnet publish src/Web/ScoreCast.Web/ScoreCast.Web.csproj -c Release -o output
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy output/wwwroot --project-name=scorecast

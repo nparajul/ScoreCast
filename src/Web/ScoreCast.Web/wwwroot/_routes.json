@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [
+    "/_framework/*",
+    "/css/*",
+    "/images/*",
+    "/*.js",
+    "/*.json",
+    "/*.ico",
+    "/*.wasm"
+  ]
+}
