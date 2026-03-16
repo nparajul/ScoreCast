@@ -9,10 +9,6 @@ public static class AuthExtensions
 {
     public static void AddScoreCastAuth(this WebAssemblyHostBuilder builder)
     {
-        var apiBaseUrl = builder.Configuration["Api:BaseUrl"]!;
-
-        builder.Services.AddHttpClient("ScoreCastAuth", c => c.BaseAddress = new Uri(apiBaseUrl));
-
         builder.Services.AddScoped<ScoreCastAuthStateProvider>();
         builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
             sp.GetRequiredService<ScoreCastAuthStateProvider>());
