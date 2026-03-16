@@ -2,10 +2,9 @@
 
 <PageGuard>
 <MudContainer MaxWidth="MaxWidth.Small" Class="py-4">
-    <MudText Typo="Typo.h5" Style="font-weight:700;text-align:center;" Class="mb-1">
+    <MudText Typo="Typo.h5" Style="font-weight:700;text-align:center;" Class="mb-4">
         <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Style="vertical-align:middle;" Class="mr-1" /> AI Insights
     </MudText>
-    <MudText Typo="Typo.caption" Align="Align.Center" Style="opacity:0.5;" Class="mb-4">Powered by AI · Predictions for fun only</MudText>
 
     @if (_insights.Count == 0 && _loaded)
     {
