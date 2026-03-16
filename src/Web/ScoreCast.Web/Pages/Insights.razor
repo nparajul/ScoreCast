@@ -22,11 +22,11 @@
                         {
                             <MudImage Src="@m.HomeTeamLogo" Width="28" Height="28" ObjectFit="ObjectFit.Contain" />
                         }
-                        <MudText Typo="Typo.body2" Style="font-weight:700;color:white;">@m.HomeTeamName</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:700;color:white;">@(m.HomeTeamShortName ?? m.HomeTeamName)</MudText>
                     </div>
                     <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.6);">vs</MudText>
                     <div class="d-flex align-center gap-2">
-                        <MudText Typo="Typo.body2" Style="font-weight:700;color:white;">@m.AwayTeamName</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:700;color:white;">@(m.AwayTeamShortName ?? m.AwayTeamName)</MudText>
                         @if (m.AwayTeamLogo is not null)
                         {
                             <MudImage Src="@m.AwayTeamLogo" Width="28" Height="28" ObjectFit="ObjectFit.Contain" />

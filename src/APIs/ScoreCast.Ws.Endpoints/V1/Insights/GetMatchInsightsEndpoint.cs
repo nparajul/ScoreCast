@@ -31,8 +31,8 @@ public sealed class GetMatchInsightsEndpoint
             .Select(m => new
             {
                 m.Id, m.KickoffTime,
-                HomeName = m.HomeTeam.Name, HomeLogo = m.HomeTeam.LogoUrl, HomeId = m.HomeTeamId,
-                AwayName = m.AwayTeam.Name, AwayLogo = m.AwayTeam.LogoUrl, AwayId = m.AwayTeamId
+                HomeName = m.HomeTeam.Name, HomeShort = m.HomeTeam.ShortName, HomeLogo = m.HomeTeam.LogoUrl, HomeId = m.HomeTeamId,
+                AwayName = m.AwayTeam.Name, AwayShort = m.AwayTeam.ShortName, AwayLogo = m.AwayTeam.LogoUrl, AwayId = m.AwayTeamId
             })
             .ToListAsync(ct);
 
@@ -77,7 +77,7 @@ public sealed class GetMatchInsightsEndpoint
             var awayPct = (int)(awayStr / total * 100);
             var drawPct = 100 - homePct - awayPct;
 
-            return new MatchInsightResult(m.Id, m.HomeName, m.HomeLogo, m.AwayName, m.AwayLogo,
+            return new MatchInsightResult(m.Id, m.HomeName, m.HomeShort, m.HomeLogo, m.AwayName, m.AwayShort, m.AwayLogo,
                 m.KickoffTime, homePct, drawPct, awayPct, null);
         }).ToList();
 
