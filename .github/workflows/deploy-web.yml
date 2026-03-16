@@ -8,9 +8,6 @@ on:
       - 'src/Shared/**'
   workflow_dispatch:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -26,8 +23,7 @@ jobs:
         run: dotnet publish src/Web/ScoreCast.Web/ScoreCast.Web.csproj -c Release -o output
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy output/wwwroot --project-name=scorecast-92u --commit-dirty=true
+        run: npx wrangler@latest pages deploy output/wwwroot --project-name=scorecast-92u --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
