@@ -57,7 +57,7 @@ public sealed class ScoreCastAuthStateProvider(
         if (!response.Success)
             return new AuthResult(false, response.Message ?? "Invalid username or password");
 
-        await ApplyTokenData(response.Data);
+        await ApplyTokenData(response.TokenJson);
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         return new AuthResult(true);
     }
@@ -116,7 +116,7 @@ public sealed class ScoreCastAuthStateProvider(
 
         if (!response.Success) return false;
 
-        await ApplyTokenData(response.Data);
+        await ApplyTokenData(response.TokenJson);
         return true;
     }
 
@@ -130,17 +130,22 @@ public sealed class ScoreCastAuthStateProvider(
 
         var success = root.TryGetProperty("resultType", out var rt) && rt.GetString() == "Ok";
         var message = root.TryGetProperty("message", out var msg) ? msg.GetString() : null;
-        JsonElement? data = root.TryGetProperty("data", out var d) ? d : null;
 
-        return new TokenApiResponse(success, message, data);
+        // data is a raw JSON string containing the Keycloak token response
+        string? tokenJson = null;
+        if (success && root.TryGetProperty("data", out var d) && d.ValueKind == JsonValueKind.String)
+            tokenJson = d.GetString();
+
+        return new TokenApiResponse(success, message, tokenJson);
     }
 
-    private async Task ApplyTokenData(JsonElement? data)
+    private async Task ApplyTokenData(string? tokenJson)
     {
-        if (data is null) return;
+        if (tokenJson is null) return;
 
-        var accessToken = data.Value.GetProperty("access_token").GetString()!;
-        var refreshToken = data.Value.GetProperty("refresh_token").GetString()!;
+        using var doc = JsonDocument.Parse(tokenJson);
+        var accessToken = doc.RootElement.GetProperty("access_token").GetString()!;
+        var refreshToken = doc.RootElement.GetProperty("refresh_token").GetString()!;
 
         _accessToken = accessToken;
         var handler = new JwtSecurityTokenHandler();
@@ -185,5 +190,5 @@ public sealed class ScoreCastAuthStateProvider(
         catch { return null; }
     }
 
-    private sealed record TokenApiResponse(bool Success, string? Message, JsonElement? Data);
+    private sealed record TokenApiResponse(bool Success, string? Message, string? TokenJson);
 }
