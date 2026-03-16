@@ -1,0 +1,68 @@
+@page "/insights"
+
+<PageGuard>
+<MudContainer MaxWidth="MaxWidth.Small" Class="py-4">
+    <MudText Typo="Typo.h5" Style="font-weight:700;text-align:center;" Class="mb-1">
+        <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Style="vertical-align:middle;" Class="mr-1" /> AI Insights
+    </MudText>
+    <MudText Typo="Typo.caption" Align="Align.Center" Style="opacity:0.5;" Class="mb-4">Powered by AI · Predictions for fun only</MudText>
+
+    @if (_insights.Count == 0 && _loaded)
+    {
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">No upcoming matches to analyze.</MudAlert>
+    }
+
+    <MudStack Spacing="3">
+        @foreach (var m in _insights)
+        {
+            <MudPaper Elevation="2" Class="rounded-lg overflow-hidden">
+                <div class="d-flex align-center justify-space-between pa-3"
+                     style="background:linear-gradient(135deg, var(--mud-palette-primary) 0%, #37003C 100%); color:white;">
+                    <div class="d-flex align-center gap-2">
+                        @if (m.HomeTeamLogo is not null)
+                        {
+                            <MudImage Src="@m.HomeTeamLogo" Width="28" Height="28" ObjectFit="ObjectFit.Contain" />
+                        }
+                        <MudText Typo="Typo.body2" Style="font-weight:700;color:white;">@m.HomeTeamName</MudText>
+                    </div>
+                    <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.6);">vs</MudText>
+                    <div class="d-flex align-center gap-2">
+                        <MudText Typo="Typo.body2" Style="font-weight:700;color:white;">@m.AwayTeamName</MudText>
+                        @if (m.AwayTeamLogo is not null)
+                        {
+                            <MudImage Src="@m.AwayTeamLogo" Width="28" Height="28" ObjectFit="ObjectFit.Contain" />
+                        }
+                    </div>
+                </div>
+
+                <div class="pa-3">
+                    @if (m.KickoffTime.HasValue)
+                    {
+                        <MudText Typo="Typo.caption" Style="opacity:0.5;" Class="mb-2">
+                            @m.KickoffTime.Value.ToString("ddd d MMM, HH:mm")
+                        </MudText>
+                    }
+
+                    <div class="d-flex align-center gap-1 mb-2" style="height:8px; border-radius:4px; overflow:hidden;">
+                        <div style="width:@(m.HomeWinPct)%; background:var(--mud-palette-tertiary); height:100%; border-radius:4px 0 0 4px;"></div>
+                        <div style="width:@(m.DrawPct)%; background:var(--mud-palette-lines-default); height:100%;"></div>
+                        <div style="width:@(m.AwayWinPct)%; background:var(--mud-palette-primary); height:100%; border-radius:0 4px 4px 0;"></div>
+                    </div>
+                    <div class="d-flex justify-space-between">
+                        <MudText Typo="Typo.caption" Color="Color.Tertiary" Style="font-weight:700;">@m.HomeWinPct%</MudText>
+                        <MudText Typo="Typo.caption" Style="opacity:0.5; font-weight:600;">@m.DrawPct% Draw</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Primary" Style="font-weight:700;">@m.AwayWinPct%</MudText>
+                    </div>
+
+                    @if (m.AiSummary is not null)
+                    {
+                        <MudText Typo="Typo.body2" Class="mt-2" Style="font-style:italic; opacity:0.8; line-height:1.4;">
+                            🔥 @m.AiSummary
+                        </MudText>
+                    }
+                </div>
+            </MudPaper>
+        }
+    </MudStack>
+</MudContainer>
+</PageGuard>
