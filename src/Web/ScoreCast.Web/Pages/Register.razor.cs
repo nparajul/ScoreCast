@@ -2,12 +2,12 @@ using ScoreCast.Web.Auth;
 
 namespace ScoreCast.Web.Pages;
 
-public partial class Login
+public partial class Register
 {
     [Inject] private ScoreCastAuthStateProvider Auth { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
 
-    private readonly LoginModel _model = new();
+    private readonly RegisterModel _model = new();
     private string? _error;
     private bool _loading;
 
@@ -18,23 +18,24 @@ public partial class Login
             Nav.NavigateTo("/dashboard", replace: true);
     }
 
-    private async Task HandleLogin()
+    private async Task HandleRegister()
     {
         _error = null;
         _loading = true;
 
-        var result = await Auth.LoginAsync(_model.Username, _model.Password);
+        var (success, error) = await Auth.RegisterAsync(_model.Email, _model.Username, _model.Password);
 
-        if (result.Success)
+        if (success)
             Nav.NavigateTo("/dashboard", replace: true);
         else
-            _error = result.Error;
+            _error = error;
 
         _loading = false;
     }
 
-    private sealed class LoginModel
+    private sealed class RegisterModel
     {
+        public string Email { get; set; } = "";
         public string Username { get; set; } = "";
         public string Password { get; set; } = "";
     }
