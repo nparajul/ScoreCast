@@ -6,8 +6,8 @@ public record GameweekMatchesResult(
 
 public record MatchDetail(
     long MatchId, DateTime? KickoffTime, string Status,
-    string HomeTeamName, string? HomeTeamLogo, string HomeTeamShortName,
-    string AwayTeamName, string? AwayTeamLogo, string AwayTeamShortName,
+    long HomeTeamId, string HomeTeamName, string? HomeTeamLogo, string HomeTeamShortName,
+    long AwayTeamId, string AwayTeamName, string? AwayTeamLogo, string AwayTeamShortName,
     int? HomeScore, int? AwayScore,
     string? Venue, string? Referee, string? Minute,
     List<MatchEventDetail> Events);

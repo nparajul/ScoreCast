@@ -6,6 +6,7 @@ public sealed record RolePage : ScoreCastEntity
 {
     public required long RoleId { get; set; }
     public required long PageId { get; set; }
+    public int DisplayOrder { get; set; }
 
     public RoleMaster Role { get; init; } = null!;
     public PageMaster Page { get; init; } = null!;

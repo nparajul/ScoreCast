@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Shared.Constants;
+using ScoreCast.Shared.Exceptions;
 using ScoreCast.Ws.Application.V1.MasterData.Commands;
 using ScoreCast.Ws.Domain.V1.Entities;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
@@ -22,6 +23,18 @@ internal sealed record SyncFplDataCommandHandler(
 {
     public async Task<ScoreCastResponse> ExecuteAsync(SyncFplDataCommand command, CancellationToken ct)
     {
+        try
+        {
+            return await ExecuteCoreAsync(command, ct);
+        }
+        catch (ScoreCastException ex)
+        {
+            return ScoreCastResponse.Error(ex.Message);
+        }
+    }
+
+    private async Task<ScoreCastResponse> ExecuteCoreAsync(SyncFplDataCommand command, CancellationToken ct)
+    {
         var competition = await DbContext.Competitions
             .FirstOrDefaultAsync(c => c.Code == command.Request.CompetitionCode, ct);
 
@@ -36,17 +49,21 @@ internal sealed record SyncFplDataCommandHandler(
 
         var client = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FplClient));
 
-        // 1. Fetch FPL bootstrap (teams + players)
         FplBootstrapResponse? bootstrap;
-        try { bootstrap = await client.GetFromJsonAsync<FplBootstrapResponse>(FplApi.Routes.BootstrapStatic, ct); }
-        catch (Exception ex) { return ScoreCastResponse.Error($"Failed to fetch FPL bootstrap: {ex.Message}"); }
-        if (bootstrap is null) return ScoreCastResponse.Error("FPL bootstrap returned null.");
-
-        // 2. Fetch all FPL fixtures
         List<FplFixture>? fixtures;
-        try { fixtures = await client.GetFromJsonAsync<List<FplFixture>>(FplApi.Routes.Fixtures, ct); }
-        catch (Exception ex) { return ScoreCastResponse.Error($"Failed to fetch FPL fixtures: {ex.Message}"); }
-        if (fixtures is null or { Count: 0 }) return ScoreCastResponse.Error("No FPL fixtures returned.");
+        try
+        {
+            bootstrap = await client.GetFromJsonAsync<FplBootstrapResponse>(FplApi.Routes.BootstrapStatic, ct)
+                ?? throw new InvalidOperationException("FPL bootstrap returned null");
+            fixtures = await client.GetFromJsonAsync<List<FplFixture>>(FplApi.Routes.Fixtures, ct);
+        }
+        catch (Exception ex)
+        {
+            throw new ScoreCastException("FPL bootstrap/fixtures API call failed", ex);
+        }
+
+        if (fixtures is null or { Count: 0 })
+            return ScoreCastResponse.Error("No FPL fixtures returned.");
 
         // 3. Build FPL ID → code maps
         var fplTeamIdToCode = bootstrap.Teams.ToDictionary(t => t.Id, t => t.Code);

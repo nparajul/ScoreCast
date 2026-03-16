@@ -1,0 +1,36 @@
+@page "/teams"
+
+<PageGuard>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-1">
+    <MudText Typo="Typo.h5" Class="mb-2" Style="font-weight:700;">Teams</MudText>
+
+    <MudTextField @bind-Value="_search" Placeholder="Search teams..." Variant="Variant.Outlined"
+                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                  Immediate="true" DebounceInterval="300" TextChanged="OnSearchChanged"
+                  Style="margin-bottom:12px;" />
+
+    @if (_teams.Count > 0)
+    {
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(@(IsMobile ? "140px" : "160px"),1fr));gap:10px;">
+            @foreach (var team in _teams)
+            {
+                <MudPaper Class="pa-3" Elevation="1" Style="border-radius:10px;cursor:pointer;text-align:center;" @onclick="() => GoToTeam(team.Id)">
+                    @if (team.LogoUrl is not null)
+                    {
+                        <img src="@team.LogoUrl" alt="" style="width:48px;height:48px;margin-bottom:6px;" />
+                    }
+                    <div style="font-weight:600;font-size:@(IsMobile ? "12" : "14")px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                        @(team.ShortName ?? team.Name)
+                    </div>
+                </MudPaper>
+            }
+        </div>
+    }
+    else if (!Loading.IsLoading)
+    {
+        <MudText Typo="Typo.body2" Align="Align.Center" Style="color:var(--mud-palette-text-secondary);">
+            @(string.IsNullOrWhiteSpace(_search) ? "Search for a team to get started" : "No teams found")
+        </MudText>
+    }
+</MudContainer>
+</PageGuard>

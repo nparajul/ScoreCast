@@ -1,0 +1,30 @@
+using FastEndpoints;
+using Microsoft.EntityFrameworkCore;
+using ScoreCast.Models.V1.Responses;
+using ScoreCast.Models.V1.Responses.Football;
+using ScoreCast.Ws.Application.V1.Football.Queries;
+using ScoreCast.Ws.Application.V1.Interfaces;
+
+namespace ScoreCast.Ws.Infrastructure.V1.Football.QueryHandlers;
+
+internal sealed record SearchTeamsQueryHandler(
+    IScoreCastDbContext DbContext) : IQueryHandler<SearchTeamsQuery, ScoreCastResponse<TeamSearchResult>>
+{
+    public async Task<ScoreCastResponse<TeamSearchResult>> ExecuteAsync(SearchTeamsQuery query, CancellationToken ct)
+    {
+        var teamsQuery = DbContext.Teams
+            .AsNoTracking()
+            .Where(t => t.IsActive);
+
+        if (!string.IsNullOrWhiteSpace(query.SearchTerm))
+            teamsQuery = teamsQuery.Where(t => t.Name.Contains(query.SearchTerm) || (t.ShortName != null && t.ShortName.Contains(query.SearchTerm)));
+
+        var teams = await teamsQuery
+            .OrderBy(t => t.Name)
+            .Take(50)
+            .Select(t => new TeamResult(t.Id, t.Name, t.ShortName, t.LogoUrl))
+            .ToListAsync(ct);
+
+        return ScoreCastResponse<TeamSearchResult>.Ok(new TeamSearchResult(teams));
+    }
+}

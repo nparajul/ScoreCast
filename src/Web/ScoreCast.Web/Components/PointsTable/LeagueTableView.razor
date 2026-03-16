@@ -31,9 +31,11 @@
             <tbody>
                 @foreach (var row in Rows)
                 {
+                    var hl = IsHighlighted(row);
                     var zone = Zones.FirstOrDefault(z => row.Position >= z.StartPosition && row.Position <= z.EndPosition);
-                    var borderStyle = zone is not null ? $"border-left:3px solid {zone.Color};" : "border-left:3px solid transparent;";
-                    <tr style="font-size:0.875rem;border-bottom:1px solid var(--mud-palette-lines-default);@borderStyle">
+                    var borderStyle = hl ? "border-left:3px solid var(--mud-palette-primary);" : zone is not null ? $"border-left:3px solid {zone.Color};" : "border-left:3px solid transparent;";
+                    var bgStyle = hl ? "background:rgba(var(--mud-palette-primary-rgb),0.12);" : "";
+                    <tr style="font-size:0.875rem;border-bottom:1px solid var(--mud-palette-lines-default);@($"{borderStyle}{bgStyle}")">
                         <td style="padding:10px 2px;font-weight:600;">@row.Position</td>
                         <td style="padding:10px 2px;">
                             <div class="d-flex align-center gap-2">
@@ -41,7 +43,7 @@
                                 {
                                     <img src="@row.TeamLogo" alt="" style="width:28px;height:28px;" />
                                 }
-                                <span style="font-weight:600;">@(row.TeamShortName ?? row.TeamName)</span>
+                                <span style="font-weight:@(hl ? "700" : "600");">@(row.TeamShortName ?? row.TeamName)</span>
                             </div>
                         </td>
                         <td style="padding:10px 2px;text-align:center;">@row.Played</td>
@@ -71,9 +73,11 @@
             <tbody>
                 @foreach (var row in Rows)
                 {
+                    var hl = IsHighlighted(row);
                     var zone = Zones.FirstOrDefault(z => row.Position >= z.StartPosition && row.Position <= z.EndPosition);
-                    var borderStyle = zone is not null ? $"border-left:3px solid {zone.Color};" : "border-left:3px solid transparent;";
-                    <tr style="font-size:0.875rem;border-bottom:1px solid var(--mud-palette-lines-default);@borderStyle">
+                    var borderStyle = hl ? "border-left:3px solid var(--mud-palette-primary);" : zone is not null ? $"border-left:3px solid {zone.Color};" : "border-left:3px solid transparent;";
+                    var bgStyle = hl ? "background:rgba(var(--mud-palette-primary-rgb),0.12);" : "";
+                    <tr style="font-size:0.875rem;border-bottom:1px solid var(--mud-palette-lines-default);@($"{borderStyle}{bgStyle}")">
                         <td style="padding:10px 2px;font-weight:600;">@row.Position</td>
                         <td style="padding:10px 2px;">
                             <div class="d-flex align-center gap-2">
@@ -81,7 +85,7 @@
                                 {
                                     <img src="@row.TeamLogo" alt="" style="width:28px;height:28px;" />
                                 }
-                                <span style="font-weight:600;">@(row.TeamShortName ?? row.TeamName)</span>
+                                <span style="font-weight:@(hl ? "700" : "600");">@(row.TeamShortName ?? row.TeamName)</span>
                             </div>
                         </td>
                         <td style="padding:10px 2px;text-align:center;">@row.Played</td>
@@ -109,9 +113,11 @@
             <tbody>
                 @foreach (var row in Rows)
                 {
+                    var hl = IsHighlighted(row);
                     var zone = Zones.FirstOrDefault(z => row.Position >= z.StartPosition && row.Position <= z.EndPosition);
-                    var borderStyle = zone is not null ? $"border-left:3px solid {zone.Color};" : "border-left:3px solid transparent;";
-                    <tr style="font-size:0.875rem;border-bottom:1px solid var(--mud-palette-lines-default);@borderStyle">
+                    var borderStyle = hl ? "border-left:3px solid var(--mud-palette-primary);" : zone is not null ? $"border-left:3px solid {zone.Color};" : "border-left:3px solid transparent;";
+                    var bgStyle = hl ? "background:rgba(var(--mud-palette-primary-rgb),0.12);" : "";
+                    <tr style="font-size:0.875rem;border-bottom:1px solid var(--mud-palette-lines-default);@($"{borderStyle}{bgStyle}")">
                         <td style="padding:10px 2px;font-weight:600;">@row.Position</td>
                         <td style="padding:10px 2px;">
                             <div class="d-flex align-center gap-2">
@@ -119,7 +125,7 @@
                                 {
                                     <img src="@row.TeamLogo" alt="" style="width:28px;height:28px;" />
                                 }
-                                <span style="font-weight:600;">@(row.TeamShortName ?? row.TeamName)</span>
+                                <span style="font-weight:@(hl ? "700" : "600");">@(row.TeamShortName ?? row.TeamName)</span>
                             </div>
                         </td>
                         <td style="padding:10px 4px 10px 2px;">

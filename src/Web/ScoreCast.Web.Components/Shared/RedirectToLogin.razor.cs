@@ -5,7 +5,7 @@ namespace ScoreCast.Web.Components.Shared;
 
 public partial class RedirectToLogin
 {
-    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
 
     protected override void OnInitialized() => Navigation.NavigateToLogin("authentication/login");
 }

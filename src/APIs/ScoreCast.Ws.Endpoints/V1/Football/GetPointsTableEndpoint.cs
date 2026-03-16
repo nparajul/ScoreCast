@@ -10,7 +10,6 @@ public sealed class GetPointsTableEndpoint : EndpointWithoutRequest<ScoreCastRes
     {
         Get("/seasons/{seasonId}/table");
         Group<FootballGroup>();
-        AllowAnonymous();
         Summary(s =>
         {
             s.Summary = "Get Points Table";

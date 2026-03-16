@@ -9,11 +9,11 @@ namespace ScoreCast.Web.Pages;
 
 public partial class PredictGameweek
 {
-    private const string AppName = "PREDICT GAMEWEEK";
-    [Inject] private IScoreCastApiClient Api { get; set; } = default!;
-    [Inject] private ILoadingService Loading { get; set; } = default!;
-    [Inject] private IAlertService Alert { get; set; } = default!;
-    [Inject] private NavigationManager Nav { get; set; } = default!;
+    private const string _appName = "PREDICT GAMEWEEK";
+    [Inject] private IScoreCastApiClient Api { get; set; } = null!;
+    [Inject] private ILoadingService Loading { get; set; } = null!;
+    [Inject] private IAlertService Alert { get; set; } = null!;
+    [Inject] private NavigationManager Nav { get; set; } = null!;
 
     [Parameter] public string? CompetitionCode { get; set; }
     [SupplyParameterFromQuery] public long? SeasonId { get; set; }

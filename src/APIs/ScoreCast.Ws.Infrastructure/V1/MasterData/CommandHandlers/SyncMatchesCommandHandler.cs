@@ -3,6 +3,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Shared.Constants;
+using ScoreCast.Shared.Exceptions;
 using ScoreCast.Ws.Application.V1.MasterData.Commands;
 using ScoreCast.Ws.Domain.V1.Entities;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
@@ -27,8 +28,13 @@ internal sealed record SyncMatchesCommandHandler(
         if (competition is null)
             return ScoreCastResponse.Error($"Competition {command.Request.CompetitionCode} not found. Sync the competition first.");
 
-        var seasons = await DbContext.Seasons
-            .Where(s => s.CompetitionId == competition.Id)
+        var seasonsQuery = DbContext.Seasons
+            .Where(s => s.CompetitionId == competition.Id);
+
+        if (!command.Request.SyncAll)
+            seasonsQuery = seasonsQuery.Where(s => s.IsCurrent);
+
+        var seasons = await seasonsQuery
             .OrderByDescending(s => s.StartDate)
             .ToListAsync(ct);
 
@@ -46,21 +52,40 @@ internal sealed record SyncMatchesCommandHandler(
 
             var totalMatches = 0;
 
+            var warnings = new List<string>();
+
             if (isPremierLeague)
                 totalMatches = await SyncFromPulseAsync(command.Request.AppName ?? nameof(SyncMatchesCommand), seasons, competition.Country, teamCache, ct);
 
-            // Fallback to football-data.org if Pulse returned nothing, or for non-PL
-            if (totalMatches == 0)
-                totalMatches = await SyncFromFootballDataAsync(command.Request.CompetitionCode, seasons, competition.Country, teamCache, ct);
+            // Fallback to football-data.org only for non-PL competitions
+            if (!isPremierLeague)
+            {
+                var (count, w) = await SyncFromFootballDataAsync(command.Request.CompetitionCode, seasons, competition.Country, teamCache, ct);
+                totalMatches = count;
+                warnings = w;
+            }
 
             await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(SyncMatchesCommand), ct);
+
+            // Sync events for non-PL finished matches without events
+            var eventCount = 0;
+            if (!isPremierLeague)
+            {
+                var seasonIds = seasons.Select(s => s.Id).ToList();
+                eventCount = await SyncFdMatchEventsAsync(seasonIds, ct);
+                if (eventCount > 0)
+                    await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(SyncMatchesCommand), ct);
+            }
+
             await transaction.CommitAsync(ct);
-            return ScoreCastResponse.Ok($"Synced {totalMatches} matches across {seasons.Count} seasons for {competition.Name}");
+            var msg = $"Synced {totalMatches} matches, {eventCount} events across {seasons.Count} seasons for {competition.Name}";
+            if (warnings.Count > 0) msg += $". Skipped: {string.Join("; ", warnings)}";
+            return ScoreCastResponse.Ok(msg);
         }
-        catch (Exception ex)
+        catch (ScoreCastException ex)
         {
             await transaction.RollbackAsync(ct);
-            return ScoreCastResponse.Error($"Failed to sync matches for {competition.Name}: {ex.InnerException?.Message ?? ex.Message}");
+            return ScoreCastResponse.Error(ex.Message);
         }
     }
 
@@ -98,9 +123,9 @@ internal sealed record SyncMatchesCommandHandler(
                 response = await pulseClient.GetFromJsonAsync<PulseFixturesListResponse>(
                     string.Format(PulseApi.Routes.FixturesByCompSeason, pulseCompSeasonId), ct);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                continue;
+                throw new ScoreCastException($"Pulse fixtures API call failed for compSeason {pulseCompSeasonId}", ex);
             }
 
             if (response?.Content is not { Count: > 0 }) continue;
@@ -151,7 +176,7 @@ internal sealed record SyncMatchesCommandHandler(
         foreach (var pf in fixtures)
         {
             var pulseFixtureId = ((int)pf.Id).ToString();
-            var matchday = pf.Gameweek?.Gameweek ?? 1;
+            var matchday = (int)(pf.Gameweek?.Gameweek ?? 1);
 
             if (!gameweekCache.TryGetValue(matchday, out var gameweek))
             {
@@ -175,7 +200,7 @@ internal sealed record SyncMatchesCommandHandler(
                 continue;
 
             var kickoff = pf.Kickoff?.Millis is not null
-                ? DateTimeOffset.FromUnixTimeMilliseconds(pf.Kickoff.Millis.Value).UtcDateTime
+                ? DateTimeOffset.FromUnixTimeMilliseconds((long)pf.Kickoff.Millis.Value).UtcDateTime
                 : (DateTime?)null;
 
             var status = MapPulseStatus(pf.Status);
@@ -199,8 +224,8 @@ internal sealed record SyncMatchesCommandHandler(
                     HomeTeam = homeTeam,
                     AwayTeam = awayTeam,
                     KickoffTime = kickoff,
-                    HomeScore = pf.Teams[0].Score,
-                    AwayScore = pf.Teams[1].Score,
+                    HomeScore = (int?)pf.Teams[0].Score,
+                    AwayScore = (int?)pf.Teams[1].Score,
                     Status = status,
                     Venue = homeTeam.Venue,
                     Referee = referee,
@@ -212,8 +237,8 @@ internal sealed record SyncMatchesCommandHandler(
             else
             {
                 match.KickoffTime = kickoff;
-                match.HomeScore = pf.Teams[0].Score;
-                match.AwayScore = pf.Teams[1].Score;
+                match.HomeScore = (int?)pf.Teams[0].Score;
+                match.AwayScore = (int?)pf.Teams[1].Score;
                 match.Status = status;
                 match.Venue = homeTeam.Venue;
                 match.Referee = referee;
@@ -253,35 +278,38 @@ internal sealed record SyncMatchesCommandHandler(
         return (count, pendingMappings);
     }
 
-    private async Task<int> SyncFromFootballDataAsync(
+    private async Task<(int Total, List<string> Warnings)> SyncFromFootballDataAsync(
         string competitionCode, List<Season> seasons, Country country,
         Dictionary<string, Team> teamCache, CancellationToken ct)
     {
         var client = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FootballDataClient));
         var totalMatches = 0;
+        var warnings = new List<string>();
 
         foreach (var season in seasons)
         {
             var seasonYear = season.StartDate.Year;
+            FootballDataMatchesResponse? apiResponse;
             try
             {
-                var apiResponse = await client.GetFromJsonAsync<FootballDataMatchesResponse>(
+                apiResponse = await client.GetFromJsonAsync<FootballDataMatchesResponse>(
                     string.Format(FootballDataApi.Routes.Matches, competitionCode, seasonYear), ct);
-
-                if (apiResponse?.Matches is { Count: > 0 })
-                    totalMatches += await UpsertFdMatchesForSeasonAsync(season, country, apiResponse.Matches, teamCache, ct);
             }
-            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.TooManyRequests)
             {
-                break;
+                warnings.Add($"{competitionCode} {seasonYear}: {(ex.StatusCode == System.Net.HttpStatusCode.Forbidden ? "Restricted" : "Rate limited")}");
+                continue;
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to fetch {seasonYear}: {ex.Message}", ex);
+                throw new ScoreCastException($"Football-data.org matches API failed for {competitionCode} season {seasonYear}", ex);
             }
+
+            if (apiResponse?.Matches is { Count: > 0 })
+                totalMatches += await UpsertFdMatchesForSeasonAsync(season, country, apiResponse.Matches, teamCache, ct);
         }
 
-        return totalMatches;
+        return (totalMatches, warnings);
     }
 
     private async Task<int> UpsertFdMatchesForSeasonAsync(
@@ -303,6 +331,8 @@ internal sealed record SyncMatchesCommandHandler(
         var count = 0;
         foreach (var apiMatch in apiMatches)
         {
+            if (apiMatch.HomeTeam.Id is null || apiMatch.AwayTeam.Id is null) continue;
+
             var matchday = apiMatch.Matchday ?? 1;
             if (!gameweekCache.TryGetValue(matchday, out var gameweek))
             {
@@ -416,13 +446,13 @@ internal sealed record SyncMatchesCommandHandler(
 
     private Team EnsureTeam(Dictionary<string, Team> teamCache, FootballDataMatchTeam apiTeam, Country country)
     {
-        var externalId = apiTeam.Id.ToString();
+        var externalId = apiTeam.Id!.Value.ToString();
         if (teamCache.TryGetValue(externalId, out var team))
             return team;
 
         team = new Team
         {
-            Name = apiTeam.Name,
+            Name = apiTeam.Name ?? "Unknown",
             ShortName = apiTeam.ShortName,
             LogoUrl = apiTeam.Crest,
             ExternalId = externalId,
@@ -432,4 +462,143 @@ internal sealed record SyncMatchesCommandHandler(
         teamCache[externalId] = team;
         return team;
     }
+
+    private async Task<int> SyncFdMatchEventsAsync(List<long> seasonIds, CancellationToken ct)
+    {
+        // Find finished matches with no events
+        var matchesWithEvents = await DbContext.MatchEvents
+            .Where(e => seasonIds.Contains(e.Match.Gameweek.SeasonId))
+            .Select(e => e.MatchId)
+            .Distinct()
+            .ToListAsync(ct);
+        var hasEvents = matchesWithEvents.ToHashSet();
+
+        var finishedMatches = await DbContext.Matches
+            .Where(m => seasonIds.Contains(m.Gameweek.SeasonId)
+                        && m.Status == MatchStatus.Finished
+                        && m.ExternalId != null)
+            .Select(m => new { m.Id, m.ExternalId, m.HomeTeamId, m.AwayTeamId })
+            .ToListAsync(ct);
+
+        var pending = finishedMatches.Where(m => !hasEvents.Contains(m.Id)).ToList();
+        if (pending.Count == 0) return 0;
+
+        // Player lookup by external ID
+        var playerMap = await DbContext.Players
+            .Where(p => p.ExternalId != null)
+            .ToDictionaryAsync(p => p.ExternalId!, p => p.Id, ct);
+
+        // Team lookup by external ID
+        var teamMap = await DbContext.Teams
+            .Where(t => t.ExternalId != null)
+            .ToDictionaryAsync(t => t.ExternalId!, t => t.Id, ct);
+
+        var client = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.FootballDataClient));
+        var eventCount = 0;
+
+        // Rate limit: 10 req/min on free tier — fetch up to 9 per sync run
+        foreach (var match in pending.Take(9))
+        {
+            FootballDataMatchDetailResponse? detail;
+            try
+            {
+                detail = await client.GetFromJsonAsync<FootballDataMatchDetailResponse>(
+                    string.Format(FootballDataApi.Routes.MatchDetail, match.ExternalId), ct);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.TooManyRequests)
+            {
+                break; // stop fetching, hit rate limit
+            }
+            catch { continue; }
+
+            if (detail?.Match is null) continue;
+
+            var homeTeamFdId = detail.Match.HomeTeam.Id?.ToString();
+            var homeTeamId = homeTeamFdId is not null && teamMap.TryGetValue(homeTeamFdId, out var htId) ? htId : match.HomeTeamId;
+
+            // Goals
+            foreach (var g in detail.Match.Goals ?? [])
+            {
+                if (g.Scorer?.Id is null) continue;
+                if (!playerMap.TryGetValue(g.Scorer.Id.Value.ToString(), out var scorerId)) continue;
+
+                var eventType = g.Type switch
+                {
+                    "OWN" => MatchEventType.OwnGoal,
+                    "PENALTY" => MatchEventType.PenaltyGoal,
+                    _ => MatchEventType.Goal
+                };
+                var minute = FormatMinute(g.Minute, g.ExtraTime);
+
+                DbContext.MatchEvents.Add(new MatchEvent
+                {
+                    MatchId = match.Id, PlayerId = scorerId,
+                    EventType = eventType, Value = 1, Minute = minute
+                });
+                eventCount++;
+
+                // Assist
+                if (g.Assist?.Id is not null && playerMap.TryGetValue(g.Assist.Id.Value.ToString(), out var assistId))
+                {
+                    DbContext.MatchEvents.Add(new MatchEvent
+                    {
+                        MatchId = match.Id, PlayerId = assistId,
+                        EventType = MatchEventType.Assist, Value = 1, Minute = minute
+                    });
+                    eventCount++;
+                }
+            }
+
+            // Bookings
+            foreach (var b in detail.Match.Bookings ?? [])
+            {
+                if (b.Player?.Id is null) continue;
+                if (!playerMap.TryGetValue(b.Player.Id.Value.ToString(), out var playerId)) continue;
+
+                var eventType = b.Card switch
+                {
+                    "RED_CARD" => MatchEventType.RedCard,
+                    "YELLOW_RED_CARD" => MatchEventType.RedCard,
+                    _ => MatchEventType.YellowCard
+                };
+
+                DbContext.MatchEvents.Add(new MatchEvent
+                {
+                    MatchId = match.Id, PlayerId = playerId,
+                    EventType = eventType, Value = 1, Minute = FormatMinute(b.Minute, null)
+                });
+                eventCount++;
+            }
+
+            // Substitutions
+            foreach (var s in detail.Match.Substitutions ?? [])
+            {
+                if (s.PlayerIn?.Id is not null && playerMap.TryGetValue(s.PlayerIn.Id.Value.ToString(), out var inId))
+                {
+                    DbContext.MatchEvents.Add(new MatchEvent
+                    {
+                        MatchId = match.Id, PlayerId = inId,
+                        EventType = MatchEventType.SubIn, Value = 1, Minute = FormatMinute(s.Minute, null)
+                    });
+                    eventCount++;
+                }
+                if (s.PlayerOut?.Id is not null && playerMap.TryGetValue(s.PlayerOut.Id.Value.ToString(), out var outId))
+                {
+                    DbContext.MatchEvents.Add(new MatchEvent
+                    {
+                        MatchId = match.Id, PlayerId = outId,
+                        EventType = MatchEventType.SubOut, Value = 1, Minute = FormatMinute(s.Minute, null)
+                    });
+                    eventCount++;
+                }
+            }
+
+            await Task.Delay(6500, ct); // ~9 req/min, stay under 10/min limit
+        }
+
+        return eventCount;
+    }
+
+    private static string? FormatMinute(int? minute, int? extraTime) =>
+        minute.HasValue ? extraTime > 0 ? $"{minute}+{extraTime}'" : $"{minute}'" : null;
 }
