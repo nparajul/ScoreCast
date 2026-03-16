@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using ScoreCast.Models.V1.Responses;
@@ -97,6 +98,30 @@ public sealed class GetMatchInsightsEndpoint
 
         if (chatClient is not null)
         {
+            var http = Resolve<IHttpClientFactory>().CreateClient();
+            var teamNames = matches.SelectMany(m => new[] { m.HomeName, m.AwayName }).Distinct().ToList();
+            var newsMap = new Dictionary<string, string>();
+
+            // Fetch latest headlines per team from Google News RSS (parallel, best-effort)
+            var newsTasks = teamNames.Select(async name =>
+            {
+                try
+                {
+                    var q = Uri.EscapeDataString($"{name} Premier League");
+                    var rss = await http.GetStringAsync($"https://news.google.com/rss/search?q={q}&hl=en-US&gl=US&ceid=US:en", ct);
+                    var doc = XDocument.Parse(rss);
+                    var headlines = doc.Descendants("item")
+                        .Take(3)
+                        .Select(item => item.Element("title")?.Value)
+                        .Where(t => t is not null);
+                    return (name, News: string.Join(" | ", headlines));
+                }
+                catch { return (name, News: ""); }
+            });
+            foreach (var result in await Task.WhenAll(newsTasks))
+                if (!string.IsNullOrWhiteSpace(result.News))
+                    newsMap[result.name] = result.News;
+
             var totalTeams = teamStats.Count > 0 ? ranked.Values.Max() : 20;
             var matchContext = insights.Select((ins, i) =>
             {
@@ -107,11 +132,18 @@ public sealed class GetMatchInsightsEndpoint
                 var hPos = ranked.GetValueOrDefault(hId);
                 var aPos = ranked.GetValueOrDefault(aId);
                 var ko = ins.KickoffTime?.ToString("ddd d MMM yyyy, HH:mm") ?? "TBD";
-                return $"{i + 1}. {ins.HomeTeamName} (#{hPos}, {hs.Points}pts, form:{hs.Form}) vs {ins.AwayTeamName} (#{aPos}, {aStats.Points}pts, form:{aStats.Form}) — {ko} — Home win {ins.HomeWinPct}%, Draw {ins.DrawPct}%, Away {ins.AwayWinPct}%";
+                var line = $"{i + 1}. {ins.HomeTeamName} (#{hPos}, {hs.Points}pts, form:{hs.Form}) vs {ins.AwayTeamName} (#{aPos}, {aStats.Points}pts, form:{aStats.Form}) — {ko} — Home win {ins.HomeWinPct}%, Draw {ins.DrawPct}%, Away {ins.AwayWinPct}%";
+                var homeNews = newsMap.GetValueOrDefault(matches[i].HomeName, "");
+                var awayNews = newsMap.GetValueOrDefault(matches[i].AwayName, "");
+                if (!string.IsNullOrWhiteSpace(homeNews))
+                    line += $"\n   {ins.HomeTeamName} news: {homeNews}";
+                if (!string.IsNullOrWhiteSpace(awayNews))
+                    line += $"\n   {ins.AwayTeamName} news: {awayNews}";
+                return line;
             });
 
             var prompt = $"""
-You are an expert Premier League analyst. For each match write ONE punchy 2-sentence preview. Reference league position, recent form, and what's at stake (title race, top 4, relegation etc). Also weave in any relevant context you know about these teams — key injuries, managerial situations, transfer impacts, tactical trends, or notable storylines. Be specific and insightful, not generic. {totalTeams} teams in the league.
+You are an expert Premier League analyst. For each match write ONE punchy 2-sentence preview. Reference league position, recent form, what's at stake, and incorporate the latest news headlines provided. Mention specific injuries, transfers, managerial changes, or storylines from the news. Be specific and insightful. {totalTeams} teams in the league.
 Return ONLY a JSON array of strings, one per match, same order.
 
 Matches:
