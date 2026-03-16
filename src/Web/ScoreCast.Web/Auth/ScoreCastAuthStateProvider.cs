@@ -5,6 +5,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 
+using ScoreCast.Models.V1.Responses;
 using ScoreCast.Shared.Types;
 using ScoreCast.Web.Components.Helpers;
 
@@ -124,20 +125,9 @@ public sealed class ScoreCastAuthStateProvider(
     {
         var http = httpFactory.CreateClient("ScoreCastAuth");
         var response = await http.PostAsJsonAsync("/api/v1/auth/token", body);
-        var json = await response.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(json);
-        var root = doc.RootElement;
+        var result = await response.Content.ReadFromJsonAsync<ScoreCastResponse<string>>();
 
-        var success = root.TryGetProperty("resultType", out var rt) && 
-                     string.Equals(rt.GetString(), "Ok", StringComparison.OrdinalIgnoreCase);
-        var message = root.TryGetProperty("message", out var msg) ? msg.GetString() : null;
-
-        // data is a raw JSON string containing the Keycloak token response
-        string? tokenJson = null;
-        if (success && root.TryGetProperty("data", out var d) && d.ValueKind == JsonValueKind.String)
-            tokenJson = d.GetString();
-
-        return new TokenApiResponse(success, message, tokenJson);
+        return new TokenApiResponse(result?.Success == true, result?.Message, result?.Data);
     }
 
     private async Task ApplyTokenData(string? tokenJson)
