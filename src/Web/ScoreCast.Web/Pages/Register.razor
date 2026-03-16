@@ -36,8 +36,21 @@
                           Variant="Variant.Outlined"
                           InputType="InputType.Password"
                           Required="true"
-                          Class="mb-4"
+                          Class="mb-2"
                           Disabled="_loading" />
+
+            <MudTextField @bind-Value="_model.ConfirmPassword"
+                          Label="Confirm Password"
+                          Variant="Variant.Outlined"
+                          InputType="InputType.Password"
+                          Required="true"
+                          Class="mb-2"
+                          Disabled="_loading" />
+
+            <MudText Typo="Typo.caption" Style="opacity:0.5;" Class="mb-4">
+                At least 8 characters, 1 uppercase, 1 lowercase, 1 digit, and 1 special character.
+                Cannot contain your username or email.
+            </MudText>
 
             <MudButton ButtonType="ButtonType.Submit"
                        Variant="Variant.Filled"
