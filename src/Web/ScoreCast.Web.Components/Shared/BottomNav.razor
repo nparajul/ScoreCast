@@ -1,0 +1,19 @@
+@using Microsoft.AspNetCore.Components.Authorization
+
+<AuthorizeView>
+    <Authorized>
+        <div class="d-flex d-md-none bottom-nav">
+            <div class="bottom-nav-scroll" @ref="_scrollContainer">
+                @for (var i = 0; i < Tabs.Length; i++)
+                {
+                    var tab = Tabs[i];
+                    var index = i;
+                    <button class="@TabClass(tab.Url)" id="@($"bnav-{index}")" @onclick="@(() => OnTabClick(tab.Url, index))">
+                        <MudIcon Icon="@tab.Icon" Size="Size.Small" />
+                        <span class="bottom-nav-label">@tab.Label</span>
+                    </button>
+                }
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
