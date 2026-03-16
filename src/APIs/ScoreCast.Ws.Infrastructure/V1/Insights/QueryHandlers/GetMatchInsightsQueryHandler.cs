@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Xml.Linq;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
@@ -5,13 +6,16 @@ using Microsoft.Extensions.AI;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Enums;
+using ScoreCast.Ws.Application;
 using ScoreCast.Ws.Application.V1.Insights.Queries;
 using ScoreCast.Ws.Application.V1.Interfaces;
+using ScoreCast.Ws.Domain.V1.Entities.Football;
 
 namespace ScoreCast.Ws.Infrastructure.V1.Insights.QueryHandlers;
 
 internal sealed record GetMatchInsightsQueryHandler(
     IScoreCastDbContext DbContext,
+    IUnitOfWork UnitOfWork,
     IHttpClientFactory HttpClientFactory,
     IChatClient? ChatClient = null)
     : IQueryHandler<GetMatchInsightsQuery, ScoreCastResponse<List<MatchInsightResult>>>
@@ -19,6 +23,15 @@ internal sealed record GetMatchInsightsQueryHandler(
     public async Task<ScoreCastResponse<List<MatchInsightResult>>> ExecuteAsync(
         GetMatchInsightsQuery query, CancellationToken ct)
     {
+        // Check cache first
+        var cached = await DbContext.MatchInsightCaches
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.SeasonId == query.SeasonId && c.GameweekNumber == query.GameweekNumber, ct);
+
+        if (cached is not null)
+            return ScoreCastResponse<List<MatchInsightResult>>.Ok(
+                JsonSerializer.Deserialize<List<MatchInsightResult>>(cached.ResponseJson) ?? []);
+
         var matches = await GetScheduledMatches(query, ct);
         if (matches.Count == 0)
             return ScoreCastResponse<List<MatchInsightResult>>.Ok([]);
@@ -31,6 +44,16 @@ internal sealed record GetMatchInsightsQueryHandler(
 
         if (ChatClient is not null)
             await EnrichWithAi(matches, insights, teamStats, ranked, ct);
+
+        // Save to cache
+        DbContext.MatchInsightCaches.Add(new MatchInsightCache
+        {
+            SeasonId = query.SeasonId,
+            GameweekNumber = query.GameweekNumber,
+            ResponseJson = JsonSerializer.Serialize(insights),
+            CreatedByApp = "ScoreCast"
+        });
+        await UnitOfWork.SaveChangesAsync(nameof(GetMatchInsightsQuery), ct);
 
         return ScoreCastResponse<List<MatchInsightResult>>.Ok(insights);
     }
