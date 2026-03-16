@@ -11,6 +11,19 @@
     padding-right: 0px !important;
 }
 
+/* Prediction tiles */
+.prediction-tile {
+    width: calc(50% - 12px);
+    min-width: 140px;
+    max-width: 200px;
+}
+
+@media (min-width: 960px) {
+    .prediction-tile {
+        width: 200px;
+    }
+}
+
 /* Bottom navigation bar */
 .bottom-nav {
     position: fixed;
