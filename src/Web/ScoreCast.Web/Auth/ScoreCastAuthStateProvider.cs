@@ -128,7 +128,8 @@ public sealed class ScoreCastAuthStateProvider(
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
-        var success = root.TryGetProperty("resultType", out var rt) && rt.GetString() == "Ok";
+        var success = root.TryGetProperty("resultType", out var rt) && 
+                     string.Equals(rt.GetString(), "Ok", StringComparison.OrdinalIgnoreCase);
         var message = root.TryGetProperty("message", out var msg) ? msg.GetString() : null;
 
         // data is a raw JSON string containing the Keycloak token response
