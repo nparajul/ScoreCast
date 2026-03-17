@@ -1,0 +1,8 @@
+@page "/logout"
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject NavigationManager Nav
+
+@code {
+    protected override void OnInitialized() =>
+        Nav.NavigateToLogout("authentication/logout");
+}
