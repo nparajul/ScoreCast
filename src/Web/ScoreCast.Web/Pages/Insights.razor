@@ -1,86 +1,151 @@
 @page "/insights"
 @attribute [Authorize]
 
+<style>
+    .insight-card {
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 12px;
+        border: 1px solid var(--mud-palette-lines-default);
+    }
+    .insight-comp-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .insight-comp-header:active { background: rgba(255,255,255,0.04); }
+    .insight-comp-logo { width: 22px; height: 22px; object-fit: contain; }
+    .insight-comp-name { font-weight: 700; font-size: 15px; }
+    .insight-match {
+        border-top: 1px solid var(--mud-palette-lines-default);
+        padding: 10px 14px;
+    }
+    .insight-teams {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+    .insight-team {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: inherit;
+        text-decoration: none;
+    }
+    .insight-team-name { font-weight: 700; font-size: 13px; }
+    .insight-team-logo { width: 22px; height: 22px; object-fit: contain; }
+    .insight-bar {
+        display: flex;
+        align-items: center;
+        gap: 1px;
+        height: 6px;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 4px;
+    }
+    .insight-pcts {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+    }
+    @@media (max-width: 599px) {
+        .insight-match { padding: 8px 10px; }
+        .insight-team-name { font-size: 12px; }
+        .insight-team-logo { width: 20px; height: 20px; }
+    }
+</style>
+
 <PageGuard>
-<MudContainer MaxWidth="MaxWidth.Medium" Class="py-4" Style="padding-bottom:100px;">
-    <MudText Typo="Typo.h6" Style="font-weight:700;text-align:center;" Class="mb-3">
-        <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Style="vertical-align:middle;" Class="mr-1" /> AI Insights
-    </MudText>
+<div>
+    <div style="position:sticky;top:var(--mud-appbar-height);z-index:10;background:var(--mud-palette-background);padding:10px 0 6px;border-bottom:1px solid var(--mud-palette-lines-default);">
+        <MudContainer MaxWidth="MaxWidth.Medium">
+            <MudText Typo="Typo.h6" Style="font-weight:800;letter-spacing:-0.02em;">
+                <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Style="vertical-align:middle;" Class="mr-1" /> AI Insights
+            </MudText>
+        </MudContainer>
+    </div>
 
-    @if (_groups.Count == 0 && _loaded)
-    {
-        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">No upcoming matches to analyze.</MudAlert>
-    }
+    <MudContainer MaxWidth="MaxWidth.Medium" Style="padding-top:10px;padding-bottom:100px;">
+        @if (_groups.Count == 0 && _loaded)
+        {
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">No upcoming matches to analyze.</MudAlert>
+        }
 
-    @foreach (var group in _groups)
-    {
-        var collapsed = _collapsed.Contains(group.Name);
-        <MudPaper Class="mb-3" Elevation="1" Style="border-radius:10px;overflow:hidden;">
-            <div @onclick="@(() => ToggleCollapse(group.Name))"
-                 class="d-flex align-center gap-2"
-                 style="padding:10px 14px;cursor:pointer;background:var(--mud-palette-background-grey);">
-                @if (!string.IsNullOrEmpty(group.LogoUrl))
+        @foreach (var group in _groups)
+        {
+            var collapsed = _collapsed.Contains(group.Name);
+            <div class="insight-card">
+                <div class="insight-comp-header" @onclick="@(() => ToggleCollapse(group.Name))">
+                    @if (!string.IsNullOrEmpty(group.LogoUrl))
+                    {
+                        <img src="@group.LogoUrl" alt="" class="insight-comp-logo" />
+                    }
+                    <span class="insight-comp-name" style="flex:1;">@group.Name</span>
+                    @if (!string.IsNullOrEmpty(group.CountryFlagUrl))
+                    {
+                        <img src="@group.CountryFlagUrl" alt="" style="width:18px;height:12px;object-fit:cover;border-radius:2px;opacity:0.6;" />
+                    }
+                    <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">@group.Insights.Count matches</MudText>
+                    <MudIcon Icon="@(collapsed ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.ExpandLess)"
+                             Size="Size.Small" Style="opacity:0.35;" />
+                </div>
+
+                @if (!collapsed)
                 {
-                    <img src="@group.LogoUrl" alt="" style="width:22px;height:22px;object-fit:contain;" />
+                    @foreach (var m in group.Insights)
+                    {
+                        <div class="insight-match">
+                            <div class="insight-teams">
+                                <a href="/teams/@m.HomeTeamId" class="insight-team">
+                                    @if (m.HomeTeamLogo is not null)
+                                    {
+                                        <img src="@m.HomeTeamLogo" alt="" class="insight-team-logo" />
+                                    }
+                                    <span class="insight-team-name">@(m.HomeTeamShortName ?? m.HomeTeamName)</span>
+                                </a>
+                                <span style="font-size:11px;color:var(--mud-palette-text-secondary);">vs</span>
+                                <a href="/teams/@m.AwayTeamId" class="insight-team">
+                                    <span class="insight-team-name">@(m.AwayTeamShortName ?? m.AwayTeamName)</span>
+                                    @if (m.AwayTeamLogo is not null)
+                                    {
+                                        <img src="@m.AwayTeamLogo" alt="" class="insight-team-logo" />
+                                    }
+                                </a>
+                            </div>
+
+                            <div class="insight-bar">
+                                <div style="width:@(m.HomeWinPct)%;background:var(--mud-palette-tertiary);height:100%;border-radius:3px 0 0 3px;"></div>
+                                <div style="width:@(m.DrawPct)%;background:var(--mud-palette-lines-default);height:100%;"></div>
+                                <div style="width:@(m.AwayWinPct)%;background:var(--mud-palette-primary);height:100%;border-radius:0 3px 3px 0;"></div>
+                            </div>
+                            <div class="insight-pcts">
+                                <span style="color:var(--mud-palette-tertiary);font-weight:700;">@m.HomeWinPct%</span>
+                                <span style="color:var(--mud-palette-text-secondary);">@m.DrawPct%</span>
+                                <span style="color:var(--mud-palette-primary);font-weight:700;">@m.AwayWinPct%</span>
+                            </div>
+
+                            @if (m.AiSummary is not null)
+                            {
+                                <div style="font-size:@(IsMobile ? "11" : "13")px;font-style:italic;opacity:0.8;line-height:1.4;margin-top:4px;">
+                                    🔥 @m.AiSummary
+                                </div>
+                            }
+
+                            @if (m.KickoffTime.HasValue)
+                            {
+                                <div style="font-size:10px;color:var(--mud-palette-text-secondary);margin-top:2px;">
+                                    @m.KickoffTime.Value.ToString("ddd d MMM, HH:mm")
+                                </div>
+                            }
+                        </div>
+                    }
                 }
-                <MudText Typo="Typo.body2" Style="font-weight:700;flex:1;">@group.Name</MudText>
-                <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">@group.Insights.Count matches</MudText>
-                <MudIcon Icon="@(collapsed ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.ExpandLess)" Size="Size.Small" />
             </div>
-
-            @if (!collapsed)
-            {
-                @foreach (var m in group.Insights)
-                {
-                    <div style="border-top:1px solid var(--mud-palette-lines-default);padding:@(IsMobile ? "8px 10px" : "12px 16px");">
-                        @* Match header *@
-                        <div class="d-flex align-center justify-space-between" style="margin-bottom:6px;">
-                            <a href="/teams/@m.HomeTeamId" class="d-flex align-center gap-1" style="color:inherit;text-decoration:none;">
-                                @if (m.HomeTeamLogo is not null)
-                                {
-                                    <img src="@m.HomeTeamLogo" alt="" style="width:@(IsMobile ? "20" : "24")px;height:@(IsMobile ? "20" : "24")px;object-fit:contain;" />
-                                }
-                                <span style="font-weight:700;font-size:@(IsMobile ? "12" : "14")px;">@(m.HomeTeamShortName ?? m.HomeTeamName)</span>
-                            </a>
-                            <span style="font-size:11px;color:var(--mud-palette-text-secondary);">vs</span>
-                            <a href="/teams/@m.AwayTeamId" class="d-flex align-center gap-1" style="color:inherit;text-decoration:none;">
-                                <span style="font-weight:700;font-size:@(IsMobile ? "12" : "14")px;">@(m.AwayTeamShortName ?? m.AwayTeamName)</span>
-                                @if (m.AwayTeamLogo is not null)
-                                {
-                                    <img src="@m.AwayTeamLogo" alt="" style="width:@(IsMobile ? "20" : "24")px;height:@(IsMobile ? "20" : "24")px;object-fit:contain;" />
-                                }
-                            </a>
-                        </div>
-
-                        @* Probability bar *@
-                        <div class="d-flex align-center gap-1" style="height:6px;border-radius:3px;overflow:hidden;margin-bottom:4px;">
-                            <div style="width:@(m.HomeWinPct)%;background:var(--mud-palette-tertiary);height:100%;border-radius:3px 0 0 3px;"></div>
-                            <div style="width:@(m.DrawPct)%;background:var(--mud-palette-lines-default);height:100%;"></div>
-                            <div style="width:@(m.AwayWinPct)%;background:var(--mud-palette-primary);height:100%;border-radius:0 3px 3px 0;"></div>
-                        </div>
-                        <div class="d-flex justify-space-between" style="font-size:11px;">
-                            <span style="color:var(--mud-palette-tertiary);font-weight:700;">@m.HomeWinPct%</span>
-                            <span style="color:var(--mud-palette-text-secondary);">@m.DrawPct%</span>
-                            <span style="color:var(--mud-palette-primary);font-weight:700;">@m.AwayWinPct%</span>
-                        </div>
-
-                        @if (m.AiSummary is not null)
-                        {
-                            <div style="font-size:@(IsMobile ? "11" : "13")px;font-style:italic;opacity:0.8;line-height:1.4;margin-top:4px;">
-                                🔥 @m.AiSummary
-                            </div>
-                        }
-
-                        @if (m.KickoffTime.HasValue)
-                        {
-                            <div style="font-size:10px;color:var(--mud-palette-text-secondary);margin-top:2px;">
-                                @m.KickoffTime.Value.ToString("ddd d MMM, HH:mm")
-                            </div>
-                        }
-                    </div>
-                }
-            }
-        </MudPaper>
-    }
-</MudContainer>
+        }
+    </MudContainer>
+</div>
 </PageGuard>

@@ -6,17 +6,26 @@
 <div>
     <div style="position:sticky;top:var(--mud-appbar-height);z-index:10;background:var(--mud-palette-background);padding:4px 0 2px;">
         <MudContainer MaxWidth="MaxWidth.Medium">
-            <MudText Typo="Typo.h6" Class="mb-1" Style="font-weight:700;">Points Table</MudText>
+            <div class="d-flex align-center gap-2 mb-1">
+                <MudText Typo="Typo.h6" Style="font-weight:700;">Points Table</MudText>
+                @if (_hasLive)
+                {
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled"
+                             Style="background:#4caf50;color:white;font-weight:700;font-size:10px;animation:pulse 1.2s ease-in-out infinite;">
+                        ● LIVE
+                    </MudChip>
+                }
+            </div>
             <CompetitionFilter OnStateChanged="OnFilterChanged" />
         </MudContainer>
     </div>
 
     <MudContainer MaxWidth="MaxWidth.Large" Style="padding-top:4px;padding-bottom:100px;">
-        @if (_result is not null && _result.Groups.Count > 0)
+        @if (DisplayResult is not null && DisplayResult.Groups.Count > 0)
         {
             @if (!IsGroupFormat)
             {
-                <LeagueTableView Rows="_result.Groups[0].Rows" Zones="_zones" />
+                <LeagueTableView Rows="DisplayResult.Groups[0].Rows" Zones="_zones" />
             }
             else
             {
@@ -38,11 +47,11 @@
 
                     @if (_groupTab == "Groups")
                     {
-                        <GroupStageView Groups="_result.Groups" Zones="_zones" />
+                        <GroupStageView Groups="DisplayResult.Groups" Zones="_zones" />
                     }
                     else if (_groupTab == "Best 3rd")
                     {
-                        <BestThirdPlacedTable Rows="_result.BestThirdPlaced" />
+                        <BestThirdPlacedTable Rows="DisplayResult.BestThirdPlaced" />
                     }
                     else
                     {
@@ -53,10 +62,10 @@
                 {
                     <MudTabs Elevation="1" Rounded="true" ApplyEffectsToContainer="true" Class="mt-0">
                         <MudTabPanel Text="Group Stage" Icon="@Icons.Material.Filled.Groups">
-                            <GroupStageView Groups="_result.Groups" Zones="_zones" />
+                            <GroupStageView Groups="DisplayResult.Groups" Zones="_zones" />
                         </MudTabPanel>
                         <MudTabPanel Text="Best 3rd Placed" Icon="@Icons.Material.Filled.EmojiEvents">
-                            <BestThirdPlacedTable Rows="_result.BestThirdPlaced" />
+                            <BestThirdPlacedTable Rows="DisplayResult.BestThirdPlaced" />
                         </MudTabPanel>
                         <MudTabPanel Text="Knockout" Icon="@Icons.Material.Filled.AccountTree">
                             <KnockoutBracket Bracket="_bracket" />
@@ -65,7 +74,7 @@
                 }
             }
         }
-        else if (_result is not null && _result.Groups.Count == 0)
+        else if (DisplayResult is not null && DisplayResult.Groups.Count == 0)
         {
             <MudAlert Severity="Severity.Info">No table data available for this season.</MudAlert>
         }
