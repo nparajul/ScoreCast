@@ -24,15 +24,26 @@ public static class ApiClientExtensions
     {
         var apiBaseUrl = builder.Configuration["Api:BaseUrl"]!;
 
-        builder.Services.AddTransient<BaseAddressAuthorizationMessageHandler>();
+        builder.Services.AddScoped<ScoreCastApiAuthHandler>(sp =>
+            new ScoreCastApiAuthHandler(sp.GetRequiredService<IAccessTokenProvider>(),
+                sp.GetRequiredService<NavigationManager>(), apiBaseUrl));
 
         builder.Services
             .AddRefitClient<IScoreCastApiClient>(RefitSettings)
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-            .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+            .AddHttpMessageHandler<ScoreCastApiAuthHandler>();
 
         builder.Services
             .AddRefitClient<IAuthApi>(RefitSettings)
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
+    }
+}
+
+internal sealed class ScoreCastApiAuthHandler : AuthorizationMessageHandler
+{
+    public ScoreCastApiAuthHandler(IAccessTokenProvider provider, NavigationManager navigation, string apiBaseUrl)
+        : base(provider, navigation)
+    {
+        ConfigureHandler(authorizedUrls: [apiBaseUrl]);
     }
 }
