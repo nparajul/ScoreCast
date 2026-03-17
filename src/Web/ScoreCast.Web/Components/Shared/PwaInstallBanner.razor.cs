@@ -27,6 +27,7 @@ public partial class PwaInstallBanner : IAsyncDisposable
         _ref = DotNetObjectReference.Create(this);
         await Js.InvokeVoidAsync("pwaInstall.init", _ref);
 
+        // iOS: show instructions immediately. Others: wait for beforeinstallprompt callback.
         if (_isIos) { _showBanner = true; StateHasChanged(); }
     }
 
