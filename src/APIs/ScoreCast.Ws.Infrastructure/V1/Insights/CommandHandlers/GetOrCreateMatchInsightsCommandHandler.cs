@@ -250,36 +250,46 @@ internal sealed record GetOrCreateMatchInsightsCommandHandler(
             var aStats = stats.GetValueOrDefault(m.AwayId);
             var ko = ins.KickoffTime?.ToString("ddd d MMM yyyy, HH:mm") ?? "TBD";
 
-            // Real standings from BBC
             var hStand = FindStanding(standings, m.HomeName, m.HomeShort);
             var aStand = FindStanding(standings, m.AwayName, m.AwayShort);
-            var hPos = hStand is not null ? $"#{hStand.Position} ({hStand.Points}pts, GD {hStand.GoalDiff:+0;-0})" : "N/A";
-            var aPos = aStand is not null ? $"#{aStand.Position} ({aStand.Points}pts, GD {aStand.GoalDiff:+0;-0})" : "N/A";
+            var hPos = hStand is not null ? $"#{hStand.Position} ({hStand.Points}pts, W{hStand.Won} D{hStand.Drawn} L{hStand.Lost}, GD {hStand.GoalDiff:+0;-0})" : "N/A";
+            var aPos = aStand is not null ? $"#{aStand.Position} ({aStand.Points}pts, W{aStand.Won} D{aStand.Drawn} L{aStand.Lost}, GD {aStand.GoalDiff:+0;-0})" : "N/A";
 
-            // H2H from DB
             var h2h = h2hResults
                 .Where(r => (r.HomeTeamId == m.HomeId && r.AwayTeamId == m.AwayId)
                           || (r.HomeTeamId == m.AwayId && r.AwayTeamId == m.HomeId))
                 .Take(5)
-                .Select(r => $"{r.HomeScore}-{r.AwayScore}")
+                .Select(r =>
+                {
+                    var homeTeam = r.HomeTeamId == m.HomeId ? m.HomeName : m.AwayName;
+                    return $"{homeTeam} {r.HomeScore}-{r.AwayScore}";
+                })
                 .ToList();
             var h2hStr = h2h.Count > 0 ? string.Join(", ", h2h) : "no recent meetings";
 
-            var line = $"{i + 1}. {ins.HomeTeamName} [{hPos}, form:{hs?.Form}] vs {ins.AwayTeamName} [{aPos}, form:{aStats?.Form}] — {ko}";
+            var line = $"{i + 1}. {ins.HomeTeamName} (HOME) [{hPos}, form:{hs?.Form}] vs {ins.AwayTeamName} (AWAY) [{aPos}, form:{aStats?.Form}] — {ko}";
             line += $"\n   H2H (last {h2h.Count}): {h2hStr}";
             line += $"\n   Win%: Home {ins.HomeWinPct}%, Draw {ins.DrawPct}%, Away {ins.AwayWinPct}%";
             return line;
         });
 
         var newsSection = headlines.Count > 0
-            ? $"\n\nLatest {competitionName} headlines:\n{string.Join("\n", headlines.Select(h => $"- {h}"))}"
+            ? $"\n\nLatest {competitionName} headlines (use these for context on injuries, suspensions, managerial changes, transfer news):\n{string.Join("\n", headlines.Select(h => $"- {h}"))}"
             : "";
 
         var prompt = $"""
-You are an expert football analyst covering {competitionName}. For each match below, write ONE punchy 2-sentence preview.
-Use the real league standings, recent form, head-to-head record, and the latest news headlines to make each preview specific and insightful.
-Mention what's at stake (title race, European spots, relegation battle), key storylines from the news, and any notable patterns.
-Return ONLY a JSON array of strings, one per match, same order. No markdown.
+You are a sharp, opinionated football pundit covering {competitionName}. For each match below, write a bold 2-3 sentence preview that a fan would actually want to read.
+
+RULES:
+- Be SPECIFIC: reference actual form runs ("3 wins in a row"), league positions, goal differences, H2H patterns
+- Be OPINIONATED: pick a likely winner or explain why it's a genuine toss-up. Don't sit on the fence
+- Reference NEWS if relevant: injuries, suspensions, managerial changes, transfer drama from the headlines
+- Mention STAKES: title race, top 4, relegation, European spots — whatever applies to these teams
+- NEVER use generic filler like "this promises to be an exciting clash" or "both teams will be looking to"
+- Each preview should feel different — vary your sentence structure and angle
+- Keep it punchy: max 3 sentences, no fluff
+
+Return ONLY a JSON array of strings, one per match, same order. No markdown, no code fences.
 
 Matches:
 {string.Join("\n", matchContext)}{newsSection}
