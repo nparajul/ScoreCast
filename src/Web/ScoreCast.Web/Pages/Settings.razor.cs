@@ -52,5 +52,5 @@ public partial class Settings
     }
 
     private void Logout() =>
-        Nav.NavigateToLogout("authentication/logout");
+        Nav.NavigateTo("authentication/logout", replace: true);
 }
