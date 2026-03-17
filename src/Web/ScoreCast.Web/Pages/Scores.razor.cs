@@ -1,6 +1,7 @@
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
+using ScoreCast.Shared.Types;
 using ScoreCast.Web.Components;
 using ScoreCast.Web.Components.Helpers;
 
@@ -25,22 +26,41 @@ public partial class Scores : ScoreCastComponentBase, IDisposable
         await ClientTime.InitializeAsync();
         await Loading.While(async () =>
         {
-            var comps = await Api.GetCompetitionsAsync(CancellationToken.None);
-            if (comps is not { Success: true, Data: not null }) return;
+            var defaultCompTask = Api.GetDefaultCompetitionAsync(CancellationToken.None);
+            var compsTask = Api.GetCompetitionsAsync(CancellationToken.None);
+            await Task.WhenAll(defaultCompTask, compsTask);
 
-            foreach (var comp in comps.Data)
+            if (compsTask.Result is not { Success: true, Data: not null }) return;
+
+            var defaultCode = defaultCompTask.Result is { Success: true, Data: not null }
+                ? defaultCompTask.Result.Data.Code : "PL";
+
+            // Load default competition first
+            var defaultComp = compsTask.Result.Data.FirstOrDefault(c => c.Code == defaultCode);
+            var otherComps = compsTask.Result.Data.Where(c => c.Code != defaultCode).ToList();
+
+            if (defaultComp is not null)
             {
-                var seasons = await Api.GetSeasonsAsync(comp.Code, CancellationToken.None);
-                var currentSeason = seasons?.Data?.FirstOrDefault(s => s.IsCurrent);
-                _sections.Add(new CompetitionSection
-                {
-                    Competition = comp,
-                    SeasonId = currentSeason?.Id,
-                    Expanded = true
-                });
+                var season = (await Api.GetSeasonsAsync(defaultComp.Code, CancellationToken.None))?.Data?.FirstOrDefault(s => s.IsCurrent);
+                _sections.Add(new CompetitionSection { Competition = defaultComp, SeasonId = season?.Id, Expanded = true });
             }
 
-            // Load first section expanded by default, rest collapsed
+            // Only include other competitions if they have matches in the next 7 days
+            var cutoff = ScoreCastDateTime.Now.Value.AddDays(7);
+            foreach (var comp in otherComps)
+            {
+                var season = (await Api.GetSeasonsAsync(comp.Code, CancellationToken.None))?.Data?.FirstOrDefault(s => s.IsCurrent);
+                if (season is null) continue;
+
+                var gw = await Api.GetGameweekMatchesAsync(season.Id, SharedConstants.CurrentGameweek, CancellationToken.None);
+                if (gw is not { Success: true, Data: not null }) continue;
+
+                var upcoming = gw.Data.Matches.Where(m => m.KickoffTime.HasValue && m.KickoffTime.Value <= cutoff).ToList();
+                if (upcoming.Count == 0 && !gw.Data.Matches.Any(m => m.Status == nameof(MatchStatus.Live) || m.Status == nameof(MatchStatus.Finished))) continue;
+
+                _sections.Add(new CompetitionSection { Competition = comp, SeasonId = season.Id, Expanded = true });
+            }
+
             var loadTasks = _sections.Select(s => LoadSectionAsync(s));
             await Task.WhenAll(loadTasks);
         });

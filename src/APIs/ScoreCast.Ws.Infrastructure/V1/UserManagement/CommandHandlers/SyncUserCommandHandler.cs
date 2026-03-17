@@ -39,7 +39,7 @@ internal sealed record SyncUserCommandHandler(
         var newUser = new UserMaster
         {
             FirebaseUid = request.FirebaseUid!,
-            UserId = request.Email,
+            UserId = await GenerateUniqueUserId(request.Email, ct),
             Email = request.Email,
             DisplayName = request.DisplayName,
         };
@@ -56,5 +56,32 @@ internal sealed record SyncUserCommandHandler(
 
         return ScoreCastResponse<SyncUserResult>.Ok(
             new SyncUserResult(newUser.Id, newUser.UserId, newUser.Email, newUser.DisplayName, true));
+    }
+
+    private async Task<string> GenerateUniqueUserId(string email, CancellationToken ct)
+    {
+        var prefix = email.Split('@')[0]
+            .ToLowerInvariant()
+            .Replace(".", "")
+            .Replace("+", "");
+
+        // Keep only valid chars (letters, digits, underscores), max 15 chars to leave room for suffix
+        prefix = new string(prefix.Where(c => char.IsLetterOrDigit(c) || c == '_').Take(15).ToArray());
+        if (prefix.Length < 3) prefix = "user";
+
+        var candidate = prefix;
+        if (!await DbContext.UserMasters.AnyAsync(u => u.UserId == candidate, ct))
+            return candidate;
+
+        // Append random digits until unique
+        var rng = new Random();
+        for (var i = 0; i < 20; i++)
+        {
+            candidate = $"{prefix}{rng.Next(100, 9999)}";
+            if (!await DbContext.UserMasters.AnyAsync(u => u.UserId == candidate, ct))
+                return candidate;
+        }
+
+        return $"{prefix}{Guid.NewGuid():N}"[..20];
     }
 }

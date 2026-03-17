@@ -212,7 +212,7 @@ public partial class Dashboard : IDisposable
     {
         try
         {
-            var resp = await Api.GetGlobalDashboardAsync(CancellationToken.None);
+            var resp = await Api.GetGlobalDashboardAsync(null, CancellationToken.None);
             if (resp is { Success: true, Data: not null })
             {
                 _globalData = resp.Data;

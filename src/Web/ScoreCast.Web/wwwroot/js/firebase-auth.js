@@ -36,7 +36,14 @@ window.firebaseAuth = {
         try {
             const result = await createUserWithEmailAndPassword(auth, email, password);
             if (displayName) await updateProfile(result.user, { displayName });
-            await sendEmailVerification(result.user);
+            await sendEmailVerification(result.user, { url: window.location.origin + "/verify-email", handleCodeInApp: false });
+            // Re-notify with updated profile so displayName is available
+            dotNetRef?.invokeMethodAsync("OnAuthStateChanged", {
+                uid: result.user.uid,
+                email: result.user.email,
+                displayName: result.user.displayName,
+                emailVerified: result.user.emailVerified
+            });
             return { success: true, uid: result.user.uid };
         } catch (e) {
             return { success: false, error: mapError(e.code) };
@@ -46,7 +53,7 @@ window.firebaseAuth = {
     async resendVerification() {
         if (!currentUser) return { success: false, error: "Not signed in" };
         try {
-            await sendEmailVerification(currentUser);
+            await sendEmailVerification(currentUser, { url: window.location.origin + "/verify-email", handleCodeInApp: false });
             return { success: true };
         } catch (e) {
             return { success: false, error: mapError(e.code) };
