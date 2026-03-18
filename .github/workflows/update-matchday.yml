@@ -1,0 +1,34 @@
+name: Update Matchday
+
+on:
+  schedule:
+    - cron: '*/10 12-23 * * *'
+  workflow_dispatch:
+
+env:
+  API_BASE_URL: ${{ secrets.SCORECAST_API_URL }}
+  API_KEY: ${{ secrets.SCORECAST_API_KEY }}
+
+jobs:
+  update-matchday:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake up API
+        run: |
+          for i in 1 2 3 4 5 6 7 8; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$API_BASE_URL/api/v1/health/")
+            echo "Attempt $i: HTTP $STATUS"
+            [ "$STATUS" = "200" ] && break
+            sleep 15
+          done
+          [ "$STATUS" = "200" ] || { echo "::error::API did not wake up"; exit 1; }
+
+      - name: Update current matchday
+        run: |
+          RESULT=$(curl -s --max-time 30 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+            -d '{"appName":"GITHUB-ACTIONS:UPDATE-MATCHDAY"}' \
+            "$API_BASE_URL/api/v1/master-data/update-matchday")
+          SUCCESS=$(echo "$RESULT" | jq -r '.success // false' 2>/dev/null)
+          MSG=$(echo "$RESULT" | jq -r '.message // empty' 2>/dev/null)
+          echo "success=$SUCCESS message=$MSG"
+          [ "$SUCCESS" != "true" ] && { echo "::error::update-matchday failed: $MSG"; exit 1; }
