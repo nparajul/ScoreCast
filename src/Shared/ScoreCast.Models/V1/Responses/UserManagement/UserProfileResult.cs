@@ -1,3 +1,5 @@
+using ScoreCast.Shared.Types;
+
 namespace ScoreCast.Models.V1.Responses.UserManagement;
 
 public record UserProfileResult(
@@ -10,4 +12,5 @@ public record UserProfileResult(
     int TotalPoints,
     int CurrentStreak,
     int LongestStreak,
-    bool IsActive);
+    bool IsActive,
+    ScoreCastDateTime MemberSince);

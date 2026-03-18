@@ -14,7 +14,8 @@ public static class AppTheme
             Background = "#F5F7FA",
             Surface = "#FFFFFF",
             DrawerBackground = "#0A1929",
-            DrawerText = "#FFFFFF"
+            DrawerText = "#FFFFFF",
+            TextSecondary = "#555555"
         }
     };
 

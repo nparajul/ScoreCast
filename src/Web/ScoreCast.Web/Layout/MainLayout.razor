@@ -38,7 +38,7 @@
         <AuthorizeView>
             <Authorized>
                 <div class="d-none d-md-flex">
-                    @foreach (var onePage in RoleNav.Pages.Where(p => p.ParentPageId is null))
+                    @foreach (var onePage in RoleNav.Pages.Where(p => p.ParentPageId is null).OrderBy(p => p.DisplayOrder))
                     {
                         <MudButton Href="@onePage.PageUrl" Color="Color.Inherit">@onePage.PageName</MudButton>
                     }
@@ -60,70 +60,12 @@
         }
 
         <LoginDisplay Class="d-none d-md-flex" />
-
-        @* Mobile: hamburger that opens popup (only when logged in) *@
-        <AuthorizeView>
-            <Authorized>
-                <MudIconButton Icon="@Icons.Material.Filled.Menu"
-                               Color="Color.Inherit"
-                               OnClick="@(() => _menuOpen = !_menuOpen)"
-                               Class="d-flex d-md-none" />
-            </Authorized>
-        </AuthorizeView>
     </MudAppBar>
-
-    @* Mobile popup menu — account & extras (nav items are in BottomNav) *@
-    @if (_menuOpen)
-    {
-        <div class="menu-overlay d-flex d-md-none" @onclick="@(() => _menuOpen = false)"></div>
-        <MudPaper Elevation="8" Class="menu-popup d-flex d-md-none rounded-lg">
-            <div class="d-flex justify-space-between align-center mb-3">
-                <MudText Typo="Typo.h6" Style="font-weight:700;">Account</MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small"
-                               OnClick="@(() => _menuOpen = false)" />
-            </div>
-
-            <AuthorizeView>
-                <Authorized>
-                    <MudText Typo="Typo.body2" Class="mb-3" Style="opacity:0.7;">Signed in as @context.User.Identity?.Name</MudText>
-                </Authorized>
-            </AuthorizeView>
-
-            @if (RoleNav.Roles.Count > 1)
-            {
-                <MudText Typo="Typo.caption" Class="mb-1" Style="font-weight:600; opacity:0.6;">SWITCH ROLE</MudText>
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    @foreach (var role in RoleNav.Roles)
-                    {
-                        <MudChip T="string" Color="@(role.Id == _selectedRoleId ? Color.Primary : Color.Default)"
-                                 OnClick="@(async () => { await OnRoleChanged(role.Id); _menuOpen = false; })">
-                            @role.Name
-                        </MudChip>
-                    }
-                </div>
-            }
-
-            <div class="d-flex flex-wrap gap-2 justify-center">
-                <MudPaper Elevation="0" Class="pa-3 rounded-lg d-flex flex-column align-center"
-                          Style="width:90px; cursor:pointer; background:var(--mud-palette-background);"
-                          @onclick="@(() => { _menuOpen = false; Nav.NavigateTo("/settings"); })">
-                    <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Medium" Color="Color.Primary" Class="mb-1" />
-                    <MudText Typo="Typo.caption" Align="Align.Center" Style="font-weight:600; font-size:0.7rem;">Settings</MudText>
-                </MudPaper>
-                <MudPaper Elevation="0" Class="pa-3 rounded-lg d-flex flex-column align-center"
-                          Style="width:90px; cursor:pointer; background:var(--mud-palette-background);"
-                          @onclick="@(() => { _menuOpen = false; Nav.NavigateTo("/logout"); })">
-                    <MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Medium" Color="Color.Error" Class="mb-1" />
-                    <MudText Typo="Typo.caption" Align="Align.Center" Style="font-weight:600; font-size:0.7rem;">Log out</MudText>
-                </MudPaper>
-            </div>
-        </MudPaper>
-    }
 
     @* Desktop drawer (unchanged) *@
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Temporary" Class="d-none d-md-flex">
         <MudNavMenu>
-            @foreach (var onePage in RoleNav.Pages.Where(p => p.ParentPageId is null))
+            @foreach (var onePage in RoleNav.Pages.Where(p => p.ParentPageId is null).OrderBy(p => p.DisplayOrder))
             {
                 <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => NavigateAndCloseDrawer(onePage.PageUrl))">
                     @onePage.PageName
@@ -145,7 +87,7 @@
     <MudContainer Class="main-container" MaxWidth="MaxWidth.ExtraExtraLarge" Style="flex:1;">
         <CascadingValue Value="_isMobile" Name="IsMobile">
             <UserSync />
-            <MudContainer MaxWidth="Alert.Width" Class="d-flex flex-column gap-4">
+            <div class="alert-toast-container">
                 @foreach (var alert in Alert.Alerts.ToList())
                 {
                     <MudAlert Severity="@alert.Severity" Dense="true"
@@ -161,15 +103,15 @@
                         }
                     </MudAlert>
                 }
-            </MudContainer>
+            </div>
             @Body
         </CascadingValue>
     </MudContainer>
 
-    <footer class="d-flex flex-column align-center justify-center pa-4"
+    <footer class="d-none d-md-flex flex-column align-center justify-center pa-4"
             style="height:80px;background:var(--mud-palette-appbar-background);color:var(--mud-palette-appbar-text);">
         <MudText Typo="Typo.body2">© @ScoreCastDateTime.Now.Value.Year ScoreCast. All rights reserved.</MudText>
-        <MudText Typo="Typo.caption" Style="opacity:0.6;">Premier League Predictions</MudText>
+        <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.5);">Football Predictions & Insights</MudText>
     </footer>
 
     <BottomNav />
