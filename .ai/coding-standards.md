@@ -19,18 +19,23 @@
 - **Application** defines commands, queries, and interfaces only — no implementations
 - **Infrastructure** implements all handlers and data access
 - **Endpoints** are thin — delegate to commands/queries, no business logic
+- **Never use `Route<T>()` in endpoints** — always bind from request model properties
 - **Models** — request/response records in `ScoreCast.Models`
-- **Constants** in `ScoreCast.Shared.Constants` (e.g., `PlayerPositions`, `SharedConstants`), enums in `ScoreCast.Shared.Enums`
+- **Constants** in `ScoreCast.Shared.Constants`, enums in `ScoreCast.Shared.Enums`
 - Entity configurations (EF Fluent API) go in `Infrastructure/`
+- No magic strings — use constants
 
 ## CQRS Conventions
-- Queries: `public record XxxQuery(...) : IQuery<ScoreCastResponse<T>>;` (from `ScoreCast.Ws.Application.V1.Interfaces`)
+- Queries: `public record XxxQuery(...) : IQuery<ScoreCastResponse<T>>;`
 - Query Handlers: `internal sealed record XxxQueryHandler(...) : IQueryHandler<XxxQuery, ScoreCastResponse<T>>`
 - Commands: `public record XxxCommand(XxxRequest Request) : ICommand<ScoreCastResponse>;`
 - Command Handlers: `internal sealed record XxxCommandHandler(IScoreCastDbContext DbContext, IUnitOfWork UnitOfWork) : ICommandHandler<XxxCommand, ScoreCastResponse>`
-- `IQuery<T>` extends `ICommand<T>`, `IQueryHandler<TQuery, TResult>` extends `ICommandHandler<TQuery, TResult>` — defined in `ScoreCast.Ws.Application.V1.Interfaces`
+- **Every command must take a request** extending `ScoreCastRequest` (or `ScoreCastRequest` directly if no extra props)
+- **Use `ScoreCastRequest` directly** when a request has no additional properties — don't create empty subclasses
+- **`SaveChangesAsync` must always use `request.AppName ?? nameof(XxxCommand)` pattern**
+- **Queries should NEVER write to the database** — if it writes, make it a command
+- **Use `required string` in request models**, not `= null!`
 - Commands/Queries are `public`, handlers are `internal sealed`
-- `SaveChangesAsync` must always use `request.AppName ?? nameof(XxxCommand)` pattern
 
 ## FastEndpoints Conventions
 - Use `Send.OkAsync()` for sending responses
@@ -38,16 +43,19 @@
 - `AllowAnonymous()` ONLY for: health check, landing page, login, sign up, about, contact us
 - POST endpoints: all data from `[Body]` request model — no route `{parameter}` placeholders
 - GET endpoints: route parameters as method parameters
+- `UserId` auto-populated by `FirebaseUserPreprocessor` — never set manually in endpoints
+- API key clients get `UserId` set to client name (e.g., `ScoreCast.Jobs`)
 
 ## Code Style
 - **Records everywhere** for commands, queries, handlers, DTOs, and value objects with primary constructors
-- No magic strings — use constants classes or `nameof(EnumValue)` (e.g., `PlayerPositions.Goalkeeper` not `"Goalkeeper"`)
+- No magic strings — use constants classes or `nameof(EnumValue)`
 - No hardcoded URLs, status codes, or API values — everything via constants
-- Use `ScoreCastDateTime.Now` instead of `DateTime.UtcNow`
+- Use `ScoreCastDateTime` instead of `DateTime` in models and responses
 - Points NEVER stored — computed on the fly from `Outcome` + `scoring_rules` table
 - Catch blocks that only log are intentional for enrichment steps — partial success preferred
 - Use expression-bodied members for single-line methods/properties
 - Keep methods short — extract a method if a block needs a comment explaining it
+- **No two records in the same file** (except related DTOs)
 
 ## Database
 - Entity configs MUST use `HasColumnOrder` with incrementing `var order = 1;` pattern
@@ -55,25 +63,25 @@
 - Global query filter for soft delete: `builder.HasQueryFilter(q => !q.IsDeleted)`
 - No EF attributes/annotations on Domain entities — Fluent API only
 - When creating entities, don't use `required` on FK IDs — just use `long` and pass actual entity references
-- `MatchLineup` entity tracks starters/substitutes per match (unique index on match_id + player_id)
+- Use `EF.Functions.ILike` for case-insensitive search on PostgreSQL
 
 ## Blazor / Frontend
 - No `@code` blocks in `.razor` files — always use code-behind `.razor.cs` files
 - All API client calls wrapped in `Loading.While`
-- ViewModels in `ScoreCast.Web/ViewModels/`
+- **ViewModels go in `ScoreCast.Web/ViewModels/{Feature}/`**
+- **Validators go in `ScoreCast.Web/Validation/{Feature}/`** using FluentValidation + `AbstractValidator<T>`
 - Pages inject Refit interfaces directly (no controller layer)
-- Use `Alert.Add(message, Severity.X)` for alerts
-- Use `ISnackbar` for transient toast notifications
+- Use `IAlertService` with `Alert.Add(message, Severity.X)` for notifications — **no `ISnackbar`**
 - No `InvokeAsync` wrappers in Blazor WASM pages (only needed in Blazor Server)
 - Light mode only — no dark mode toggle or `PaletteDark`
 - Mobile: pill tabs with dark background, `MudSimpleTable` with tight padding
 - Desktop: `MudTabs` with `Header` render fragment for inline search bars
-- Position display: `PlayerPositions.ToShortName(position)` next to player names
+- Use `var(--mud-palette-text-secondary)` for secondary text — **never use `opacity` for text dimming**
 
 ## Refit API Client
 - POST methods: `Task<ScoreCastResponse> MethodAsync([Body] RequestType request, CancellationToken ct)`
-- GET methods: route parameters as method parameters (e.g. `long seasonId, long gameweekId`)
-- Auth token attached via `BaseAddressAuthorizationMessageHandler`
+- GET methods: route parameters as method parameters
+- Auth token attached via `FirebaseTokenHandler` (DelegatingHandler)
 
 ## External APIs
 - **Pulse** is primary data source for Premier League
@@ -81,13 +89,8 @@
 - **FPL API** used for Pulse ID mappings
 - New Pulse endpoints added to `PulseApi.Routes` constants
 - Pulse response models use `[property: JsonPropertyName]` for case-sensitive deserialization
-- If FPL sync fails, Pulse sync should NOT run (sequential gating)
-- Enhance live matches should pull from ALL available sources
-- Pulse events sync: always mark finished matches as synced after processing to prevent infinite batch loop
-- Lineup persistence: save starters (TeamLists.Lineup) and substitutes (TeamLists.Substitutes) from Pulse fixture data
 
 ## Dependencies
 - Central Package Management via `Directory.Packages.props` — never specify versions in individual `.csproj` files
 - FastEndpoints for endpoints and CQRS — no MediatR
 - EF Core for data access
-- `UserId` auto-populated by `KeycloakUserPreprocessor` — never set manually in endpoints

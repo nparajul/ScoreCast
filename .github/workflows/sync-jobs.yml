@@ -110,7 +110,7 @@ jobs:
           for SID in ${{ steps.seasons.outputs.ids }}; do
             echo "Calculating season $SID..."
             RESULT=$(curl -s --max-time 60 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
-              -d "{\"seasonId\":$SID}" \
+              -d "{\"seasonId\":$SID,\"appName\":\"GITHUB-ACTIONS:CALCULATE-POINTS\"}" \
               "$API_BASE_URL/api/v1/prediction/calculate-outcomes")
             echo "Season $SID: $(echo "$RESULT" | jq -r '.message // .resultType // "done"')"
           done
@@ -147,6 +147,7 @@ jobs:
       - name: Generate AI insights
         run: |
           RESULT=$(curl --max-time 120 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+            -d '{"appName":"GITHUB-ACTIONS:GENERATE-INSIGHTS"}' \
             "$API_BASE_URL/api/v1/master-data/generate-insights" || echo '{"message":"Request failed"}')
           echo "Result: $(echo $RESULT | jq -r '.message // "done"')"
 
@@ -157,5 +158,6 @@ jobs:
       - name: Update current matchday
         run: |
           RESULT=$(curl --max-time 30 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+            -d '{"appName":"GITHUB-ACTIONS:UPDATE-MATCHDAY"}' \
             "$API_BASE_URL/api/v1/master-data/update-matchday" || echo '{"message":"Request failed"}')
           echo "Result: $(echo $RESULT | jq -r '.message // "done"')"
