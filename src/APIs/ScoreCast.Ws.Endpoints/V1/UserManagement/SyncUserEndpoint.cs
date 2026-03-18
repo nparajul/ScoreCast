@@ -14,7 +14,7 @@ public sealed class SyncUserEndpoint : Endpoint<SyncUserRequest, ScoreCastRespon
         Summary(s =>
         {
             s.Summary = "Sync User";
-            s.Description = "Creates or updates a user record from Keycloak authentication claims";
+            s.Description = "Creates or updates a user record from Firebase authentication claims";
         });
     }
 

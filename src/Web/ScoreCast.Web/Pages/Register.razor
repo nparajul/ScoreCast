@@ -15,52 +15,89 @@
             <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4" Variant="Variant.Filled">@_error</MudAlert>
         }
 
-        <EditForm Model="_model" OnValidSubmit="HandleRegister">
+        <MudButton Variant="Variant.Outlined"
+                   FullWidth="true"
+                   Size="Size.Large"
+                   Class="mb-4"
+                   Style="border-color:#dadce0;color:#3c4043;text-transform:none;font-weight:500;letter-spacing:0.25px;"
+                   OnClick="HandleGoogleSignIn">
+            <svg width="20" height="20" viewBox="0 0 48 48" class="mr-2">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.0 24.0 0 0 0 0 21.56l7.98-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Continue with Google
+        </MudButton>
+
+        <div class="d-flex align-center my-4">
+            <hr style="flex:1;border:none;border-top:1px solid var(--mud-palette-lines-default);" />
+            <MudText Typo="Typo.caption" Class="mx-3" Style="opacity:0.5;">or create with email</MudText>
+            <hr style="flex:1;border:none;border-top:1px solid var(--mud-palette-lines-default);" />
+        </div>
+
+        <MudForm @ref="_form" Model="_model" Validation="_validation">
             <MudTextField @bind-Value="_model.Email"
                           Label="Email"
                           Variant="Variant.Outlined"
                           InputType="InputType.Email"
-                          Required="true"
+                          For="@(() => _model.Email)"
                           Class="mb-4"
-                           />
+                          AutoFocus="true" />
 
             <MudTextField @bind-Value="_model.Username"
-                          Label="Username"
+                          Label="Display Name"
                           Variant="Variant.Outlined"
-                          Required="true"
-                          Class="mb-4"
-                           />
+                          For="@(() => _model.Username)"
+                          Class="mb-4" />
 
             <MudTextField @bind-Value="_model.Password"
                           Label="Password"
                           Variant="Variant.Outlined"
                           InputType="InputType.Password"
-                          Required="true"
-                          Class="mb-2"
-                           />
+                          For="@(() => _model.Password)"
+                          Class="mb-2" />
 
             <MudTextField @bind-Value="_model.ConfirmPassword"
                           Label="Confirm Password"
                           Variant="Variant.Outlined"
                           InputType="InputType.Password"
-                          Required="true"
-                          Class="mb-2"
-                           />
+                          For="@(() => _model.ConfirmPassword)"
+                          Immediate="true"
+                          Class="mb-1" />
 
-            <MudText Typo="Typo.caption" Style="opacity:0.5;" Class="mb-4">
-                At least 8 characters, 1 uppercase, 1 lowercase, 1 digit, and 1 special character.
-                Cannot contain your username or email.
+            @if (_model.ConfirmPassword.Length > 0)
+            {
+                @if (_model.Password == _model.ConfirmPassword)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Success" Class="mb-2">
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" /> Passwords match
+                    </MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Error" Class="mb-2">
+                        <MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" /> Passwords do not match
+                    </MudText>
+                }
+            }
+
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-4">
+                Password must contain:
+                <br />• At least 8 characters
+                <br />• 1 uppercase &amp; 1 lowercase letter
+                <br />• 1 digit &amp; 1 special character
             </MudText>
 
-            <MudButton ButtonType="ButtonType.Submit"
-                       Variant="Variant.Filled"
+            <MudButton Variant="Variant.Filled"
                        Color="Color.Tertiary"
                        FullWidth="true"
                        Size="Size.Large"
-                       Class="mb-4">
+                       Class="mb-4"
+                       OnClick="HandleRegister">
                 Create Account
             </MudButton>
-        </EditForm>
+        </MudForm>
 
         <MudDivider Class="my-4" />
 

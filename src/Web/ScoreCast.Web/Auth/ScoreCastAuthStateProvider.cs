@@ -1,185 +1,93 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 
-using ScoreCast.Shared.Types;
-using ScoreCast.Web.Components.Helpers;
-
 namespace ScoreCast.Web.Auth;
 
-public sealed class ScoreCastAuthStateProvider(
-    IAuthApi authApi,
-    IJSRuntime js) : AuthenticationStateProvider, IAuthService
+public sealed class ScoreCastAuthStateProvider : AuthenticationStateProvider, IAsyncDisposable
 {
-    private const string AccessTokenKey = "sc_access_token";
-    private const string RefreshTokenKey = "sc_refresh_token";
-
+    private readonly IJSRuntime _js;
+    private readonly TaskCompletionSource<bool> _initialized = new();
+    private DotNetObjectReference<ScoreCastAuthStateProvider>? _dotNetRef;
     private ClaimsPrincipal _currentUser = new(new ClaimsIdentity());
-    private string? _accessToken;
-    private DateTimeOffset _tokenExpiry;
+    private FirebaseUser? _firebaseUser;
+
+    public ScoreCastAuthStateProvider(IJSRuntime js) => _js = js;
+
+    public async Task InitializeAsync(string configJson)
+    {
+        _dotNetRef = DotNetObjectReference.Create(this);
+        var config = JsonSerializer.Deserialize<JsonElement>(configJson);
+        await _js.InvokeVoidAsync("firebaseAuth.init", config, _dotNetRef);
+    }
+
+    [JSInvokable]
+    public void OnAuthStateChanged(FirebaseUser? user)
+    {
+        _firebaseUser = user;
+        _currentUser = user is not null
+            ? BuildPrincipal(user)
+            : new ClaimsPrincipal(new ClaimsIdentity());
+
+        if (!_initialized.Task.IsCompleted)
+            _initialized.SetResult(true);
+
+        NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_currentUser)));
+    }
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        if (_accessToken is null)
-        {
-            _accessToken = await GetFromStorage(AccessTokenKey);
-
-            if (_accessToken is not null && !IsTokenValid(_accessToken))
-            {
-                var refreshToken = await GetFromStorage(RefreshTokenKey);
-                if (refreshToken is null || !await RefreshTokenAsync(refreshToken))
-                {
-                    await ClearTokens();
-                    return new AuthenticationState(_currentUser);
-                }
-            }
-
-            if (_accessToken is not null)
-                _currentUser = CreateClaimsPrincipal(_accessToken);
-        }
-
+        await _initialized.Task;
         return new AuthenticationState(_currentUser);
     }
 
-    public async Task<AuthResult> LoginAsync(string username, string password)
+    public async Task<AuthResult> LoginAsync(string email, string password)
     {
-        var response = await PostTokenRequest(new
+        var result = await _js.InvokeAsync<FirebaseAuthResult>("firebaseAuth.signInWithEmail", email, password);
+        return result.Success ? new AuthResult(true) : new AuthResult(false, result.Error);
+    }
+
+    public async Task<AuthResult> RegisterAsync(string email, string password, string? displayName = null)
+    {
+        var result = await _js.InvokeAsync<FirebaseAuthResult>("firebaseAuth.registerWithEmail", email, password, displayName);
+        return result.Success ? new AuthResult(true) : new AuthResult(false, result.Error);
+    }
+
+    public async Task<AuthResult> SignInWithGoogleAsync()
+    {
+        var result = await _js.InvokeAsync<FirebaseAuthResult>("firebaseAuth.signInWithGoogle");
+        return result.Success ? new AuthResult(true) : new AuthResult(false, result.Error);
+    }
+
+    public async Task LogoutAsync() => await _js.InvokeVoidAsync("firebaseAuth.signOut");
+
+    public async Task<string?> GetIdTokenAsync() =>
+        await _js.InvokeAsync<string?>("firebaseAuth.getIdToken");
+
+    private static ClaimsPrincipal BuildPrincipal(FirebaseUser user)
+    {
+        var claims = new List<Claim>
         {
-            grantType = "password",
-            username,
-            password
-        });
+            new(ClaimTypes.NameIdentifier, user.Uid),
+            new("sub", user.Uid)
+        };
 
-        if (!response.Success)
-            return new AuthResult(false, response.Message ?? "Invalid username or password");
+        if (user.Email is not null)
+            claims.Add(new Claim(ClaimTypes.Email, user.Email));
+        if (user.DisplayName is not null)
+            claims.Add(new Claim(ClaimTypes.Name, user.DisplayName));
 
-        await ApplyTokenData(response.TokenJson);
-        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
-        return new AuthResult(true);
+        return new ClaimsPrincipal(new ClaimsIdentity(claims, "firebase"));
     }
 
-    public async Task LogoutAsync()
+    public ValueTask DisposeAsync()
     {
-        var refreshToken = await GetFromStorage(RefreshTokenKey);
-        if (refreshToken is not null)
-        {
-            try
-            {
-                await PostTokenRequest(new
-                {
-                    grantType = "refresh_token",
-                    refreshToken
-                });
-            }
-            catch { /* best effort */ }
-        }
-
-        await ClearTokens();
-        _currentUser = new ClaimsPrincipal(new ClaimsIdentity());
-        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        _dotNetRef?.Dispose();
+        return ValueTask.CompletedTask;
     }
-
-    public async Task<(bool Success, string? Error)> RegisterAsync(string email, string username, string password)
-    {
-        var result = await authApi.RegisterAsync(new ScoreCast.Models.V1.Requests.Auth.RegisterRequest
-        {
-            Email = email,
-            Username = username,
-            Password = password
-        });
-
-        if (!result.Success)
-            return (false, result.Message ?? "Registration failed");
-
-        await ApplyTokenData(result.Data?.TokenJson);
-        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
-        return (true, null);
-    }
-
-    public async Task<string?> GetAccessTokenAsync()
-    {
-        if (_accessToken is not null && _tokenExpiry > new DateTimeOffset(ScoreCastDateTime.Now.Value, TimeSpan.Zero).AddSeconds(30))
-            return _accessToken;
-
-        var refreshToken = await GetFromStorage(RefreshTokenKey);
-        if (refreshToken is not null && await RefreshTokenAsync(refreshToken))
-            return _accessToken;
-
-        return null;
-    }
-
-    private async Task<bool> RefreshTokenAsync(string refreshToken)
-    {
-        var response = await PostTokenRequest(new
-        {
-            grantType = "refresh_token",
-            refreshToken
-        });
-
-        if (!response.Success) return false;
-
-        await ApplyTokenData(response.TokenJson);
-        return true;
-    }
-
-    private async Task<TokenApiResponse> PostTokenRequest(object body)
-    {
-        var result = await authApi.TokenAsync(body);
-        return new TokenApiResponse(result.Success, result.Message, result.Data?.TokenJson);
-    }
-
-    private async Task ApplyTokenData(string? tokenJson)
-    {
-        if (tokenJson is null) return;
-
-        using var doc = JsonDocument.Parse(tokenJson);
-        var accessToken = doc.RootElement.GetProperty("access_token").GetString()!;
-        var refreshToken = doc.RootElement.GetProperty("refresh_token").GetString()!;
-
-        _accessToken = accessToken;
-        var handler = new JwtSecurityTokenHandler();
-        _tokenExpiry = handler.ReadJwtToken(accessToken).ValidTo;
-        _currentUser = CreateClaimsPrincipal(accessToken);
-
-        await js.InvokeVoidAsync("localStorage.setItem", AccessTokenKey, accessToken);
-        await js.InvokeVoidAsync("localStorage.setItem", RefreshTokenKey, refreshToken);
-    }
-
-    private static ClaimsPrincipal CreateClaimsPrincipal(string accessToken)
-    {
-        var handler = new JwtSecurityTokenHandler();
-        var jwt = handler.ReadJwtToken(accessToken);
-        var identity = new ClaimsIdentity(jwt.Claims, "jwt");
-        return new ClaimsPrincipal(identity);
-    }
-
-    private bool IsTokenValid(string token)
-    {
-        try
-        {
-            var handler = new JwtSecurityTokenHandler();
-            var jwt = handler.ReadJwtToken(token);
-            _tokenExpiry = jwt.ValidTo;
-            return jwt.ValidTo > ScoreCastDateTime.Now.Value.AddSeconds(30);
-        }
-        catch { return false; }
-    }
-
-    private async Task ClearTokens()
-    {
-        _accessToken = null;
-        _tokenExpiry = default;
-        await js.InvokeVoidAsync("localStorage.removeItem", AccessTokenKey);
-        await js.InvokeVoidAsync("localStorage.removeItem", RefreshTokenKey);
-    }
-
-    private async Task<string?> GetFromStorage(string key)
-    {
-        try { return await js.InvokeAsync<string?>("localStorage.getItem", key); }
-        catch { return null; }
-    }
-
-    private sealed record TokenApiResponse(bool Success, string? Message, string? TokenJson);
 }
+
+public sealed record FirebaseUser(string Uid, string? Email, string? DisplayName);
+public sealed record FirebaseAuthResult(bool Success, string? Uid = null, string? Error = null);
+public sealed record AuthResult(bool Success, string? Error = null);

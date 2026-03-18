@@ -1,28 +1,15 @@
 @using ScoreCast.Models.V1.Responses.Football
 
-<MudDialog Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, NoHeader = true })">
+<MudDialog Options="@(new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true, NoHeader = true })">
     <DialogContent>
-        <div class="d-flex flex-column align-center"
-             style="background:linear-gradient(135deg, #0A1929 0%, #37003C 100%); margin:-24px; padding:28px 24px 20px;">
+        <div class="d-flex flex-column align-center rounded-t-lg"
+             style="background:linear-gradient(135deg, #0A1929 0%, #37003C 100%); margin:-24px -24px 0; padding:32px 24px 24px;">
             <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="48" Height="48" Class="mb-2" />
             <MudText Typo="Typo.h5" Style="color:#FFFFFF; font-weight:700;">Welcome, @Username!</MudText>
-            <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.65);">Set up your profile</MudText>
+            <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.65);">One last thing — pick your team</MudText>
         </div>
 
-        <div class="pa-4 pt-5" style="margin:0 -24px -24px;">
-
-            <MudTextField @bind-Value="DisplayName"
-                          Label="Display Name"
-                          Placeholder="What should others call you?"
-                          Variant="Variant.Outlined"
-                          Immediate="true"
-                          MaxLength="30"
-                          Counter="30"
-                          Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Person"
-                          AutoFocus="true"
-                          Class="mb-4 px-2" />
-
+        <div class="pa-5">
             <MudAutocomplete T="TeamResult"
                              Label="Favourite Team"
                              Placeholder="Search any team..."
@@ -36,7 +23,8 @@
                              CoerceValue="false"
                              MinCharacters="0"
                              MaxItems="50"
-                             Class="mb-4 px-2">
+                             AutoFocus="true"
+                             Class="mb-4">
                 <ItemTemplate Context="team">
                     <div class="d-flex align-center gap-2">
                         @if (!string.IsNullOrWhiteSpace(team.LogoUrl))
@@ -52,11 +40,11 @@
                 </ItemTemplate>
             </MudAutocomplete>
 
-            <div class="d-flex justify-end gap-2 px-2 pb-2">
+            <div class="d-flex justify-end gap-2">
                 <MudButton OnClick="Skip" Variant="Variant.Text" Color="Color.Default">Skip</MudButton>
                 <MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Tertiary"
                            StartIcon="@Icons.Material.Filled.RocketLaunch"
-                           Disabled="@(string.IsNullOrWhiteSpace(DisplayName) && _selectedTeam is null)">
+                           Disabled="@(_selectedTeam is null)">
                     Let's Go!
                 </MudButton>
             </div>

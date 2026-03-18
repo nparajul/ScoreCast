@@ -1,8 +1,9 @@
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Refit;
+using ScoreCast.Web.Auth;
 
 namespace ScoreCast.Web.Extensions;
 
@@ -24,26 +25,23 @@ public static class ApiClientExtensions
     {
         var apiBaseUrl = builder.Configuration["Api:BaseUrl"]!;
 
-        builder.Services.AddScoped<ScoreCastApiAuthHandler>(sp =>
-            new ScoreCastApiAuthHandler(sp.GetRequiredService<IAccessTokenProvider>(),
-                sp.GetRequiredService<NavigationManager>(), apiBaseUrl));
+        builder.Services.AddScoped<FirebaseTokenHandler>();
 
         builder.Services
             .AddRefitClient<IScoreCastApiClient>(RefitSettings)
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl))
-            .AddHttpMessageHandler<ScoreCastApiAuthHandler>();
-
-        builder.Services
-            .AddRefitClient<IAuthApi>(RefitSettings)
-            .ConfigureHttpClient(c => c.BaseAddress = new Uri(apiBaseUrl));
+            .AddHttpMessageHandler<FirebaseTokenHandler>();
     }
 }
 
-internal sealed class ScoreCastApiAuthHandler : AuthorizationMessageHandler
+internal sealed class FirebaseTokenHandler(ScoreCastAuthStateProvider auth) : DelegatingHandler
 {
-    public ScoreCastApiAuthHandler(IAccessTokenProvider provider, NavigationManager navigation, string apiBaseUrl)
-        : base(provider, navigation)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
     {
-        ConfigureHandler(authorizedUrls: [apiBaseUrl]);
+        var token = await auth.GetIdTokenAsync();
+        if (token is not null)
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        return await base.SendAsync(request, ct);
     }
 }
