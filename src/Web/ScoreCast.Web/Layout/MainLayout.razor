@@ -33,13 +33,17 @@
         <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="36" Height="36" Class="mr-2 d-none d-md-flex" />
         <MudText Typo="Typo.h6" Class="mr-4 d-none d-md-flex">ScoreCast</MudText>
 
-        <div class="d-none d-md-flex">
-            @foreach (var onePage in RoleNav.Pages.Where(p => p.ParentPageId is null))
-            {
-                <MudButton Href="@onePage.PageUrl" Color="Color.Inherit">@onePage.PageName</MudButton>
-            }
-            <MudButton Href="/insights" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.AutoAwesome">Insights</MudButton>
-        </div>
+        <AuthorizeView>
+            <Authorized>
+                <div class="d-none d-md-flex">
+                    @foreach (var onePage in RoleNav.Pages.Where(p => p.ParentPageId is null))
+                    {
+                        <MudButton Href="@onePage.PageUrl" Color="Color.Inherit">@onePage.PageName</MudButton>
+                    }
+                    <MudButton Href="/insights" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.AutoAwesome">Insights</MudButton>
+                </div>
+            </Authorized>
+        </AuthorizeView>
 
         <MudSpacer />
 
