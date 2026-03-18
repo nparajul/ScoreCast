@@ -17,7 +17,10 @@ internal sealed record SearchTeamsQueryHandler(
             .Where(t => t.IsActive);
 
         if (!string.IsNullOrWhiteSpace(query.SearchTerm))
-            teamsQuery = teamsQuery.Where(t => t.Name.Contains(query.SearchTerm) || (t.ShortName != null && t.ShortName.Contains(query.SearchTerm)));
+        {
+            var term = $"%{query.SearchTerm}%";
+            teamsQuery = teamsQuery.Where(t => EF.Functions.ILike(t.Name, term) || (t.ShortName != null && EF.Functions.ILike(t.ShortName, term)));
+        }
 
         var teams = await teamsQuery
             .OrderBy(t => t.Name)

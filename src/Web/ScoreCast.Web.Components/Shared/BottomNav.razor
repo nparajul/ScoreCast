@@ -9,7 +9,14 @@
                     var tab = Tabs[i];
                     var index = i;
                     <button class="@TabClass(tab.Url)" id="@($"bnav-{index}")" @onclick="@(() => OnTabClick(tab.Url, index))">
-                        <MudIcon Icon="@tab.Icon" Size="Size.Small" />
+                        @if (tab.Emoji is not null)
+                        {
+                            <span class="bottom-nav-emoji">@tab.Emoji</span>
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@tab.Icon" Size="Size.Small" />
+                        }
                         <span class="bottom-nav-label">@tab.Label</span>
                     </button>
                 }

@@ -11,15 +11,15 @@
 
     @if (_teams.Count > 0)
     {
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(@(IsMobile ? "140px" : "160px"),1fr));gap:10px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(@(IsMobile ? "100px" : "160px"),1fr));gap:8px;">
             @foreach (var team in _teams)
             {
-                <MudPaper Class="pa-3" Elevation="1" Style="border-radius:10px;cursor:pointer;text-align:center;" @onclick="() => GoToTeam(team.Id)">
+                <MudPaper Class="pa-2" Elevation="1" Style="border-radius:10px;cursor:pointer;text-align:center;" @onclick="() => GoToTeam(team.Id)">
                     @if (team.LogoUrl is not null)
                     {
-                        <img src="@team.LogoUrl" alt="" style="width:48px;height:48px;margin-bottom:6px;" />
+                        <img src="@team.LogoUrl" alt="" style="width:@(IsMobile ? "32" : "48")px;height:@(IsMobile ? "32" : "48")px;margin-bottom:4px;" />
                     }
-                    <div style="font-weight:600;font-size:@(IsMobile ? "12" : "14")px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                    <div style="font-weight:600;font-size:@(IsMobile ? "11" : "14")px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                         @(team.ShortName ?? team.Name)
                     </div>
                 </MudPaper>
