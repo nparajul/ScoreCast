@@ -1,3 +1,3 @@
 namespace ScoreCast.Models.V1.Responses.Football;
 
-public record TeamSearchResult(List<TeamResult> Teams);
+public record TeamSearchResult(List<TeamResult> Teams, bool HasMore);

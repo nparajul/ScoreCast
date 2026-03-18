@@ -16,7 +16,7 @@ internal sealed record CalculateOutcomesCommandHandler(
     {
         var predictions = await DbContext.Predictions
             .Include(p => p.Match)
-            .Where(p => p.SeasonId == command.SeasonId
+            .Where(p => p.SeasonId == command.Request.SeasonId
                         && p.PredictionType == PredictionType.Score
                         && p.Outcome == null
                         && p.Match!.Status == MatchStatus.Finished
@@ -50,7 +50,7 @@ internal sealed record CalculateOutcomesCommandHandler(
                 user.TotalPoints += pointsByUser[user.Id];
         }
 
-        await UnitOfWork.SaveChangesAsync(nameof(CalculateOutcomesCommand), ct);
+        await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(CalculateOutcomesCommand), ct);
 
         return ScoreCastResponse.Ok($"Updated {predictions.Count} prediction outcomes");
     }

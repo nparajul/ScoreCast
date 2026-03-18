@@ -4,30 +4,33 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
+using ScoreCast.Models.V1.Requests.Insights;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Enums;
 using ScoreCast.Ws.Application;
-using ScoreCast.Ws.Application.V1.Insights.Queries;
+using ScoreCast.Ws.Application.V1.Insights.Commands;
 using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
 
-namespace ScoreCast.Ws.Infrastructure.V1.Insights.QueryHandlers;
+namespace ScoreCast.Ws.Infrastructure.V1.Insights.CommandHandlers;
 
-internal sealed record GetMatchInsightsQueryHandler(
+internal sealed record GetOrCreateMatchInsightsCommandHandler(
     IScoreCastDbContext DbContext,
     IUnitOfWork UnitOfWork,
     IHttpClientFactory HttpClientFactory,
     IConfiguration Configuration,
     IChatClient? ChatClient = null)
-    : IQueryHandler<GetMatchInsightsQuery, ScoreCastResponse<List<MatchInsightResult>>>
+    : ICommandHandler<GetOrCreateMatchInsightsCommand, ScoreCastResponse<List<MatchInsightResult>>>
 {
     public async Task<ScoreCastResponse<List<MatchInsightResult>>> ExecuteAsync(
-        GetMatchInsightsQuery query, CancellationToken ct)
+        GetOrCreateMatchInsightsCommand command, CancellationToken ct)
     {
+        var request = command.Request;
+
         var cached = await DbContext.MatchInsightCaches
             .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.SeasonId == query.SeasonId && c.GameweekNumber == query.GameweekNumber, ct);
+            .FirstOrDefaultAsync(c => c.SeasonId == request.SeasonId && c.GameweekNumber == request.GameweekNumber, ct);
 
         if (cached is not null)
             return ScoreCastResponse<List<MatchInsightResult>>.Ok(
@@ -36,17 +39,17 @@ internal sealed record GetMatchInsightsQueryHandler(
         var season = await DbContext.Seasons
             .AsNoTracking()
             .Include(s => s.Competition)
-            .FirstOrDefaultAsync(s => s.Id == query.SeasonId, ct);
+            .FirstOrDefaultAsync(s => s.Id == request.SeasonId, ct);
 
         if (season is null)
             return ScoreCastResponse<List<MatchInsightResult>>.Ok([]);
 
-        var matches = await GetScheduledMatches(query, ct);
+        var matches = await GetScheduledMatches(request, ct);
         if (matches.Count == 0)
             return ScoreCastResponse<List<MatchInsightResult>>.Ok([]);
 
         var teamIds = matches.SelectMany(m => new[] { m.HomeId, m.AwayId }).Distinct().ToList();
-        var recentResults = await GetRecentResults(query.SeasonId, teamIds, ct);
+        var recentResults = await GetRecentResults(request.SeasonId, teamIds, ct);
         var h2hResults = await GetH2HResults(teamIds, ct);
         var teamStats = BuildTeamStats(teamIds, recentResults);
 
@@ -68,21 +71,21 @@ internal sealed record GetMatchInsightsQueryHandler(
 
         DbContext.MatchInsightCaches.Add(new MatchInsightCache
         {
-            SeasonId = query.SeasonId,
-            GameweekNumber = query.GameweekNumber,
+            SeasonId = request.SeasonId,
+            GameweekNumber = request.GameweekNumber,
             ResponseJson = JsonSerializer.Serialize(insights),
-            CreatedByApp = "ScoreCast"
+            CreatedByApp = request.AppName ?? nameof(GetOrCreateMatchInsightsCommand)
         });
-        await UnitOfWork.SaveChangesAsync(nameof(GetMatchInsightsQuery), ct);
+        await UnitOfWork.SaveChangesAsync(request.AppName ?? nameof(GetOrCreateMatchInsightsCommand), ct);
 
         return ScoreCastResponse<List<MatchInsightResult>>.Ok(insights);
     }
 
-    private async Task<List<MatchData>> GetScheduledMatches(GetMatchInsightsQuery query, CancellationToken ct) =>
+    private async Task<List<MatchData>> GetScheduledMatches(GetMatchInsightsRequest request, CancellationToken ct) =>
         await DbContext.Matches
             .AsNoTracking()
-            .Where(m => m.Gameweek.SeasonId == query.SeasonId
-                        && m.Gameweek.Number == query.GameweekNumber
+            .Where(m => m.Gameweek.SeasonId == request.SeasonId
+                        && m.Gameweek.Number == request.GameweekNumber
                         && m.Status == MatchStatus.Scheduled)
             .OrderBy(m => m.KickoffTime)
             .Select(m => new MatchData(m.Id, m.KickoffTime,

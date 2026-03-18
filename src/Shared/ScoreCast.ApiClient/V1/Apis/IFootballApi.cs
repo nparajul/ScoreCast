@@ -46,5 +46,5 @@ public partial interface IScoreCastApiClient
     Task<ScoreCastResponse<PlayerStatsResult>> GetTeamPlayerStatsAsync(long teamId, long? seasonId, CancellationToken ct);
 
     [Get("/api/v1/football/teams/search")]
-    Task<ScoreCastResponse<TeamSearchResult>> SearchTeamsAsync(string? q, CancellationToken ct);
+    Task<ScoreCastResponse<TeamSearchResult>> SearchTeamsAsync(string? q, int skip, int take, CancellationToken ct);
 }
