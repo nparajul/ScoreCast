@@ -1,4 +1,7 @@
 using ScoreCast.Models.V1.Responses.Football;
+using ScoreCast.Shared.Constants;
+using ScoreCast.Shared.Enums;
+using ScoreCast.Shared.Types;
 
 namespace ScoreCast.Web.Components.Shared;
 
@@ -14,11 +17,11 @@ public partial class GlobalSearch
     private string? _query;
     private List<SearchItem> _allItems = [];
     private List<SearchItem> _filtered = [];
-    private List<SearchItem> _suggestions = [];
+    private List<SearchItem> _trending = [];
     private bool _dataLoaded;
     private bool _loading;
 
-    private bool HasResults => _loading || _filtered.Count > 0 || _suggestions.Count > 0
+    private bool HasResults => _loading || _filtered.Count > 0 || _trending.Count > 0
                                || (_query?.Length >= 2);
 
     protected override async Task OnParametersSetAsync()
@@ -64,35 +67,90 @@ public partial class GlobalSearch
         if (_dataLoaded) return;
 
         var comps = await Api.GetCompetitionsAsync(CancellationToken.None);
-        if (comps is { Success: true, Data: not null })
+        if (comps is not { Success: true, Data: not null }) { _dataLoaded = true; return; }
+
+        // Build searchable items
+        foreach (var c in comps.Data)
+            _allItems.Add(new("🏆", c.Name, c.LogoUrl, "Competition", $"/competitions/{c.Id}"));
+
+        var teamTasks = comps.Data.Select(async comp =>
         {
-            foreach (var c in comps.Data)
-                _allItems.Add(new("🏆", c.Name, c.LogoUrl, "Competition", $"/competitions/{c.Id}"));
+            var teams = await Api.GetTeamsAsync(comp.Name, CancellationToken.None);
+            return (comp, teams);
+        });
+        var teamResults = await Task.WhenAll(teamTasks);
 
-            // Build suggestions: competitions + top teams per competition
-            _suggestions.AddRange(_allItems.Where(i => i.Category == "Competition"));
-
-            foreach (var comp in comps.Data)
+        foreach (var (comp, teams) in teamResults)
+        {
+            if (teams is not { Success: true, Data: not null }) continue;
+            foreach (var t in teams.Data)
             {
-                var teams = await Api.GetTeamsAsync(comp.Name, CancellationToken.None);
-                if (teams is { Success: true, Data: not null })
-                {
-                    foreach (var t in teams.Data)
-                    {
-                        if (_allItems.All(i => i.Url != $"/teams/{t.Id}"))
-                            _allItems.Add(new("🛡️", t.Name, t.LogoUrl, "Team", $"/teams/{t.Id}"));
-                    }
-                    // Top 3 teams for suggestions
-                    foreach (var t in teams.Data.Take(3))
-                    {
-                        if (_suggestions.All(s => s.Url != $"/teams/{t.Id}"))
-                            _suggestions.Add(new("🛡️", t.Name, t.LogoUrl, "Popular Teams", $"/teams/{t.Id}"));
-                    }
-                }
+                if (_allItems.All(i => i.Url != $"/teams/{t.Id}"))
+                    _allItems.Add(new("🛡️", t.Name, t.LogoUrl, "Team", $"/teams/{t.Id}"));
             }
         }
 
+        // Build trending: live/today matches → teams playing now
+        await BuildTrending(comps.Data);
         _dataLoaded = true;
+    }
+
+    private async Task BuildTrending(List<CompetitionResult> comps)
+    {
+        var defaultResp = await Api.GetDefaultCompetitionAsync(CancellationToken.None);
+        var defaultCode = defaultResp is { Success: true, Data: not null } ? defaultResp.Data.Code : "PL";
+        var defaultComp = comps.FirstOrDefault(c => c.Code == defaultCode) ?? comps.FirstOrDefault();
+        if (defaultComp is null) return;
+
+        var seasons = await Api.GetSeasonsAsync(defaultComp.Code, CancellationToken.None);
+        var current = seasons?.Data?.FirstOrDefault(s => s.IsCurrent);
+        if (current is null) return;
+
+        var gw = await Api.GetGameweekMatchesAsync(current.Id, SharedConstants.CurrentGameweek, CancellationToken.None);
+        if (gw is not { Success: true, Data: not null }) return;
+
+        // Live matches first
+        var live = gw.Data.Matches.Where(m => m.Status == nameof(MatchStatus.Live)).ToList();
+        if (live.Count > 0)
+        {
+            foreach (var m in live)
+            {
+                _trending.Add(new("🔴", $"{m.HomeTeamShortName} vs {m.AwayTeamShortName} ({m.HomeScore}-{m.AwayScore})",
+                    null, "🔴 Live Now", $"/matches/{m.MatchId}"));
+            }
+        }
+
+        // Today's upcoming
+        var upcoming = gw.Data.Matches
+            .Where(m => m.Status == nameof(MatchStatus.Scheduled) && m.KickoffTime.HasValue
+                        && m.KickoffTime.Value.Date == ScoreCastDateTime.Now.Value.Date)
+            .OrderBy(m => m.KickoffTime)
+            .ToList();
+        foreach (var m in upcoming.Take(4))
+        {
+            _trending.Add(new("⚽", $"{m.HomeTeamShortName} vs {m.AwayTeamShortName}",
+                null, "⚽ Today's Matches", $"/matches/{m.MatchId}"));
+        }
+
+        // If nothing today, show next upcoming
+        if (live.Count == 0 && upcoming.Count == 0)
+        {
+            var next = gw.Data.Matches
+                .Where(m => m.Status == nameof(MatchStatus.Scheduled) && m.KickoffTime.HasValue)
+                .OrderBy(m => m.KickoffTime)
+                .Take(4).ToList();
+            foreach (var m in next)
+            {
+                var day = m.KickoffTime!.Value.ToString("ddd HH:mm");
+                _trending.Add(new("📅", $"{m.HomeTeamShortName} vs {m.AwayTeamShortName} — {day}",
+                    null, "📅 Coming Up", $"/matches/{m.MatchId}"));
+            }
+        }
+
+        // Quick links
+        _trending.Add(new("📊", "Points Table", null, "⚡ Quick Links", "/points-table"));
+        _trending.Add(new("🏅", "Player Stats", null, "⚡ Quick Links", "/player-stats"));
+        _trending.Add(new("🤖", "AI Insights", null, "⚡ Quick Links", "/insights"));
     }
 
     private async Task Navigate(SearchItem item)

@@ -6,7 +6,7 @@ public partial class SearchResults
 {
     [Parameter] public bool Loading { get; set; }
     [Parameter] public List<SearchItem> Filtered { get; set; } = [];
-    [Parameter] public List<SearchItem> Suggestions { get; set; } = [];
+    [Parameter] public List<SearchItem> Trending { get; set; } = [];
     [Parameter] public string? Query { get; set; }
     [Parameter] public EventCallback<SearchItem> OnNavigate { get; set; }
 }
