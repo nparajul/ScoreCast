@@ -14,7 +14,7 @@ public sealed class CalculateOutcomesEndpoint : Endpoint<CalculateOutcomesReques
 
     public override async Task HandleAsync(CalculateOutcomesRequest request, CancellationToken ct)
     {
-        var result = await new CalculateOutcomesCommand(request.SeasonId).ExecuteAsync(ct);
+        var result = await new CalculateOutcomesCommand(request).ExecuteAsync(ct);
         await Send.OkAsync(result, ct);
     }
 }

@@ -21,10 +21,15 @@ internal sealed record SearchTeamsQueryHandler(
 
         var teams = await teamsQuery
             .OrderBy(t => t.Name)
-            .Take(50)
+            .Skip(query.Skip)
+            .Take(query.Take + 1)
             .Select(t => new TeamResult(t.Id, t.Name, t.ShortName, t.LogoUrl))
             .ToListAsync(ct);
 
-        return ScoreCastResponse<TeamSearchResult>.Ok(new TeamSearchResult(teams));
+        var hasMore = teams.Count > query.Take;
+        if (hasMore)
+            teams.RemoveAt(teams.Count - 1);
+
+        return ScoreCastResponse<TeamSearchResult>.Ok(new TeamSearchResult(teams, hasMore));
     }
 }

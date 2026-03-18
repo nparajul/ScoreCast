@@ -52,7 +52,7 @@ internal sealed record UpdateCurrentMatchdayCommandHandler(
             }
         }
 
-        await UnitOfWork.SaveChangesAsync(nameof(UpdateCurrentMatchdayCommand), ct);
+        await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(UpdateCurrentMatchdayCommand), ct);
 
         return ScoreCastResponse.Ok($"Updated {updated} season(s)");
     }
