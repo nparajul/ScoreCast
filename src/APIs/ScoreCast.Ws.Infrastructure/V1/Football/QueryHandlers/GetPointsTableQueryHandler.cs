@@ -210,7 +210,7 @@ internal sealed record GetPointsTableQueryHandler(
     private static List<RecentForm> GetForm(Dictionary<long, List<(DateTime? Kickoff, string Result, string Opponent, int HomeScore, int AwayScore, bool IsHome, long MatchId)>> results,
         long teamId, Dictionary<long, List<FormGoal>> goalsByMatch) =>
         results.TryGetValue(teamId, out var list)
-            ? list.OrderByDescending(r => r.Kickoff).Take(5)
+            ? list.OrderByDescending(r => r.Kickoff).Take(5).OrderBy(r => r.Kickoff)
                 .Select(r => new RecentForm(r.Result, r.Opponent, r.HomeScore, r.AwayScore, r.IsHome,
                     goalsByMatch.GetValueOrDefault(r.MatchId, [])))
                 .ToList()

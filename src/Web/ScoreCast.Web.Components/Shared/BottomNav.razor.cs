@@ -12,16 +12,15 @@ public partial class BottomNav : ComponentBase, IDisposable
 
     private ElementReference _scrollContainer;
 
-    private static readonly (string Icon, string Label, string Url)[] Tabs =
+    private static readonly (string? Icon, string? Emoji, string Label, string Url, string Color)[] Tabs =
     [
-        (Icons.Material.Filled.SportsSoccer, "Scores", "/scores"),
-        (Icons.Material.Filled.Edit, "Predict", "/predict"),
-        (Icons.Material.Filled.EmojiEvents, "Leagues", "/dashboard"),
-        (Icons.Material.Filled.AutoAwesome, "Insights", "/insights"),
-        (Icons.Material.Filled.Leaderboard, "Tables", "/points-table"),
-        (Icons.Material.Filled.People, "Players", "/player-stats"),
-        (Icons.Material.Filled.Shield, "Teams", "/teams"),
-        (Icons.Material.Filled.Settings, "Settings", "/settings"),
+        (Icons.Material.Filled.SportsSoccer, null, "Scores", "/scores", "#4CAF50"),
+        (null, "🏆", "Predict", "/dashboard", ""),
+        (Icons.Material.Filled.Leaderboard, null, "Tables", "/points-table", "#42A5F5"),
+        (Icons.Material.Filled.AutoAwesome, null, "Insights", "/insights", "#CE93D8"),
+        (null, "🛡️", "Teams", "/teams", ""),
+        (Icons.Material.Filled.People, null, "Players", "/player-stats", "#26C6DA"),
+        (Icons.Material.Filled.Settings, null, "Settings", "/settings", "#BDBDBD"),
     ];
 
     private string _currentPath = "";

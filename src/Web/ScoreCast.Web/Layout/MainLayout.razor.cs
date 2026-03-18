@@ -10,7 +10,6 @@ public partial class MainLayout : IDisposable
     [Inject] private IJSRuntime Js { get; set; } = null!;
 
     private bool _drawerOpen = false;
-    private bool _menuOpen = false;
     private bool _isMobile = false;
     private long _selectedRoleId;
     private bool _showBackButton;

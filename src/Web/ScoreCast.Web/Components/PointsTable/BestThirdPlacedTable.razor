@@ -3,12 +3,12 @@
     @* ── MOBILE: pill tabs (Short / Full) ── *@
     @if (IsMobile)
     {
-        <div style="display:flex;background:var(--mud-palette-dark);border-radius:20px;padding:3px;margin-bottom:10px;max-width:200px;">
+        <div style="display:flex;background:var(--mud-palette-dark);border-radius:18px;padding:3px;margin-bottom:10px;max-width:160px;">
             @foreach (var tab in new[] { "Short", "Full" })
             {
                 var isActive = _mobileTab == tab;
                 <div @onclick="@(() => _mobileTab = tab)"
-                     style="flex:1;text-align:center;padding:5px 0;border-radius:17px;font-size:0.75rem;font-weight:700;cursor:pointer;
+                     style="flex:1;text-align:center;padding:5px 0;border-radius:15px;font-size:0.7rem;font-weight:600;cursor:pointer;
                             background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
                             color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
                     @tab
