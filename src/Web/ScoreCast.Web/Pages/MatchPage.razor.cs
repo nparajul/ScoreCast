@@ -35,6 +35,8 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         StartPolling();
     }
 
+    private MatchPredictionResult? _prediction;
+
     private async Task LoadAsync()
     {
         var resp = await Api.GetMatchPageAsync(MatchId, CancellationToken.None);
@@ -43,7 +45,17 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
             _match = resp.Data;
             InitClock();
             _ = LoadTableAsync();
+            if (_match.Status == nameof(MatchStatus.Scheduled))
+                _ = LoadPredictionAsync();
         }
+    }
+
+    private async Task LoadPredictionAsync()
+    {
+        var resp = await Api.GetMatchPredictionAsync(MatchId, CancellationToken.None);
+        if (resp is { Success: true, Data: not null })
+            _prediction = resp.Data;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadTableAsync()
