@@ -24,7 +24,7 @@ public static class WebApplicationExtensions
             c.Endpoints.ShortNames = true;
             c.Endpoints.Configurator = ep =>
             {
-                ep.PreProcessor<KeycloakUserPreprocessor>(Order.Before);
+                ep.PreProcessor<FirebaseUserPreprocessor>(Order.Before);
             };
             c.Binding.UseDefaultValuesForNullableProps = false;
         }).UseSwaggerGen(opt => { }, uiConfig =>

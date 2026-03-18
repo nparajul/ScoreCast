@@ -2,6 +2,13 @@
     flex: 1;
 }
 
+/* Secondary text: replace opacity hacks with readable color */
+.mud-typography-caption[style*="opacity"],
+.mud-typography-body2[style*="opacity"] {
+    opacity: 1 !important;
+    color: var(--mud-palette-text-secondary) !important;
+}
+
 .main-container {
     min-height: 100%;
     margin-top: var(--mud-appbar-height);

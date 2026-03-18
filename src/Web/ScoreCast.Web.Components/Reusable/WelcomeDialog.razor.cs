@@ -8,7 +8,6 @@ public partial class WelcomeDialog
     [Parameter] public string? Username { get; set; }
     [Inject] private IScoreCastApiClient Api { get; set; } = null!;
 
-    private string? DisplayName { get; set; }
     private TeamResult? _selectedTeam;
     private List<TeamResult> _allTeams = [];
 
@@ -35,9 +34,9 @@ public partial class WelcomeDialog
         return Task.FromResult(results);
     }
 
-    private void Skip() => Dialog.Close(DialogResult.Ok(new WelcomeDialogResult(null, null)));
+    private void Skip() => Dialog.Close(DialogResult.Ok(new WelcomeDialogResult(null)));
 
-    private void Save() => Dialog.Close(DialogResult.Ok(new WelcomeDialogResult(DisplayName?.Trim(), _selectedTeam?.Name)));
+    private void Save() => Dialog.Close(DialogResult.Ok(new WelcomeDialogResult(_selectedTeam?.Name)));
 }
 
-public record WelcomeDialogResult(string? DisplayName, string? FavoriteTeam);
+public record WelcomeDialogResult(string? FavoriteTeam);

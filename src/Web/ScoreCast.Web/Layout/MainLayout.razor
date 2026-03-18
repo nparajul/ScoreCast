@@ -23,6 +23,8 @@
             <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
                            Color="Color.Inherit"
                            OnClick="GoBack"
+                           Class="d-flex d-md-none"
+                           Style="background:rgba(255,255,255,0.15);border-radius:50%;width:36px;height:36px;"
                            aria-label="Go back" />
         }
 
@@ -33,13 +35,17 @@
         <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="36" Height="36" Class="mr-2 d-none d-md-flex" />
         <MudText Typo="Typo.h6" Class="mr-4 d-none d-md-flex">ScoreCast</MudText>
 
-        <div class="d-none d-md-flex">
-            @foreach (var onePage in RoleNav.Pages.Where(p => p.ParentPageId is null))
-            {
-                <MudButton Href="@onePage.PageUrl" Color="Color.Inherit">@onePage.PageName</MudButton>
-            }
-            <MudButton Href="/insights" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.AutoAwesome">Insights</MudButton>
-        </div>
+        <AuthorizeView>
+            <Authorized>
+                <div class="d-none d-md-flex">
+                    @foreach (var onePage in RoleNav.Pages.Where(p => p.ParentPageId is null))
+                    {
+                        <MudButton Href="@onePage.PageUrl" Color="Color.Inherit">@onePage.PageName</MudButton>
+                    }
+                    <MudButton Href="/insights" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.AutoAwesome">Insights</MudButton>
+                </div>
+            </Authorized>
+        </AuthorizeView>
 
         <MudSpacer />
 
@@ -55,38 +61,60 @@
 
         <LoginDisplay Class="d-none d-md-flex" />
 
-        @* Mobile: hamburger that opens popup *@
-        <MudIconButton Icon="@Icons.Material.Filled.Menu"
-                       Color="Color.Inherit"
-                       OnClick="@(() => _menuOpen = !_menuOpen)"
-                       Class="d-flex d-md-none" />
+        @* Mobile: hamburger that opens popup (only when logged in) *@
+        <AuthorizeView>
+            <Authorized>
+                <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                               Color="Color.Inherit"
+                               OnClick="@(() => _menuOpen = !_menuOpen)"
+                               Class="d-flex d-md-none" />
+            </Authorized>
+        </AuthorizeView>
     </MudAppBar>
 
-    @* Mobile popup menu (FotMob-style) *@
+    @* Mobile popup menu — account & extras (nav items are in BottomNav) *@
     @if (_menuOpen)
     {
         <div class="menu-overlay d-flex d-md-none" @onclick="@(() => _menuOpen = false)"></div>
         <MudPaper Elevation="8" Class="menu-popup d-flex d-md-none rounded-lg">
             <div class="d-flex justify-space-between align-center mb-3">
-                <MudText Typo="Typo.h6" Style="font-weight:700;">More</MudText>
+                <MudText Typo="Typo.h6" Style="font-weight:700;">Account</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small"
                                OnClick="@(() => _menuOpen = false)" />
             </div>
+
+            <AuthorizeView>
+                <Authorized>
+                    <MudText Typo="Typo.body2" Class="mb-3" Style="opacity:0.7;">Signed in as @context.User.Identity?.Name</MudText>
+                </Authorized>
+            </AuthorizeView>
+
+            @if (RoleNav.Roles.Count > 1)
+            {
+                <MudText Typo="Typo.caption" Class="mb-1" Style="font-weight:600; opacity:0.6;">SWITCH ROLE</MudText>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    @foreach (var role in RoleNav.Roles)
+                    {
+                        <MudChip T="string" Color="@(role.Id == _selectedRoleId ? Color.Primary : Color.Default)"
+                                 OnClick="@(async () => { await OnRoleChanged(role.Id); _menuOpen = false; })">
+                            @role.Name
+                        </MudChip>
+                    }
+                </div>
+            }
+
             <div class="d-flex flex-wrap gap-2 justify-center">
-                @foreach (var onePage in RoleNav.Pages.Where(p => p.ParentPageId is null))
-                {
-                    <MudPaper Elevation="0" Class="pa-3 rounded-lg d-flex flex-column align-center"
-                              Style="width:90px; cursor:pointer; background:var(--mud-palette-background);"
-                              @onclick="@(() => { _menuOpen = false; Nav.NavigateTo(onePage.PageUrl ?? "/"); })">
-                        <MudIcon Icon="@Icons.Material.Filled.Link" Size="Size.Medium" Color="Color.Primary" Class="mb-1" />
-                        <MudText Typo="Typo.caption" Align="Align.Center" Style="font-weight:600; font-size:0.7rem;">@onePage.PageName</MudText>
-                    </MudPaper>
-                }
                 <MudPaper Elevation="0" Class="pa-3 rounded-lg d-flex flex-column align-center"
                           Style="width:90px; cursor:pointer; background:var(--mud-palette-background);"
                           @onclick="@(() => { _menuOpen = false; Nav.NavigateTo("/settings"); })">
                     <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Medium" Color="Color.Primary" Class="mb-1" />
                     <MudText Typo="Typo.caption" Align="Align.Center" Style="font-weight:600; font-size:0.7rem;">Settings</MudText>
+                </MudPaper>
+                <MudPaper Elevation="0" Class="pa-3 rounded-lg d-flex flex-column align-center"
+                          Style="width:90px; cursor:pointer; background:var(--mud-palette-background);"
+                          @onclick="@(() => { _menuOpen = false; Nav.NavigateTo("/logout"); })">
+                    <MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Medium" Color="Color.Error" Class="mb-1" />
+                    <MudText Typo="Typo.caption" Align="Align.Center" Style="font-weight:600; font-size:0.7rem;">Log out</MudText>
                 </MudPaper>
             </div>
         </MudPaper>
