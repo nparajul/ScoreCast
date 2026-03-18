@@ -8,5 +8,5 @@ public partial class LoginDisplay
     [Inject] private NavigationManager Navigation { get; set; } = null!;
 
     private void BeginLogout() =>
-        Navigation.NavigateTo("authentication/logout", replace: true);
+        Navigation.NavigateTo("/logout", replace: true);
 }
