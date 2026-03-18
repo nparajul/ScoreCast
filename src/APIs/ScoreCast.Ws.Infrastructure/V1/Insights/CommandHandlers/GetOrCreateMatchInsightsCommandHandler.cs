@@ -10,6 +10,7 @@ using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Enums;
 using ScoreCast.Ws.Application;
 using ScoreCast.Ws.Application.V1.Insights.Commands;
+using ScoreCast.Ws.Application.V1.Football.Queries;
 using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
 
@@ -69,6 +70,9 @@ internal sealed record GetOrCreateMatchInsightsCommandHandler(
         var headlines = headlinesTask.Result;
 
         var insights = matches.Select(m => BuildInsight(m, teamStats, standings)).ToList();
+
+        // Enrich with Poisson model predictions
+        await EnrichWithPoisson(matches, insights, ct);
 
         if (ChatClient is not null)
             await EnrichWithAi(matches, insights, teamStats, standings, h2hResults, headlines,
@@ -135,6 +139,27 @@ internal sealed record GetOrCreateMatchInsightsCommandHandler(
         var scored = r.HomeTeamId == teamId ? r.HomeScore ?? 0 : r.AwayScore ?? 0;
         var conceded = r.HomeTeamId == teamId ? r.AwayScore ?? 0 : r.HomeScore ?? 0;
         return scored > conceded ? "W" : scored == conceded ? "D" : "L";
+    }
+
+    private static async Task EnrichWithPoisson(List<MatchData> matches, List<MatchInsightResult> insights, CancellationToken ct)
+    {
+        var tasks = matches.Select(m => new GetMatchPredictionQuery(m.Id).ExecuteAsync(ct)).ToList();
+        var results = await Task.WhenAll(tasks);
+        for (var i = 0; i < results.Length && i < insights.Count; i++)
+        {
+            if (results[i] is not { Success: true, Data: { } p }) continue;
+            var top = p.TopScorelines.FirstOrDefault();
+            insights[i] = insights[i] with
+            {
+                HomeWinPct = p.HomeWinPct,
+                DrawPct = p.DrawPct,
+                AwayWinPct = p.AwayWinPct,
+                HomeXg = p.HomeExpectedGoals,
+                AwayXg = p.AwayExpectedGoals,
+                TopScoreline = top is not null ? $"{top.Home}-{top.Away}" : null,
+                TopScorelinePct = top?.Pct
+            };
+        }
     }
 
     private static MatchInsightResult BuildInsight(

@@ -14,4 +14,8 @@ public record MatchInsightResult(
     int HomeWinPct,
     int DrawPct,
     int AwayWinPct,
-    string? AiSummary);
+    string? AiSummary,
+    double? HomeXg = null,
+    double? AwayXg = null,
+    string? TopScoreline = null,
+    int? TopScorelinePct = null);
