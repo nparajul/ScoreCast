@@ -1,5 +1,15 @@
 @page "/authentication/{action}"
 
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject NavigationManager Nav
 
-<RemoteAuthenticatorView Action="@Action" />
+@code {
+    [Parameter] public string? Action { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (string.Equals(Action, "logout", StringComparison.OrdinalIgnoreCase))
+            Nav.NavigateTo("/login", replace: true);
+        else
+            Nav.NavigateTo("/", replace: true);
+    }
+}
