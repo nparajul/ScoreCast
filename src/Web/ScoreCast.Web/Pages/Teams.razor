@@ -25,6 +25,20 @@
                 </MudPaper>
             }
         </div>
+
+        @if (_hasMore)
+        {
+            <div class="d-flex justify-center mt-4 mb-2">
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                           OnClick="LoadMoreAsync" Disabled="_loadingMore">
+                    @if (_loadingMore)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    }
+                    Load More
+                </MudButton>
+            </div>
+        }
     }
     else if (!Loading.IsLoading)
     {
