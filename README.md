@@ -126,17 +126,20 @@ Run both projects:
 
 ## Data Sync
 
-Automated via GitHub Actions (`sync-jobs.yml`):
+Automated via separate GitHub Actions workflows (each with its own wake-up + retry logic):
 
-| Job | Schedule | Description |
+| Workflow | Schedule | Description |
 |---|---|---|
-| Sync Matches | Every 6 hours | Fixtures with scores and status |
-| Enhance Live | Every 2 min (12-23 UTC) | Real-time scores for live matches |
-| Calculate Points | Every 10 min (12-23 UTC) | Compute outcomes and user points |
-| Update Matchday | Every 10 min (12-23 UTC) | Update current matchday per season |
-| Generate Insights | Daily 6 AM UTC | AI match previews for upcoming gameweeks |
+| `sync-matches.yml` | Every 6 hours | Fixtures with scores and status |
+| `enhance-live.yml` | Every 2 min (12-23 UTC) | Real-time scores for live matches |
+| `calculate-points.yml` | Every 10 min (12-23 UTC) | Compute outcomes and user points |
+| `update-matchday.yml` | Every 10 min (12-23 UTC) | Update current matchday per season |
+| `generate-insights.yml` | Daily 6 AM UTC | AI match previews for upcoming gameweeks |
+| `sync-pl-events.yml` | Manual only | Sync PL match events (goals, cards, subs) |
 
-Manual sync available via admin page (`/master-data-sync`).
+Each workflow wakes the Render API independently before calling endpoints. Empty responses fail the job instead of silently succeeding.
+
+Manual sync also available via admin page (`/master-data-sync`).
 
 All jobs send `appName: "GITHUB-ACTIONS:<JOB-NAME>"` for audit trail.
 

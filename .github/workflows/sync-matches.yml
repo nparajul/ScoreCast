@@ -1,0 +1,56 @@
+name: Sync Matches
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+env:
+  API_BASE_URL: ${{ secrets.SCORECAST_API_URL }}
+  API_KEY: ${{ secrets.SCORECAST_API_KEY }}
+
+jobs:
+  sync-matches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake up API
+        run: |
+          for i in 1 2 3 4 5 6 7 8; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$API_BASE_URL/api/v1/health/")
+            echo "Attempt $i: HTTP $STATUS"
+            [ "$STATUS" = "200" ] && break
+            sleep 15
+          done
+          [ "$STATUS" = "200" ] || { echo "::error::API did not wake up"; exit 1; }
+
+      - name: Get competitions
+        id: competitions
+        run: |
+          for i in 1 2 3; do
+            RESPONSE=$(curl -s --max-time 30 -H "X-Api-Key: $API_KEY" "$API_BASE_URL/api/v1/football/competitions")
+            CODES=$(echo "$RESPONSE" | jq -r '.data[].code // empty' 2>/dev/null)
+            [ -n "$CODES" ] && break
+            echo "Attempt $i: empty response, retrying in 10s..."
+            sleep 10
+          done
+          if [ -z "$CODES" ]; then
+            echo "::error::No competitions returned after 3 attempts"
+            echo "Last response: $RESPONSE"
+            exit 1
+          fi
+          echo "codes=$CODES" >> $GITHUB_OUTPUT
+
+      - name: Sync matches per competition
+        run: |
+          FAILED=0
+          for CODE in ${{ steps.competitions.outputs.codes }}; do
+            echo "Syncing $CODE..."
+            RESULT=$(curl -s --max-time 120 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+              -d "{\"competitionCode\":\"$CODE\",\"appName\":\"GITHUB-ACTIONS:SYNC-MATCHES\"}" \
+              "$API_BASE_URL/api/v1/master-data/sync/matches")
+            SUCCESS=$(echo "$RESULT" | jq -r '.success // false' 2>/dev/null)
+            MSG=$(echo "$RESULT" | jq -r '.message // empty' 2>/dev/null)
+            echo "$CODE: success=$SUCCESS message=$MSG"
+            [ "$SUCCESS" != "true" ] && FAILED=1
+          done
+          [ "$FAILED" = "1" ] && { echo "::error::One or more competitions failed to sync"; exit 1; }
