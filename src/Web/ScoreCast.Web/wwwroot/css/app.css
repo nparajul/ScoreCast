@@ -153,6 +153,9 @@
 .bottom-nav-tab .bottom-nav-emoji {
     font-size: 1.2rem;
     line-height: 1;
+    height: 20px;
+    display: flex;
+    align-items: center;
 }
 
 .bottom-nav-label {
