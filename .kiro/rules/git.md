@@ -1,0 +1,2 @@
+- NEVER checkout, push to, merge into, reset, or otherwise modify the `cloudfare-dev` branch. This branch is managed exclusively outside of Kiro.
+- NEVER commit or push directly to `master`. Always create a feature branch, push it, and open a PR to `master`.
