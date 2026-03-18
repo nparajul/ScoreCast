@@ -1,5 +1,5 @@
-// Caution! Be sure you understand the caveats before publishing an application with
-// temporary caching. See https://aka.ms/blazor-offline/pwas
+// Network-first service worker for Blazor WASM PWA
+// Always fetches from network, falls back to cache for offline support
 
 self.importScripts('./service-worker-assets.js');
 self.addEventListener('install', event => event.waitUntil(onInstall(event)));
@@ -31,12 +31,19 @@ async function onActivate(event) {
 }
 
 async function onFetch(event) {
-    let cachedResponse = null;
-    if (event.request.method === 'GET') {
-        const shouldServeIndexHtml = event.request.mode === 'navigate';
-        const request = shouldServeIndexHtml ? 'index.html' : event.request;
+    if (event.request.method !== 'GET') return fetch(event.request);
+
+    const shouldServeIndexHtml = event.request.mode === 'navigate';
+    const request = shouldServeIndexHtml ? 'index.html' : event.request;
+
+    try {
+        // Network first
+        const networkResponse = await fetch(event.request);
+        return networkResponse;
+    } catch {
+        // Offline fallback to cache
         const cache = await caches.open(cacheName);
-        cachedResponse = await cache.match(request);
+        const cachedResponse = await cache.match(request);
+        return cachedResponse || new Response('Offline', { status: 503 });
     }
-    return cachedResponse || fetch(event.request);
 }
