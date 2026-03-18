@@ -62,8 +62,8 @@ public partial class UserSync : IDisposable
             var user = state.User;
             await Api.SyncUserAsync(new SyncUserRequest
             {
-                ChosenUsername = user.Identity?.Name ?? "",
-                Email = user.FindFirst("email")?.Value ?? "",
+                ChosenUsername = user.Identity?.Name ?? user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "",
+                Email = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "",
                 AppName = _appName
             }, CancellationToken.None);
 
@@ -79,15 +79,15 @@ public partial class UserSync : IDisposable
     private async Task ShowWelcomeDialog(string username)
     {
         var parameters = new DialogParameters<WelcomeDialog> { { x => x.Username, username } };
-        var options = new DialogOptions { CloseOnEscapeKey = false, BackdropClick = false, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var options = new DialogOptions { CloseOnEscapeKey = false, BackdropClick = false, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
         var dialog = await DialogService.ShowAsync<WelcomeDialog>("Welcome", parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false, Data: WelcomeDialogResult data }
-            && (!string.IsNullOrWhiteSpace(data.DisplayName) || !string.IsNullOrWhiteSpace(data.FavoriteTeam)))
+            && !string.IsNullOrWhiteSpace(data.FavoriteTeam))
         {
             await Loading.While(async () => await Api.UpdateMyProfileAsync(
-                new UpdateUserProfileRequest { DisplayName = data.DisplayName, FavoriteTeam = data.FavoriteTeam },
+                new UpdateUserProfileRequest { FavoriteTeam = data.FavoriteTeam },
                 CancellationToken.None));
         }
     }

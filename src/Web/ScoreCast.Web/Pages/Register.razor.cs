@@ -1,6 +1,8 @@
-using System.Text.RegularExpressions;
 using ScoreCast.Web.Auth;
 using ScoreCast.Web.Components.Helpers;
+using ScoreCast.Web.Validation;
+using ScoreCast.Web.Validation.Auth;
+using ScoreCast.Web.ViewModels.Auth;
 
 namespace ScoreCast.Web.Pages;
 
@@ -10,7 +12,9 @@ public partial class Register
     [Inject] private NavigationManager Nav { get; set; } = null!;
     [Inject] private ILoadingService Loading { get; set; } = null!;
 
-    private readonly RegisterModel _model = new();
+    private readonly RegisterViewModel _model = new();
+    private readonly Func<object, string, Task<IEnumerable<string>>> _validation = new RegisterViewModelValidator().ToMudValidation();
+    private MudForm _form = null!;
     private string? _error;
 
     protected override async Task OnInitializedAsync()
@@ -22,47 +26,30 @@ public partial class Register
 
     private async Task HandleRegister()
     {
-        _error = Validate();
-        if (_error is not null) return;
+        await _form.ValidateAsync();
+        if (!_form.IsValid) return;
 
-        (bool success, string? error) result = default;
+        _error = null;
+        AuthResult result = default!;
         await Loading.While(async () =>
-            result = await Auth.RegisterAsync(_model.Email, _model.Username, _model.Password));
+            result = await Auth.RegisterAsync(_model.Email, _model.Password, _model.Username));
 
-        if (result.success)
+        if (result.Success)
             Nav.NavigateTo("/dashboard", replace: true);
         else
-            _error = result.error;
+            _error = result.Error;
     }
 
-    private string? Validate()
+    private async Task HandleGoogleSignIn()
     {
-        if (_model.Password != _model.ConfirmPassword)
-            return "Passwords do not match";
-        if (_model.Password.Length < 8)
-            return "Password must be at least 8 characters";
-        if (_model.Password.Length > 128)
-            return "Password must be 128 characters or less";
-        if (!Regex.IsMatch(_model.Password, "[A-Z]"))
-            return "Password must contain at least 1 uppercase letter";
-        if (!Regex.IsMatch(_model.Password, "[a-z]"))
-            return "Password must contain at least 1 lowercase letter";
-        if (!Regex.IsMatch(_model.Password, "[0-9]"))
-            return "Password must contain at least 1 digit";
-        if (!Regex.IsMatch(_model.Password, @"[^a-zA-Z0-9]"))
-            return "Password must contain at least 1 special character";
-        if (_model.Password.Contains(_model.Username, StringComparison.OrdinalIgnoreCase))
-            return "Password cannot contain your username";
-        if (_model.Password.Contains(_model.Email, StringComparison.OrdinalIgnoreCase))
-            return "Password cannot contain your email";
-        return null;
-    }
+        _error = null;
+        AuthResult result = default!;
+        await Loading.While(async () =>
+            result = await Auth.SignInWithGoogleAsync());
 
-    private sealed class RegisterModel
-    {
-        public string Email { get; set; } = "";
-        public string Username { get; set; } = "";
-        public string Password { get; set; } = "";
-        public string ConfirmPassword { get; set; } = "";
+        if (result.Success)
+            Nav.NavigateTo("/dashboard", replace: true);
+        else if (result.Error != "Sign-in cancelled")
+            _error = result.Error;
     }
 }
