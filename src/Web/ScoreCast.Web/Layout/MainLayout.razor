@@ -55,11 +55,15 @@
 
         <LoginDisplay Class="d-none d-md-flex" />
 
-        @* Mobile: hamburger that opens popup *@
-        <MudIconButton Icon="@Icons.Material.Filled.Menu"
-                       Color="Color.Inherit"
-                       OnClick="@(() => _menuOpen = !_menuOpen)"
-                       Class="d-flex d-md-none" />
+        @* Mobile: hamburger that opens popup (only when logged in) *@
+        <AuthorizeView>
+            <Authorized>
+                <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                               Color="Color.Inherit"
+                               OnClick="@(() => _menuOpen = !_menuOpen)"
+                               Class="d-flex d-md-none" />
+            </Authorized>
+        </AuthorizeView>
     </MudAppBar>
 
     @* Mobile popup menu (FotMob-style) *@
