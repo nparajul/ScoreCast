@@ -65,12 +65,14 @@ jobs:
           for SID in ${{ steps.seasons.outputs.ids }}; do
             echo "Calculating season $SID..."
             for i in 1 2 3; do
-              RESULT=$(curl -s --max-time 60 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+              HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" --max-time 60 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
                 -d "{\"seasonId\":$SID,\"appName\":\"GITHUB-ACTIONS:CALCULATE-POINTS\"}" \
                 "$API_BASE_URL/api/v1/prediction/calculate-outcomes")
+              RESULT=$(cat /tmp/response.json)
               SUCCESS=$(echo "$RESULT" | jq -r '.success // false' 2>/dev/null)
               MSG=$(echo "$RESULT" | jq -r '.message // empty' 2>/dev/null)
-              echo "Attempt $i - Season $SID: success=$SUCCESS message=$MSG"
+              echo "Attempt $i - Season $SID: HTTP $HTTP_CODE success=$SUCCESS message=$MSG"
+              if [ "$SUCCESS" != "true" ] && [ -n "$RESULT" ]; then echo "Raw: $RESULT"; fi
               if [ "$SUCCESS" = "true" ]; then break; fi
               sleep 5
             done
