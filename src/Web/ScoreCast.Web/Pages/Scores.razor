@@ -2,14 +2,16 @@
 
 <PageGuard>
 <div>
-    <div style="position:sticky;top:0;z-index:10;background:var(--mud-palette-background);padding-bottom:2px;">
+    <div style="position:sticky;top:var(--mud-appbar-height);z-index:10;background:var(--mud-palette-background);padding:4px 0 2px;">
         <MudContainer MaxWidth="MaxWidth.Medium">
-            <div class="d-flex align-center justify-space-between mb-1">
-                <MudText Typo="Typo.h6" Style="font-weight:700;">Scores & Fixtures</MudText>
-
+            <MudText Typo="Typo.h6" Class="mb-1" Style="font-weight:700;">Scores & Fixtures</MudText>
+            <div class="d-flex flex-wrap align-center gap-2 mb-3">
+                <div style="flex:1;min-width:0;">
+                    <CompetitionFilter OnStateChanged="OnFilterChanged" />
+                </div>
                 @if (_gameweek is not null)
                 {
-                    <div class="d-flex align-center gap-1">
+                    <div class="d-flex align-center gap-0" style="flex-shrink:0;">
                         <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="PreviousGameweek"
                                        Disabled="@(_gameweek.GameweekNumber <= 1)" Size="Size.Small" />
                         <MudChip T="string" Color="Color.Primary" Size="Size.Small"
@@ -21,7 +23,6 @@
                     </div>
                 }
             </div>
-            <CompetitionFilter OnStateChanged="OnFilterChanged" />
         </MudContainer>
     </div>
 

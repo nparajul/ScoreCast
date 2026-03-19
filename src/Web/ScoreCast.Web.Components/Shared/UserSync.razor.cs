@@ -51,7 +51,25 @@ public partial class UserSync : IDisposable
         try
         {
             ScoreCastResponse<UserProfileResult>? profile = null;
-            await Loading.While(async () => profile = await Api.GetMyProfileAsync(CancellationToken.None));
+            await Loading.While(async () =>
+            {
+                for (var i = 1; i <= 3; i++)
+                {
+                    try
+                    {
+                        profile = await Api.GetMyProfileAsync(CancellationToken.None);
+                        return;
+                    }
+                    catch (HttpRequestException) when (i < 3)
+                    {
+                        await Task.Delay(2000);
+                    }
+                    catch (TaskCanceledException) when (i < 3)
+                    {
+                        await Task.Delay(2000);
+                    }
+                }
+            }, "Connecting to server...");
 
             if (profile is { Success: true })
             {
@@ -60,10 +78,15 @@ public partial class UserSync : IDisposable
             }
 
             var user = state.User;
+            var email = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            var displayName = user.Identity?.Name;
+            var username = displayName ?? email.Split('@')[0];
+
             await Api.SyncUserAsync(new SyncUserRequest
             {
-                ChosenUsername = user.Identity?.Name ?? user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "",
-                Email = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "",
+                ChosenUsername = username,
+                Email = email,
+                DisplayName = displayName,
                 AppName = _appName
             }, CancellationToken.None);
 

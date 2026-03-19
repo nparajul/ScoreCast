@@ -5,26 +5,26 @@
 <PageGuard>
 @if (_team is not null)
 {
-<div style="display:flex;flex-direction:column;height:calc(100vh - var(--mud-appbar-height));margin-bottom:-48px;overflow:hidden;">
-    <div style="flex-shrink:0;">
-        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-1">
+<div>
+    <div style="position:sticky;top:var(--mud-appbar-height);z-index:10;background:var(--mud-palette-background);padding:4px 0 2px;">
+        <MudContainer MaxWidth="MaxWidth.Medium">
             <div class="d-flex align-center gap-3 mb-2">
                 @if (_team.LogoUrl is not null)
                 {
-                    <img src="@_team.LogoUrl" alt="" style="width:@(IsMobile ? "48" : "64")px;height:@(IsMobile ? "48" : "64")px;" />
+                    <img src="@_team.LogoUrl" alt="" style="width:@(IsMobile ? "40" : "56")px;height:@(IsMobile ? "40" : "56")px;" />
                 }
                 <div>
-                    <MudText Typo="Typo.h5" Style="font-weight:700;">@_team.Name</MudText>
+                    <MudText Typo="@(IsMobile ? Typo.h6 : Typo.h5)" Style="font-weight:700;">@_team.Name</MudText>
                     @if (_team.Venue is not null)
                     {
-                        <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">🏟️ @_team.Venue</MudText>
+                        <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);font-size:12px;">🏟️ @_team.Venue</MudText>
                     }
                 </div>
             </div>
 
             @if (IsMobile)
             {
-                <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:3px;margin-bottom:10px;overflow-x:auto;">
+                <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:3px;margin-bottom:6px;overflow-x:auto;">
                     @foreach (var tab in _tabs)
                     {
                         var isActive = _activeTab == tab;
@@ -49,8 +49,7 @@
         </MudContainer>
     </div>
 
-    <div style="flex:1;overflow-y:auto;padding:4px 0 8px;">
-        <MudContainer MaxWidth="MaxWidth.Medium">
+    <MudContainer MaxWidth="MaxWidth.Medium" Style="padding-top:4px;padding-bottom:100px;">
         @if (_activeTab == "Overview")
         {
             @* Club Info *@
@@ -248,8 +247,7 @@
                 }
             }
         }
-        </MudContainer>
-    </div>
+    </MudContainer>
 </div>
 }
 else if (!Loading.IsLoading)
