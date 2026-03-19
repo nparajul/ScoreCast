@@ -5,7 +5,10 @@
     .insight-match {
         border-top: 1px solid var(--mud-palette-lines-default);
         padding: 10px 14px;
+        cursor: pointer;
+        transition: background 0.12s;
     }
+    .insight-match:active { background: rgba(255,255,255,0.04); }
     .insight-teams {
         display: flex;
         align-items: center;
@@ -97,7 +100,7 @@
 
                 @foreach (var m in _insights)
                 {
-                    <div class="insight-match">
+                    <div class="insight-match" @onclick="@(() => Nav.NavigateTo($"/matches/{m.MatchId}"))">
                         <div class="insight-teams">
                             <a href="/teams/@m.HomeTeamId" class="insight-team">
                                 @if (m.HomeTeamLogo is not null)

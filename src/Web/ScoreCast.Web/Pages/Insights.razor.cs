@@ -10,6 +10,7 @@ public partial class Insights : ScoreCastComponentBase
 {
     [Inject] private IScoreCastApiClient Api { get; set; } = null!;
     [Inject] private ILoadingService Loading { get; set; } = null!;
+    [Inject] private NavigationManager Nav { get; set; } = null!;
 
     private List<CompetitionResult> _competitions = [];
     private CompetitionResult? _selectedCompetition;
