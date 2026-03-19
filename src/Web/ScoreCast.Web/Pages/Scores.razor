@@ -1,57 +1,56 @@
 @page "/scores"
 
 <PageGuard>
-<div style="display:flex;flex-direction:column;height:calc(100vh - var(--mud-appbar-height));margin-bottom:-48px;overflow:hidden;">
-    <div style="flex-shrink:0;">
+<div>
+    <div style="position:sticky;top:0;z-index:10;background:var(--mud-palette-background);padding-bottom:2px;">
         <MudContainer MaxWidth="MaxWidth.Medium">
-            <MudText Typo="Typo.h5" Class="mb-2" Style="font-weight:700;">Scores & Fixtures</MudText>
+            <div class="d-flex align-center justify-space-between mb-1">
+                <MudText Typo="Typo.h6" Style="font-weight:700;">Scores & Fixtures</MudText>
+
+                @if (_gameweek is not null)
+                {
+                    <div class="d-flex align-center gap-1">
+                        <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="PreviousGameweek"
+                                       Disabled="@(_gameweek.GameweekNumber <= 1)" Size="Size.Small" />
+                        <MudChip T="string" Color="Color.Primary" Size="Size.Small"
+                                 Style="font-weight:700;font-size:12px;">
+                            MW @_gameweek.GameweekNumber
+                        </MudChip>
+                        <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="NextGameweek"
+                                       Disabled="@(_gameweek.GameweekNumber >= _gameweek.TotalGameweeks)" Size="Size.Small" />
+                    </div>
+                }
+            </div>
             <CompetitionFilter OnStateChanged="OnFilterChanged" />
         </MudContainer>
+    </div>
 
+    <MudContainer MaxWidth="MaxWidth.Medium" Style="padding-top:4px;padding-bottom:100px;">
         @if (_gameweek is not null)
         {
-            <MudContainer MaxWidth="MaxWidth.Medium">
-                <div class="d-flex align-center justify-center gap-2 mb-1 mt-1">
-                    <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="PreviousGameweek"
-                                   Disabled="@(_gameweek.GameweekNumber <= 1)" Size="@(IsMobile ? Size.Medium : Size.Large)" />
-                    <MudChip T="string" Color="Color.Primary" Style="@($"font-weight:700;font-size:{(IsMobile ? "13" : "15")}px;")">
-                        Matchweek @_gameweek.GameweekNumber
-                    </MudChip>
-                    <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="NextGameweek"
-                                   Disabled="@(_gameweek.GameweekNumber >= _gameweek.TotalGameweeks)" Size="@(IsMobile ? Size.Medium : Size.Large)" />
-                </div>
-            </MudContainer>
-        }
-    </div>
-
-    <div id="scores-scroll-area" style="flex:1;overflow-y:auto;padding:4px 0 8px;">
-        <MudContainer MaxWidth="MaxWidth.Medium">
-            @if (_gameweek is not null)
+            @foreach (var group in GetMatchesByDate())
             {
-                @foreach (var group in GetMatchesByDate())
-                {
-                    <MudPaper Class="mb-3" Elevation="1" Style="border-radius:10px;overflow:hidden;">
-                        <div id="@group.AnchorId" style="padding:@(IsMobile ? "8px 10px 4px" : "12px 14px 6px");font-weight:700;font-size:@(IsMobile ? "13" : "15")px;text-align:center;">
-                            @group.Label
-                        </div>
-                        <MudDivider />
+                <MudPaper Class="mb-3" Elevation="1" Style="border-radius:10px;overflow:hidden;">
+                    <div id="@group.AnchorId" style="padding:@(IsMobile ? "8px 10px 4px" : "12px 14px 6px");font-weight:700;font-size:@(IsMobile ? "13" : "15")px;text-align:center;">
+                        @group.Label
+                    </div>
+                    <MudDivider />
 
-                        @foreach (var match in group.Matches)
+                    @foreach (var match in group.Matches)
+                    {
+                        <MatchTile Match="MatchTileModel.From(match)" IsExpanded="_expandedMatches.Contains(match.MatchId)" OnToggle="() => ToggleMatch(match.MatchId)" />
+                        @if (match != group.Matches.Last())
                         {
-                            <MatchTile Match="MatchTileModel.From(match)" IsExpanded="_expandedMatches.Contains(match.MatchId)" OnToggle="() => ToggleMatch(match.MatchId)" />
-                            @if (match != group.Matches.Last())
-                            {
-                                <MudDivider />
-                            }
+                            <MudDivider />
                         }
-                    </MudPaper>
-                }
+                    }
+                </MudPaper>
             }
-            else if (_selectedSeason is not null && !Loading.IsLoading)
-            {
-                <MudAlert Severity="Severity.Info">No match data available. Sync matches first.</MudAlert>
-            }
-        </MudContainer>
-    </div>
+        }
+        else if (_selectedSeason is not null && !Loading.IsLoading)
+        {
+            <MudAlert Severity="Severity.Info">No match data available. Sync matches first.</MudAlert>
+        }
+    </MudContainer>
 </div>
 </PageGuard>

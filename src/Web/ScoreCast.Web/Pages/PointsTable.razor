@@ -3,71 +3,72 @@
 @using ScoreCast.Shared.Enums
 
 <PageGuard>
+<div>
+    <div style="position:sticky;top:0;z-index:10;background:var(--mud-palette-background);padding-bottom:2px;">
+        <MudContainer MaxWidth="MaxWidth.Medium">
+            <MudText Typo="Typo.h6" Class="mb-1" Style="font-weight:700;">Points Table</MudText>
+            <CompetitionFilter OnStateChanged="OnFilterChanged" />
+        </MudContainer>
+    </div>
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-1">
-    <MudText Typo="Typo.h5" Class="mb-3" Style="font-weight:700;">Points Table</MudText>
-
-    <CompetitionFilter OnStateChanged="OnFilterChanged" />
-</MudContainer>
-
-<MudContainer MaxWidth="MaxWidth.Large">
-
-    @if (_result is not null && _result.Groups.Count > 0)
-    {
-        @if (!IsGroupFormat)
+    <MudContainer MaxWidth="MaxWidth.Large" Style="padding-top:4px;padding-bottom:100px;">
+        @if (_result is not null && _result.Groups.Count > 0)
         {
-            <LeagueTableView Rows="_result.Groups[0].Rows" Zones="_zones" />
-        }
-        else
-        {
-            @* ── MOBILE: pill tabs ── *@
-            @if (IsMobile)
+            @if (!IsGroupFormat)
             {
-                <div style="display:flex;background:var(--mud-palette-dark);border-radius:20px;padding:3px;margin-bottom:12px;">
-                    @foreach (var tab in new[] { "Groups", "Best 3rd", "Knockout" })
-                    {
-                        var isActive = _groupTab == tab;
-                        <div @onclick="@(() => _groupTab = tab)"
-                             style="flex:1;text-align:center;padding:5px 0;border-radius:17px;font-size:0.75rem;font-weight:600;cursor:pointer;
-                                    background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
-                                    color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
-                            @tab
-                        </div>
-                    }
-                </div>
-
-                @if (_groupTab == "Groups")
-                {
-                    <GroupStageView Groups="_result.Groups" Zones="_zones" />
-                }
-                else if (_groupTab == "Best 3rd")
-                {
-                    <BestThirdPlacedTable Rows="_result.BestThirdPlaced" />
-                }
-                else
-                {
-                    <KnockoutBracket Bracket="_bracket" />
-                }
+                <LeagueTableView Rows="_result.Groups[0].Rows" Zones="_zones" />
             }
             else
             {
-                <MudTabs Elevation="1" Rounded="true" ApplyEffectsToContainer="true" Class="mt-0">
-                    <MudTabPanel Text="Group Stage" Icon="@Icons.Material.Filled.Groups">
+                @* ── MOBILE: pill tabs ── *@
+                @if (IsMobile)
+                {
+                    <div style="display:flex;background:var(--mud-palette-dark);border-radius:20px;padding:3px;margin-bottom:12px;">
+                        @foreach (var tab in new[] { "Groups", "Best 3rd", "Knockout" })
+                        {
+                            var isActive = _groupTab == tab;
+                            <div @onclick="@(() => _groupTab = tab)"
+                                 style="flex:1;text-align:center;padding:5px 0;border-radius:17px;font-size:0.75rem;font-weight:600;cursor:pointer;
+                                        background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
+                                        color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
+                                @tab
+                            </div>
+                        }
+                    </div>
+
+                    @if (_groupTab == "Groups")
+                    {
                         <GroupStageView Groups="_result.Groups" Zones="_zones" />
-                    </MudTabPanel>
-                    <MudTabPanel Text="Best 3rd Placed" Icon="@Icons.Material.Filled.EmojiEvents">
+                    }
+                    else if (_groupTab == "Best 3rd")
+                    {
                         <BestThirdPlacedTable Rows="_result.BestThirdPlaced" />
-                    </MudTabPanel>
-                    <MudTabPanel Text="Knockout" Icon="@Icons.Material.Filled.AccountTree">
+                    }
+                    else
+                    {
                         <KnockoutBracket Bracket="_bracket" />
-                    </MudTabPanel>
-                </MudTabs>
+                    }
+                }
+                else
+                {
+                    <MudTabs Elevation="1" Rounded="true" ApplyEffectsToContainer="true" Class="mt-0">
+                        <MudTabPanel Text="Group Stage" Icon="@Icons.Material.Filled.Groups">
+                            <GroupStageView Groups="_result.Groups" Zones="_zones" />
+                        </MudTabPanel>
+                        <MudTabPanel Text="Best 3rd Placed" Icon="@Icons.Material.Filled.EmojiEvents">
+                            <BestThirdPlacedTable Rows="_result.BestThirdPlaced" />
+                        </MudTabPanel>
+                        <MudTabPanel Text="Knockout" Icon="@Icons.Material.Filled.AccountTree">
+                            <KnockoutBracket Bracket="_bracket" />
+                        </MudTabPanel>
+                    </MudTabs>
+                }
             }
         }
-    }
-    else if (_selectedSeason is not null && !Loading.IsLoading)
-    {
-        <MudAlert Severity="Severity.Info">No match data available for this season. Sync matches first.</MudAlert>
-    }
-</MudContainer>
+        else if (_result is not null && _result.Groups.Count == 0)
+        {
+            <MudAlert Severity="Severity.Info">No table data available for this season.</MudAlert>
+        }
+    </MudContainer>
+</div>
 </PageGuard>
