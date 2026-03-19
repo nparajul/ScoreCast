@@ -15,41 +15,24 @@ public partial class PredictGameweek
     [Inject] private IAlertService Alert { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
 
-    [Parameter] public string? CompetitionCode { get; set; }
-    [SupplyParameterFromQuery] public long? SeasonId { get; set; }
+    [Parameter] public long SeasonId { get; set; }
 
     private GameweekMatchesResult? _gameweek;
     private List<PredictionMatchViewModel> _matches = [];
     private List<ScoringRuleResult> _scoringRules = [];
-    private long _seasonId;
-    private string? _competitionName;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
+
+        if (SeasonId <= 0)
+        {
+            Nav.NavigateTo("/dashboard");
+            return;
+        }
+
         await Loading.While(async () =>
         {
-            var code = CompetitionCode ?? CompetitionCodes.PremierLeague;
-
-            if (SeasonId is > 0)
-            {
-                _seasonId = SeasonId.Value;
-            }
-            else
-            {
-                var seasonsResponse = await Api.GetSeasonsAsync(code, CancellationToken.None);
-                var season = seasonsResponse?.Data?.FirstOrDefault(s => s.IsCurrent);
-                if (season is null)
-                {
-                    Alert.Add("No active season found", Severity.Error);
-                    return;
-                }
-                _seasonId = season.Id;
-            }
-
-            var compResponse = await Api.GetCompetitionsAsync(CancellationToken.None);
-            _competitionName = compResponse?.Data?.FirstOrDefault(c => c.Code == code)?.Name;
-
             var rulesResponse = await Api.GetScoringRulesAsync(CancellationToken.None);
             if (rulesResponse is { Success: true, Data: not null })
                 _scoringRules = rulesResponse.Data;
@@ -61,13 +44,13 @@ public partial class PredictGameweek
 
     private async Task LoadGameweek(int gameweekNumber)
     {
-        var response = await Api.GetGameweekMatchesAsync(_seasonId, gameweekNumber, CancellationToken.None);
+        var response = await Api.GetGameweekMatchesAsync(SeasonId, gameweekNumber, CancellationToken.None);
         if (response is { Success: true, Data: not null })
         {
             _gameweek = response.Data;
             _matches = _gameweek.Matches.Select(PredictionMatchViewModel.FromMatch).ToList();
 
-            var predictionsResponse = await Api.GetMyPredictionsAsync(_seasonId, _gameweek.GameweekId, CancellationToken.None);
+            var predictionsResponse = await Api.GetMyPredictionsAsync(SeasonId, _gameweek.GameweekId, CancellationToken.None);
             if (predictionsResponse is { Success: true, Data: not null })
             {
                 foreach (var prediction in predictionsResponse.Data)
@@ -121,7 +104,7 @@ public partial class PredictGameweek
         await Loading.While(async () =>
         {
             var response = await Api.SubmitPredictionsAsync(
-                new SubmitPredictionsRequest { SeasonId = _seasonId, Predictions = entries },
+                new SubmitPredictionsRequest { SeasonId = SeasonId, Predictions = entries },
                 CancellationToken.None);
 
             if (response is { Success: true })

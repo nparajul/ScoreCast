@@ -3,18 +3,18 @@
 <PageGuard>
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
 
-    @if (_predictionTiles.Count > 0)
+    @if (_userSeasons.Count > 0)
     {
         <MudText Typo="Typo.h5" Style="font-weight:700;text-align:center;" Class="mb-3">Predictions</MudText>
         <div class="d-flex flex-wrap justify-center gap-3 mb-6">
-            @foreach (var tile in _predictionTiles)
+            @foreach (var us in _userSeasons)
             {
                 <MudPaper Elevation="3" Class="rounded-xl overflow-hidden d-flex flex-column prediction-tile"
                           Style="text-align:center;color:white;">
-                    @if (tile.LogoUrl is not null)
+                    @if (us.CompetitionLogoUrl is not null)
                     {
                         <div style="background:rgba(255,255,255,0.95);padding:12px 0;display:flex;align-items:center;justify-content:center;">
-                            <MudImage Src="@tile.LogoUrl" Width="56" Height="56" ObjectFit="ObjectFit.Contain" />
+                            <MudImage Src="@us.CompetitionLogoUrl" Width="56" Height="56" ObjectFit="ObjectFit.Contain" />
                         </div>
                     }
                     else
@@ -25,16 +25,16 @@
                     }
                     <div class="pa-3 d-flex flex-column align-center flex-grow-1"
                          style="background:linear-gradient(135deg, var(--mud-palette-tertiary) 0%, var(--mud-palette-primary) 100%);">
-                        <MudText Typo="Typo.body2" Style="font-weight:700;color:white;line-height:1.2;">@tile.CompetitionName</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:700;color:white;line-height:1.2;">@us.CompetitionName</MudText>
                         <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
                                  Style="color:rgba(255,255,255,0.85);border-color:rgba(255,255,255,0.4);font-weight:600;font-size:0.7rem;"
                                  Class="mt-1 mb-2">
-                            @tile.SeasonName Season
+                            @us.SeasonName Season
                         </MudChip>
                         <MudButton Variant="Variant.Filled" Size="Size.Small" FullWidth="true"
                                    Style="background:white;color:var(--mud-palette-tertiary);font-weight:700;border-radius:8px;font-size:0.75rem;"
                                    StartIcon="@Icons.Material.Filled.SportsSoccer"
-                                   OnClick="@(() => NavigateToPredict(tile.CompetitionCode, tile.SeasonId))">
+                                   OnClick="@(() => Nav.NavigateTo($"/predict/{us.SeasonId}"))">
                             Predict
                         </MudButton>
                     </div>
@@ -152,7 +152,7 @@
                    ToStringFunc="@(c => c?.Name ?? "")">
             @foreach (var comp in _competitions)
             {
-                var isActive = _predictionTiles.Any(t => t.CompetitionId == comp.Id);
+                var isActive = _userSeasons.Any(us => us.CompetitionId == comp.Id);
                 <MudSelectItem T="CompetitionResult" Value="comp" Disabled="isActive">
                     @comp.Name @(isActive ? "(Already Active)" : "")
                 </MudSelectItem>
