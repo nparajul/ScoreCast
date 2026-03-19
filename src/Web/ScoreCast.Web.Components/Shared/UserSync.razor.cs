@@ -51,7 +51,25 @@ public partial class UserSync : IDisposable
         try
         {
             ScoreCastResponse<UserProfileResult>? profile = null;
-            await Loading.While(async () => profile = await Api.GetMyProfileAsync(CancellationToken.None));
+            await Loading.While(async () =>
+            {
+                for (var i = 1; i <= 3; i++)
+                {
+                    try
+                    {
+                        profile = await Api.GetMyProfileAsync(CancellationToken.None);
+                        return;
+                    }
+                    catch (HttpRequestException) when (i < 3)
+                    {
+                        await Task.Delay(2000);
+                    }
+                    catch (TaskCanceledException) when (i < 3)
+                    {
+                        await Task.Delay(2000);
+                    }
+                }
+            }, "Connecting to server...");
 
             if (profile is { Success: true })
             {
