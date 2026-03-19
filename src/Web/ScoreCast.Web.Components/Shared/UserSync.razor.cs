@@ -78,10 +78,15 @@ public partial class UserSync : IDisposable
             }
 
             var user = state.User;
+            var email = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            var displayName = user.Identity?.Name;
+            var username = displayName ?? email.Split('@')[0];
+
             await Api.SyncUserAsync(new SyncUserRequest
             {
-                ChosenUsername = user.Identity?.Name ?? user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "",
-                Email = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "",
+                ChosenUsername = username,
+                Email = email,
+                DisplayName = displayName,
                 AppName = _appName
             }, CancellationToken.None);
 
