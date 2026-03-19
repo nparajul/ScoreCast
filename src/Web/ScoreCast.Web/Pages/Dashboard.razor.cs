@@ -42,13 +42,17 @@ public partial class Dashboard
             if (competitionsResponse is { Success: true, Data: not null })
                 _competitions = competitionsResponse.Data;
 
-            // Build prediction tiles from distinct competitions in user's leagues
-            _predictionTiles = _leagues
-                .GroupBy(l => l.CompetitionId)
-                .Select(g => g.First())
-                .Select(l => new PredictionTile(l.CompetitionId, l.CompetitionName, l.CompetitionCode,
-                    l.CompetitionLogoUrl, l.SeasonId, l.SeasonName))
-                .ToList();
+            // Build prediction tiles from all competitions with current seasons
+            foreach (var comp in _competitions)
+            {
+                var seasonsResponse = await Api.GetSeasonsAsync(comp.Code, CancellationToken.None);
+                var currentSeason = seasonsResponse?.Data?.FirstOrDefault(s => s.IsCurrent);
+                if (currentSeason is not null)
+                {
+                    _predictionTiles.Add(new PredictionTile(comp.Id, comp.Name, comp.Code,
+                        comp.LogoUrl, currentSeason.Id, currentSeason.Name));
+                }
+            }
 
             _initialized = true;
         });
@@ -95,12 +99,6 @@ public partial class Dashboard
             {
                 var isNewCompetition = _predictionTiles.All(t => t.CompetitionId != response.Data.CompetitionId);
                 _leagues.Add(response.Data);
-                _predictionTiles = _leagues
-                    .GroupBy(l => l.CompetitionId)
-                    .Select(g => g.First())
-                    .Select(l => new PredictionTile(l.CompetitionId, l.CompetitionName, l.CompetitionCode,
-                        l.CompetitionLogoUrl, l.SeasonId, l.SeasonName))
-                    .ToList();
 
                 if (isNewCompetition)
                     Alert.Add($"Joined '{response.Data.Name}'! This is a {response.Data.CompetitionName} league — head to Predict Now to start making predictions.", Severity.Info);
