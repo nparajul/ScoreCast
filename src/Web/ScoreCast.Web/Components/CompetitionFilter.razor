@@ -1,21 +1,21 @@
-<div class="d-flex flex-column flex-md-row gap-2 mb-3 filter-bar">
+<div class="d-flex flex-wrap gap-2 mb-3 filter-bar" style="align-items:center;">
     <MudSelect T="string"
                Label="Country"
                Value="_selectedCountry"
                Variant="Variant.Outlined"
                Dense="true"
                Margin="Margin.Dense"
-               Style="min-width:0;max-width:300px;"
+               Style="min-width:90px;max-width:140px;flex:1;"
                ValueChanged="OnCountryChanged">
         @foreach (var country in _countries)
         {
             <MudSelectItem T="string" Value="@country.Name">
-                <div class="d-flex align-center gap-2">
+                <div class="d-flex align-center gap-1">
                     @if (!string.IsNullOrEmpty(country.FlagUrl))
                     {
-                        <img src="@country.FlagUrl" alt="" style="width:20px;height:14px;" />
+                        <img src="@country.FlagUrl" alt="" style="width:18px;height:13px;" />
                     }
-                    @country.Name
+                    <span style="font-size:13px;">@country.Name</span>
                 </div>
             </MudSelectItem>
         }
@@ -28,18 +28,18 @@
                Variant="Variant.Outlined"
                Dense="true"
                Margin="Margin.Dense"
-               Style="min-width:0;max-width:350px;"
+               Style="min-width:110px;max-width:200px;flex:1.5;"
                Disabled="@(_filteredCompetitions.Count == 0)"
                ValueChanged="OnCompetitionChanged">
         @foreach (var comp in _filteredCompetitions)
         {
             <MudSelectItem T="CompetitionResult" Value="comp">
-                <div class="d-flex align-center gap-2">
+                <div class="d-flex align-center gap-1">
                     @if (!string.IsNullOrEmpty(comp.LogoUrl))
                     {
-                        <img src="@comp.LogoUrl" alt="" style="width:20px;height:20px;" />
+                        <img src="@comp.LogoUrl" alt="" style="width:18px;height:18px;" />
                     }
-                    @comp.Name
+                    <span style="font-size:13px;">@comp.Name</span>
                 </div>
             </MudSelectItem>
         }
@@ -51,13 +51,15 @@
                Variant="Variant.Outlined"
                Dense="true"
                Margin="Margin.Dense"
-               Style="min-width:0;max-width:250px;"
+               Style="min-width:80px;max-width:130px;flex:1;"
                Disabled="@(_seasons.Count == 0)"
                ValueChanged="OnSeasonChanged"
                ToStringFunc="@(s => s?.Name ?? string.Empty)">
         @foreach (var season in _seasons)
         {
-            <MudSelectItem T="SeasonResult" Value="season">@season.Name</MudSelectItem>
+            <MudSelectItem T="SeasonResult" Value="season">
+                <span style="font-size:13px;">@season.Name</span>
+            </MudSelectItem>
         }
     </MudSelect>
 </div>

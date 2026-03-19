@@ -15,6 +15,7 @@ public partial class Teams
     private List<TeamResult> _teams = [];
     private bool _hasMore;
     private bool _loadingMore;
+    private CancellationTokenSource? _searchCts;
 
     protected override async Task OnInitializedAsync()
     {
@@ -29,15 +30,21 @@ public partial class Teams
 
     private async Task SearchAsync(bool reset)
     {
+        _searchCts?.Cancel();
+        var cts = new CancellationTokenSource();
+        _searchCts = cts;
+
         if (reset)
             _teams = [];
 
         await Loading.While(async () =>
         {
-            var response = await Api.SearchTeamsAsync(_search, _teams.Count, PageSize, CancellationToken.None);
+            var response = await Api.SearchTeamsAsync(_search, _teams.Count, PageSize, cts.Token);
+            if (cts.Token.IsCancellationRequested) return;
             if (response is { Success: true, Data: not null })
             {
-                _teams.AddRange(response.Data.Teams);
+                if (reset) _teams = [.. response.Data.Teams];
+                else _teams.AddRange(response.Data.Teams);
                 _hasMore = response.Data.HasMore;
             }
             else

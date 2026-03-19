@@ -144,7 +144,7 @@ public partial class Scores : IDisposable
             var anchor = _scrollToAnchor;
             _scrollToAnchor = null;
             await Js.InvokeVoidAsync("eval",
-                $"(function(){{var c=document.getElementById('scores-scroll-area');var e=document.getElementById('{anchor}');if(c&&e){{var r=e.getBoundingClientRect();var cr=c.getBoundingClientRect();c.scrollTop+=r.top-cr.top;}}}})()");
+                $"document.getElementById('{anchor}')?.scrollIntoView({{behavior:'smooth',block:'start'}})");
         }
     }
 }
