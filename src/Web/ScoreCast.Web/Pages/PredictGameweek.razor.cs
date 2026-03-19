@@ -3,6 +3,7 @@ using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Models.V1.Responses.Prediction;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Web.Components.Helpers;
+using ScoreCast.Web.Validation.Prediction;
 using ScoreCast.Web.ViewModels;
 
 namespace ScoreCast.Web.Pages;
@@ -84,10 +85,23 @@ public partial class PredictGameweek
     {
         if (_gameweek is null) return;
 
-        var validationError = PredictionMatchViewModel.Validate(_matches);
-        if (validationError is not null)
+        var validator = new PredictionMatchViewModelValidator();
+        var errors = _matches.Where(m => !m.IsLocked)
+            .SelectMany(m => validator.Validate(m).Errors)
+            .Select(e => e.ErrorMessage)
+            .Distinct()
+            .ToList();
+
+        if (errors.Count > 0)
         {
-            Alert.Add(validationError, Severity.Error);
+            Alert.Add(string.Join(" ", errors), Severity.Error);
+            return;
+        }
+
+        var missing = _matches.Count(m => !m.IsLocked && !m.HasPrediction);
+        if (missing > 0)
+        {
+            Alert.Add($"Please enter predictions for all matches ({missing} remaining)", Severity.Error);
             return;
         }
 
