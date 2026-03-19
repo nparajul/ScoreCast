@@ -59,15 +59,21 @@ internal sealed record GetOrCreateMatchInsightsCommandHandler(
         var h2hResults = await GetH2HResults(teamIds, ct);
         var teamStats = BuildTeamStats(teamIds, recentResults);
 
-        // Scrape real standings + news from BBC
+        // Get standings from our own points table (accurate, no scraping)
+        var standings = new Dictionary<string, StandingRow>(StringComparer.OrdinalIgnoreCase);
+        var tableResp = await new GetPointsTableQuery(request.SeasonId).ExecuteAsync(ct);
+        if (tableResp is { Success: true, Data: not null })
+        {
+            foreach (var group in tableResp.Data.Groups)
+                foreach (var row in group.Rows)
+                    standings.TryAdd(row.TeamName, new StandingRow(row.Position, row.Played, row.Won, row.Drawn, row.Lost, row.GoalDifference, row.Points));
+        }
+
+        // Scrape headlines from BBC for news context
         var bbcSlug = GetBbcSlug(season.Competition.Code);
         var bbcBaseUrl = Configuration["Scraping:BbcBaseUrl"] ?? "https://www.bbc.co.uk/sport/football";
         var http = HttpClientFactory.CreateClient();
-        var standingsTask = ScrapeStandings(http, bbcBaseUrl, bbcSlug, ct);
-        var headlinesTask = ScrapeHeadlines(http, bbcBaseUrl, bbcSlug, ct);
-        await Task.WhenAll(standingsTask, headlinesTask);
-        var standings = standingsTask.Result;
-        var headlines = headlinesTask.Result;
+        var headlines = await ScrapeHeadlines(http, bbcBaseUrl, bbcSlug, ct);
 
         var insights = matches.Select(m => BuildInsight(m, teamStats, standings)).ToList();
 
@@ -271,6 +277,7 @@ internal sealed record GetOrCreateMatchInsightsCommandHandler(
         List<ResultData> h2hResults, List<string> headlines,
         string competitionName, CancellationToken ct)
     {
+        var totalTeams = standings.Count;
         var matchContext = insights.Select((ins, i) =>
         {
             var m = matches[i];
@@ -280,8 +287,8 @@ internal sealed record GetOrCreateMatchInsightsCommandHandler(
 
             var hStand = FindStanding(standings, m.HomeName, m.HomeShort);
             var aStand = FindStanding(standings, m.AwayName, m.AwayShort);
-            var hPos = hStand is not null ? $"#{hStand.Position} ({hStand.Points}pts, W{hStand.Won} D{hStand.Drawn} L{hStand.Lost}, GD {hStand.GoalDiff:+0;-0})" : "N/A";
-            var aPos = aStand is not null ? $"#{aStand.Position} ({aStand.Points}pts, W{aStand.Won} D{aStand.Drawn} L{aStand.Lost}, GD {aStand.GoalDiff:+0;-0})" : "N/A";
+            var hPos = hStand is not null ? $"#{hStand.Position}/{totalTeams} ({hStand.Points}pts, W{hStand.Won} D{hStand.Drawn} L{hStand.Lost}, GD {hStand.GoalDiff:+0;-0})" : "N/A";
+            var aPos = aStand is not null ? $"#{aStand.Position}/{totalTeams} ({aStand.Points}pts, W{aStand.Won} D{aStand.Drawn} L{aStand.Lost}, GD {aStand.GoalDiff:+0;-0})" : "N/A";
 
             var h2h = h2hResults
                 .Where(r => (r.HomeTeamId == m.HomeId && r.AwayTeamId == m.AwayId)
@@ -308,13 +315,18 @@ internal sealed record GetOrCreateMatchInsightsCommandHandler(
         var prompt = $"""
 You are a sharp, opinionated football pundit covering {competitionName}. For each match below, write a bold 2-3 sentence preview that a fan would actually want to read.
 
-RULES:
-- Be SPECIFIC: reference actual form runs ("3 wins in a row"), league positions, goal differences, H2H patterns
-- Be OPINIONATED: pick a likely winner or explain why it's a genuine toss-up. Don't sit on the fence
-- Reference NEWS if relevant: injuries, suspensions, managerial changes, transfer drama from the headlines
-- Mention STAKES: title race, top 4, relegation, European spots — whatever applies to these teams
+CRITICAL — ACCURACY RULES (violating these makes the output useless):
+- The league positions and points shown in brackets are REAL and CURRENT — use them exactly as given
+- A team in 20th place is in a RELEGATION battle, not "fighting for mid-table security"
+- A team in 1st-2nd is in a TITLE RACE. 3rd-6th is fighting for CHAMPIONS LEAGUE/EUROPA spots. 17th-20th is in a RELEGATION fight
+- NEVER invent or assume league positions — only reference what the data shows
+- If a team's position is "N/A", don't mention their league position at all
+
+STYLE RULES:
+- Be SPECIFIC: reference actual form runs ("3 wins in a row"), exact league positions, goal differences, H2H patterns
+- Be OPINIONATED: pick a likely winner or explain why it's a genuine toss-up
+- Reference NEWS if relevant: injuries, suspensions, managerial changes from the headlines
 - NEVER use generic filler like "this promises to be an exciting clash" or "both teams will be looking to"
-- Each preview should feel different — vary your sentence structure and angle
 - Keep it punchy: max 3 sentences, no fluff
 
 Return ONLY a JSON array of strings, one per match, same order. No markdown, no code fences.
