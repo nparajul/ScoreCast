@@ -26,20 +26,42 @@ jobs:
             exit 1
           fi
 
-      - name: Enhance live matches
+      - name: Get live seasons
+        id: seasons
         run: |
           for i in 1 2 3; do
-            HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" --max-time 120 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
-              -d '{"appName":"GITHUB-ACTIONS:ENHANCE-LIVE"}' \
-              "$API_BASE_URL/api/v1/master-data/enhance-live")
-            RESULT=$(cat /tmp/response.json)
-            SUCCESS=$(echo "$RESULT" | jq -r '.success // false' 2>/dev/null)
-            MSG=$(echo "$RESULT" | jq -r '.message // empty' 2>/dev/null)
-            echo "Attempt $i: HTTP $HTTP_CODE success=$SUCCESS message=$MSG"
-            if [ "$SUCCESS" = "true" ]; then break; fi
+            RESPONSE=$(curl -s --max-time 30 -H "X-Api-Key: $API_KEY" "$API_BASE_URL/api/v1/master-data/enhance-live/seasons")
+            IDS=$(echo "$RESPONSE" | jq -r '.data[]' 2>/dev/null | tr '\n' ' ' | xargs)
+            if [ -n "$IDS" ]; then break; fi
+            echo "Attempt $i: empty response, retrying..."
             sleep 5
           done
-          if [ "$SUCCESS" != "true" ]; then
-            echo "::error::enhance-live failed: $MSG"
+          if [ -z "$IDS" ]; then
+            echo "::error::No live seasons returned"
+            exit 1
+          fi
+          echo "Season IDs: $IDS"
+          echo "ids=$IDS" >> $GITHUB_OUTPUT
+
+      - name: Enhance per season
+        run: |
+          FAILED=0
+          for SID in ${{ steps.seasons.outputs.ids }}; do
+            echo "Enhancing season $SID..."
+            for i in 1 2 3; do
+              HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" --max-time 120 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+                -d "{\"seasonId\":$SID,\"appName\":\"GITHUB-ACTIONS:ENHANCE-LIVE\"}" \
+                "$API_BASE_URL/api/v1/master-data/enhance-live")
+              RESULT=$(cat /tmp/response.json)
+              SUCCESS=$(echo "$RESULT" | jq -r '.success // false' 2>/dev/null)
+              MSG=$(echo "$RESULT" | jq -r '.message // empty' 2>/dev/null)
+              echo "Attempt $i - Season $SID: HTTP $HTTP_CODE success=$SUCCESS message=$MSG"
+              if [ "$SUCCESS" = "true" ]; then break; fi
+              sleep 5
+            done
+            if [ "$SUCCESS" != "true" ]; then FAILED=1; fi
+          done
+          if [ "$FAILED" = "1" ]; then
+            echo "::error::One or more seasons failed"
             exit 1
           fi
