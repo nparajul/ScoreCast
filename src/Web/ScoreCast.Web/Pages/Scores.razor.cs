@@ -132,8 +132,18 @@ public partial class Scores : IDisposable
     private void QueueScrollToFocusGroup()
     {
         if (_gameweek is null) return;
+
+        // Don't scroll if all matches are finished
+        if (_gameweek.Matches.All(m => m.Status == nameof(MatchStatus.Finished))) return;
+
         var groups = GetMatchesByDate();
-        var target = groups.FirstOrDefault(g => g.Label == "Today") ?? groups.FirstOrDefault();
+        var today = ScoreCastDateTime.Now.Date;
+
+        // Priority: Today > Tomorrow > next upcoming date
+        var target = groups.FirstOrDefault(g => g.Label == "Today")
+            ?? groups.FirstOrDefault(g => g.Label == "Tomorrow")
+            ?? groups.FirstOrDefault(g => g.Matches.Any(m => m.KickoffTime.HasValue && DateOnly.FromDateTime(m.KickoffTime.Value.ToLocalTime()) >= today));
+
         _scrollToAnchor = target?.AnchorId;
     }
 
@@ -143,6 +153,7 @@ public partial class Scores : IDisposable
         {
             var anchor = _scrollToAnchor;
             _scrollToAnchor = null;
+            await Task.Delay(100);
             await Js.InvokeVoidAsync("eval",
                 $"document.getElementById('{anchor}')?.scrollIntoView({{behavior:'smooth',block:'start'}})");
         }
