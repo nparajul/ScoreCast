@@ -117,10 +117,12 @@
     <BottomNav />
 
     <MudOverlay Visible="Loading.IsLoading" DarkBackground="true" ZIndex="9999">
-        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-        <MudText Typo="Typo.body1" Class="mt-4" Color="Color.Surface">
-            @(Loading.LoadingMessage ?? "Loading...")
-        </MudText>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+            <img src="scorecast-icon.svg" alt="" width="56" height="56" style="animation:pulse 1.5s ease-in-out infinite;" />
+            <MudText Typo="Typo.body2" Class="mt-3" Color="Color.Surface">
+                @(Loading.LoadingMessage ?? "Loading...")
+            </MudText>
+        </div>
     </MudOverlay>
 </MudLayout>
 </MudBreakpointProvider>
