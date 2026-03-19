@@ -78,6 +78,7 @@ public partial class PredictGameweek
                         match.PredictedHomeScore = prediction.PredictedHomeScore;
                         match.PredictedAwayScore = prediction.PredictedAwayScore;
                         match.Outcome = prediction.Outcome?.ToString();
+                        match.HasSavedPrediction = true;
                     }
                 }
             }
@@ -124,7 +125,11 @@ public partial class PredictGameweek
                 CancellationToken.None);
 
             if (response is { Success: true })
+            {
+                foreach (var m in _matches.Where(m => !m.IsLocked && m.HasPrediction))
+                    m.HasSavedPrediction = true;
                 Alert.Add(response.Message ?? "Predictions saved!", Severity.Success);
+            }
             else
                 Alert.Add(response?.Message ?? "Failed to save predictions", Severity.Error);
         });
