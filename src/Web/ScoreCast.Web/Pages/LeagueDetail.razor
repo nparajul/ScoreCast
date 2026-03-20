@@ -12,7 +12,7 @@
         <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center gap-2 mb-4">
             <div>
                 <MudText Typo="Typo.h5" Style="font-weight:700;">@_standings.LeagueName</MudText>
-                <MudText Typo="Typo.caption" Color="Color.Secondary">@_standings.Standings.Count member@(_standings.Standings.Count != 1 ? "s" : "")</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@_standings.Standings.Count member@(_standings.Standings.Count != 1 ? "s" : "")@(_standings.StartingGameweekNumber > 1 ? $" · Since GW{_standings.StartingGameweekNumber}" : "")</MudText>
             </div>
             <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Size="Size.Small"
                        StartIcon="@Icons.Material.Filled.Edit"

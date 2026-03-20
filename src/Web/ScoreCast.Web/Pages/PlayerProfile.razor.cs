@@ -26,6 +26,7 @@ public partial class PlayerProfile : ScoreCastComponentBase
     private bool _predictionsVisible;
     private bool _riskPlaysVisible;
     private long _seasonId;
+    private int _startingGwNumber = 1;
     private bool _showBreakdown;
     private readonly HashSet<string> _expandedRules = [];
 
@@ -39,6 +40,7 @@ public partial class PlayerProfile : ScoreCastComponentBase
             var standingsResponse = await Api.GetLeagueStandingsAsync(LeagueId, CancellationToken.None);
             if (standingsResponse is not { Success: true, Data: not null }) { Nav.NavigateTo($"/dashboard/{LeagueId}"); return; }
             _seasonId = standingsResponse.Data.SeasonId;
+            _startingGwNumber = standingsResponse.Data.StartingGameweekNumber ?? 1;
 
             var profileTask = Api.GetPlayerProfileAsync(UserId, LeagueId, CancellationToken.None);
             var rulesTask = Api.GetScoringRulesAsync(CancellationToken.None);
@@ -101,7 +103,7 @@ public partial class PlayerProfile : ScoreCastComponentBase
 
     private async Task PreviousGameweek()
     {
-        if (_gameweek is null || _gameweek.GameweekNumber <= 1) return;
+        if (_gameweek is null || _gameweek.GameweekNumber <= _startingGwNumber) return;
         await Loading.While(async () => await LoadGameweek(_gameweek.GameweekNumber - 1));
         StateHasChanged();
     }

@@ -90,7 +90,7 @@
 
             <div class="d-flex align-center justify-center gap-3 mb-3">
                 <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Size="Size.Small"
-                               Disabled="@(_gameweek.GameweekNumber <= 1)"
+                               Disabled="@(_gameweek.GameweekNumber <= _startingGwNumber)"
                                OnClick="PreviousGameweek" />
                 <MudText Typo="Typo.h6">Gameweek @_gameweek.GameweekNumber</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small"

@@ -19,10 +19,12 @@ internal sealed class PredictionLeagueEntityConfiguration : BaseEntityConfigurat
         builder.Property(p => p.CompetitionId).HasColumnName("competition_id").HasColumnOrder(order++).IsRequired();
         builder.Property(p => p.SeasonId).HasColumnName("season_id").HasColumnOrder(order++).IsRequired();
         builder.Property(p => p.CreatedByUserId).HasColumnName("created_by_user_id").HasColumnOrder(order++).IsRequired();
+        builder.Property(p => p.StartingGameweekId).HasColumnName("starting_gameweek_id").HasColumnOrder(order++);
 
         builder.HasOne(p => p.Competition).WithMany().HasForeignKey(p => p.CompetitionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(p => p.Season).WithMany().HasForeignKey(p => p.SeasonId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(p => p.CreatedByUser).WithMany().HasForeignKey(p => p.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(p => p.StartingGameweek).WithMany().HasForeignKey(p => p.StartingGameweekId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(p => p.InviteCode).IsUnique();
     }
 }
