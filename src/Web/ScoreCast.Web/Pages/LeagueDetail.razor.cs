@@ -1,11 +1,11 @@
 using ScoreCast.Models.V1.Responses.Prediction;
+using ScoreCast.Web.Components;
 using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
 
-public partial class LeagueDetail
+public partial class LeagueDetail : ScoreCastComponentBase
 {
-    private const string _appName = "LEAGUE DETAIL";
     [Parameter] public long LeagueId { get; set; }
     [Inject] private IScoreCastApiClient Api { get; set; } = null!;
     [Inject] private ILoadingService Loading { get; set; } = null!;
@@ -30,5 +30,5 @@ public partial class LeagueDetail
         StateHasChanged();
     }
 
-    private void NavigateToPredict() => Nav.NavigateTo("/predict");
+    private void NavigateToPredict() => Nav.NavigateTo("/dashboard");
 }

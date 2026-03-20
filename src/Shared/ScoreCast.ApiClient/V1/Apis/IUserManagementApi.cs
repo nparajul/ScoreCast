@@ -16,6 +16,9 @@ public partial interface IScoreCastApiClient
     [Put("/api/v1/users/me")]
     Task<ScoreCastResponse<UserProfileResult>> UpdateMyProfileAsync([Body] UpdateUserProfileRequest request, CancellationToken ct);
 
+    [Put("/api/v1/users/me/username")]
+    Task<ScoreCastResponse<UserProfileResult>> SetUsernameAsync([Body] SetUsernameRequest request, CancellationToken ct);
+
     [Get("/api/v1/users/me/roles")]
     Task<ScoreCastResponse<List<RoleResult>>> GetMyRolesAsync(CancellationToken ct);
 

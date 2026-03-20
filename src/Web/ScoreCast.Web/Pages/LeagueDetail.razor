@@ -21,38 +21,53 @@
             </MudButton>
         </div>
 
-        <MudTable Items="@_standings.Standings" Hover="true" Elevation="1" Dense="true" Class="rounded-lg">
-            <HeaderContent>
-                <MudTh Style="width:50px;">#</MudTh>
-                <MudTh>Player</MudTh>
-                <MudTh Style="text-align:center;">Pts</MudTh>
-                <MudTh Style="text-align:center;">Exact</MudTh>
-                <MudTh Style="text-align:center;">Correct</MudTh>
-                <MudTh Style="text-align:center;">Played</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd Style="font-weight:700;">@((_standings.Standings.IndexOf(context) + 1))</MudTd>
-                <MudTd>
-                    <div class="d-flex align-center gap-2">
-                        <MudAvatar Size="Size.Small">
-                            @if (context.AvatarUrl is not null)
-                            {
-                                <MudImage Src="@context.AvatarUrl" />
-                            }
-                            else
-                            {
-                                <MudIcon Icon="@Icons.Material.Filled.Person" />
-                            }
-                        </MudAvatar>
-                        @context.DisplayName
-                    </div>
-                </MudTd>
-                <MudTd Style="text-align:center;font-weight:700;font-size:16px;">@context.TotalPoints</MudTd>
-                <MudTd Style="text-align:center;">@context.ExactScores</MudTd>
-                <MudTd Style="text-align:center;">@context.CorrectResults</MudTd>
-                <MudTd Style="text-align:center;">@context.PredictionCount</MudTd>
-            </RowTemplate>
-        </MudTable>
+        <MudSimpleTable Dense="true" Elevation="1" Style="border-radius:12px;">
+            <thead>
+                <tr style="font-size:0.75rem;color:var(--mud-palette-text-secondary);">
+                    <th style="padding:8px 4px;text-align:left;width:20px;">#</th>
+                    <th style="padding:8px 4px;text-align:left;">Player</th>
+                    <th style="padding:8px 4px;text-align:center;width:30px;font-weight:700;">Pts</th>
+                    @if (!IsMobile)
+                    {
+                        <th style="padding:8px 4px;text-align:center;width:40px;">Exact</th>
+                        <th style="padding:8px 4px;text-align:center;width:50px;">Correct</th>
+                    }
+                    <th style="padding:8px 4px;text-align:center;width:30px;">P</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ var rank = 0; }
+                @foreach (var row in _standings.Standings)
+                {
+                    rank++;
+                    <tr style="font-size:0.875rem;border-bottom:1px solid var(--mud-palette-lines-default);">
+                        <td style="padding:10px 4px;font-weight:600;">@rank</td>
+                        <td style="padding:10px 4px;">
+                            <div class="d-flex align-center gap-2">
+                                <MudAvatar Size="Size.Small" Style="width:28px;height:28px;font-size:14px;">
+                                    @if (row.AvatarUrl is not null)
+                                    {
+                                        <MudImage Src="@row.AvatarUrl" />
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                                    }
+                                </MudAvatar>
+                                <span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:@(IsMobile ? "120px" : "none");">@row.DisplayName</span>
+                            </div>
+                        </td>
+                        <td style="padding:10px 4px;text-align:center;font-weight:700;font-size:16px;">@row.TotalPoints</td>
+                        @if (!IsMobile)
+                        {
+                            <td style="padding:10px 4px;text-align:center;">@row.ExactScores</td>
+                            <td style="padding:10px 4px;text-align:center;">@row.CorrectResults</td>
+                        }
+                        <td style="padding:10px 4px;text-align:center;">@row.PredictionCount</td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
     }
 </MudContainer>
 </PageGuard>

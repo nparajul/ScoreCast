@@ -80,15 +80,16 @@ public partial class UserSync : IDisposable
             var user = state.User;
             var email = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
             var displayName = user.Identity?.Name;
-            var username = displayName ?? email.Split('@')[0];
 
-            await Api.SyncUserAsync(new SyncUserRequest
+            var syncResult = await Api.SyncUserAsync(new SyncUserRequest
             {
-                ChosenUsername = username,
                 Email = email,
                 DisplayName = displayName,
                 AppName = _appName
             }, CancellationToken.None);
+
+            if (syncResult is { Success: true, Data.IsNewUser: true })
+                await ShowUsernameDialog();
 
             await RoleNav.LoadRolesAsync();
             await ShowWelcomeDialog(user.Identity?.Name ?? "");
@@ -97,6 +98,13 @@ public partial class UserSync : IDisposable
         {
             await Alert.ShowDialogForException(ex, Severity.Error);
         }
+    }
+
+    private async Task ShowUsernameDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = false, BackdropClick = false, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<UsernameDialog>("Username", options);
+        await dialog.Result;
     }
 
     private async Task ShowWelcomeDialog(string username)
