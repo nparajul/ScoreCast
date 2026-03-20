@@ -14,7 +14,8 @@ public record ScoringBreakdown(string Label, int Points, int Count, int Total, s
         {
             var matching = predicted.Where(m => m.Outcome == rule.Outcome)
                 .Select(m => new MatchBreakdownItem(
-                    m.HomeTeamShortName ?? "?", m.AwayTeamShortName ?? "?",
+                    m.HomeTeamId, m.HomeTeamShortName ?? "?",
+                    m.AwayTeamId, m.AwayTeamShortName ?? "?",
                     m.HomeTeamLogo, m.AwayTeamLogo,
                     m.PredictedHomeScore ?? 0, m.PredictedAwayScore ?? 0,
                     m.HomeScore ?? 0, m.AwayScore ?? 0, rule.Points))
@@ -35,5 +36,5 @@ public record ScoringBreakdown(string Label, int Points, int Count, int Total, s
 }
 
 public record MatchBreakdownItem(
-    string Home, string Away, string? HomeLogo, string? AwayLogo,
+    long HomeTeamId, string Home, long AwayTeamId, string Away, string? HomeLogo, string? AwayLogo,
     int PredHome, int PredAway, int ActualHome, int ActualAway, int Points);
