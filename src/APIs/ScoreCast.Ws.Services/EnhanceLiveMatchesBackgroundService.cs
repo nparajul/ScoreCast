@@ -10,11 +10,9 @@ public sealed class EnhanceLiveMatchesBackgroundService(ILogger<EnhanceLiveMatch
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Wait for app startup
         await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
 
-        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(2));
-        while (await timer.WaitForNextTickAsync(stoppingToken))
+        while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
@@ -32,6 +30,8 @@ public sealed class EnhanceLiveMatchesBackgroundService(ILogger<EnhanceLiveMatch
             {
                 logger.LogError(ex, "EnhanceLive background failed");
             }
+
+            await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
         }
     }
 }
