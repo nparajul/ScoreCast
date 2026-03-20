@@ -49,6 +49,15 @@
 
         <MudSpacer />
 
+        <AuthorizeView>
+            <Authorized>
+                <MudIconButton Icon="@Icons.Material.Filled.Search"
+                               Color="Color.Inherit"
+                               OnClick="OpenSearch"
+                               aria-label="Search" />
+            </Authorized>
+        </AuthorizeView>
+
         @if (RoleNav.Roles.Count > 1)
         {
             <select @onchange="OnRoleChangedFromSelect" class="d-none d-md-inline" style="background:transparent; color:inherit; border:1px solid rgba(255,255,255,0.3); border-radius:4px; padding:4px 8px; margin-right:8px;">
