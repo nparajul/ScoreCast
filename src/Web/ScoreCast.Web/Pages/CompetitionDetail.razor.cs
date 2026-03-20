@@ -141,7 +141,6 @@ public partial class CompetitionDetail : ScoreCastComponentBase
         {
             "Goals" => _playerStats.Rows.OrderByDescending(p => p.Goals).Take(20).Select(p => new PlayerStatDisplay(p.PlayerName, p.TeamLogo, p.Goals)).ToList(),
             "Assists" => _playerStats.Rows.OrderByDescending(p => p.Assists).Take(20).Select(p => new PlayerStatDisplay(p.PlayerName, p.TeamLogo, p.Assists)).ToList(),
-            "Clean Sheets" => _playerStats.Rows.Where(p => p.CleanSheets > 0).OrderByDescending(p => p.CleanSheets).Take(20).Select(p => new PlayerStatDisplay(p.PlayerName, p.TeamLogo, p.CleanSheets)).ToList(),
             _ => []
         };
     }
