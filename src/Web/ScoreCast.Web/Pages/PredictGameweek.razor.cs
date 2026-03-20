@@ -18,6 +18,7 @@ public partial class PredictGameweek
     [Inject] private IAlertService Alert { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
     [Inject] private IClientTimeProvider ClientTime { get; set; } = null!;
+    [Inject] private IDialogService Dialog { get; set; } = null!;
 
     [Parameter] public long SeasonId { get; set; }
 
@@ -161,6 +162,16 @@ public partial class PredictGameweek
                 PredictedAwayScore = m.PredictedAwayScore!.Value
             })
             .ToList();
+
+        // Nudge if no risk plays active
+        if (!_riskPlays.Any(r => r.IsActive))
+        {
+            var proceed = await Dialog.ShowMessageBoxAsync(
+                "No Risk Plays? 🎲",
+                "Playing it safe? Risk plays can earn you bonus points — or cost you. Are you brave enough?",
+                "Save without risks", cancelText: "Let me add some");
+            if (proceed != true) { _showRiskPlays = true; return; }
+        }
 
         await Loading.While(async () =>
         {
