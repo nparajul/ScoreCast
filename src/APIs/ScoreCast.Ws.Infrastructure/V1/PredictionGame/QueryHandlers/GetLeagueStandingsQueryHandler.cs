@@ -38,7 +38,7 @@ internal sealed record GetLeagueStandingsQueryHandler(
             .Where(p => p.SeasonId == league.SeasonId
                         && memberUserIds.Contains(p.UserId)
                         && p.Outcome != null)
-            .Select(p => new { p.UserId, p.Outcome })
+            .Select(p => new { p.UserId, p.Outcome, GameweekId = p.Match!.GameweekId })
             .ToListAsync(ct);
 
         var predictionStats = predictions
@@ -48,7 +48,7 @@ internal sealed record GetLeagueStandingsQueryHandler(
                 TotalPoints = g.Sum(p => scoringRules.GetValueOrDefault(p.Outcome!.Value, 0)),
                 ExactScores = g.Count(p => p.Outcome == PredictionOutcome.ExactScore),
                 CorrectResults = g.Count(p => p.Outcome == PredictionOutcome.CorrectResult),
-                Count = g.Count()
+                Count = g.Select(p => p.GameweekId).Distinct().Count()
             });
 
         var standings = members
