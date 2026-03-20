@@ -22,6 +22,13 @@ public partial class PredictGameweek
     private GameweekMatchesResult? _gameweek;
     private List<PredictionMatchViewModel> _matches = [];
     private List<ScoringRuleResult> _scoringRules = [];
+    private bool _showBreakdown;
+    private readonly HashSet<string> _expandedRules = [];
+
+    private void ToggleRule(string label)
+    {
+        if (!_expandedRules.Remove(label)) _expandedRules.Add(label);
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

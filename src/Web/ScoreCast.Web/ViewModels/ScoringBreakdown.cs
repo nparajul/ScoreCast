@@ -2,7 +2,7 @@ using ScoreCast.Models.V1.Responses.Prediction;
 
 namespace ScoreCast.Web.ViewModels;
 
-public record ScoringBreakdown(string Label, int Points, int Count, int Total, string CssClass)
+public record ScoringBreakdown(string Label, int Points, int Count, int Total, string CssClass, List<MatchBreakdownItem> Matches)
 {
     public static List<ScoringBreakdown> Calculate(
         List<PredictionMatchViewModel> matches,
@@ -12,8 +12,14 @@ public record ScoringBreakdown(string Label, int Points, int Count, int Total, s
 
         return rules.Select(rule =>
         {
-            var count = predicted.Count(m => m.Outcome == rule.Outcome);
-            return new ScoringBreakdown(rule.Description, rule.Points, count, count * rule.Points, GetCssClass(rule.Outcome));
+            var matching = predicted.Where(m => m.Outcome == rule.Outcome)
+                .Select(m => new MatchBreakdownItem(
+                    m.HomeTeamShortName ?? "?", m.AwayTeamShortName ?? "?",
+                    m.HomeTeamLogo, m.AwayTeamLogo,
+                    m.PredictedHomeScore ?? 0, m.PredictedAwayScore ?? 0,
+                    m.HomeScore ?? 0, m.AwayScore ?? 0, rule.Points))
+                .ToList();
+            return new ScoringBreakdown(rule.Description, rule.Points, matching.Count, matching.Count * rule.Points, GetCssClass(rule.Outcome), matching);
         }).ToList();
     }
 
@@ -27,3 +33,7 @@ public record ScoringBreakdown(string Label, int Points, int Count, int Total, s
         _ => ""
     };
 }
+
+public record MatchBreakdownItem(
+    string Home, string Away, string? HomeLogo, string? AwayLogo,
+    int PredHome, int PredAway, int ActualHome, int ActualAway, int Points);
