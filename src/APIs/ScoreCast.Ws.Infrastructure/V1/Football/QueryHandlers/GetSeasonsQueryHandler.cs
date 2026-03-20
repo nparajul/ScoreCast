@@ -14,7 +14,8 @@ internal sealed record GetSeasonsQueryHandler(
     {
         var seasons = await DbContext.Seasons
             .AsNoTracking()
-            .Where(s => s.Competition.Code == query.CompetitionCode)
+            .Where(s => s.Competition.Code == query.CompetitionCode
+                        && s.Gameweeks.Any(gw => gw.Matches.Any()))
             .OrderByDescending(s => s.StartDate)
             .Select(s => new SeasonResult(s.Id, s.Name, s.StartDate, s.EndDate, s.IsCurrent))
             .ToListAsync(ct);
