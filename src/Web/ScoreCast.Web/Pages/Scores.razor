@@ -80,7 +80,7 @@
                                                 <img src="@match.HomeTeamLogo" alt="" style="width:24px;height:24px;" />
                                             }
                                         </a>
-                                        <div style="min-width:60px;text-align:center;">
+                                        <a href="/matches/@match.MatchId" style="min-width:60px;text-align:center;text-decoration:none;color:inherit;">
                                             <div style="font-size:12px;font-weight:600;color:var(--mud-palette-text-secondary);">
                                                 @if (match.KickoffTime.HasValue)
                                                 {
@@ -91,7 +91,7 @@
                                                     <text>TBD</text>
                                                 }
                                             </div>
-                                        </div>
+                                        </a>
                                         <a href="/teams/@match.AwayTeamId" style="flex:1;display:flex;align-items:center;gap:4px;color:inherit;text-decoration:none;">
                                             @if (!string.IsNullOrEmpty(match.AwayTeamLogo))
                                             {
