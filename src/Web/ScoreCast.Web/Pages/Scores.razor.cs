@@ -133,6 +133,18 @@ public partial class Scores : ScoreCastComponentBase, IDisposable
             _expandedMatches.Add(matchId);
     }
 
+    private MarkupString FormatDate(DateTime utc)
+    {
+        var local = ClientTime.ToLocal(utc);
+        var date = DateOnly.FromDateTime(local);
+        var today = ClientTime.Today;
+        var label = date == today ? "Today"
+            : date == today.AddDays(1) ? "Tomorrow"
+            : date == today.AddDays(-1) ? "Yesterday"
+            : date.ToString("dd MMM");
+        return new MarkupString($"{label}<br />{local:HH:mm}");
+    }
+
     private void StartPolling()
     {
         _pollCts?.Cancel();
