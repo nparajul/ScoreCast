@@ -58,7 +58,7 @@ internal sealed record CalculateOutcomesCommandHandler(
                     .Select(g => g.Sum(p => scoringRules.GetValueOrDefault(p.Outcome!.Value)))
                     .ToListAsync(ct);
 
-                user.CurrentStreak = gwPoints.Count > 0 ? gwPoints.Max() : 0;
+                user.BestGameweek = gwPoints.Count > 0 ? gwPoints.Max() : 0;
             }
         }
 

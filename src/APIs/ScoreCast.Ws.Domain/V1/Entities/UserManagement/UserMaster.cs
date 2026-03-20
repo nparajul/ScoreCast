@@ -11,8 +11,7 @@ public sealed record UserMaster : ScoreCastEntity
     public string? AvatarUrl { get; set; }
     public string? FavoriteTeam { get; set; }
     public int TotalPoints { get; set; }
-    public int CurrentStreak { get; set; }
-    public int LongestStreak { get; set; }
+    public int BestGameweek { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime? LastLoginDate { get; set; }
 

@@ -31,7 +31,7 @@ internal sealed record UpdateUserProfileCommandHandler(
             new UserProfileResult(
                 user.Id, user.UserId, user.Email, user.DisplayName,
                 user.AvatarUrl, user.FavoriteTeam, user.TotalPoints,
-                user.CurrentStreak, 0, user.IsActive,
+                user.BestGameweek, 0, user.IsActive,
                 user.CreatedDate));
     }
 }
