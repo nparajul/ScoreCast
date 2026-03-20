@@ -55,15 +55,9 @@ internal sealed class UserEntityConfiguration : BaseEntityConfiguration<UserMast
             .HasColumnOrder(order++)
             .HasDefaultValue(0);
 
-        builder.Property(u => u.CurrentStreak)
+        builder.Property(u => u.BestGameweek)
             .HasColumnName("current_streak")
-            .HasColumnOrder(order++)
-            .HasDefaultValue(0);
-
-        builder.Property(u => u.LongestStreak)
-            .HasColumnName("longest_streak")
-            .HasColumnOrder(order++)
-            .HasDefaultValue(0);
+            .HasColumnOrder(order++);
 
         builder.Property(u => u.IsActive)
             .HasColumnName("is_active")
