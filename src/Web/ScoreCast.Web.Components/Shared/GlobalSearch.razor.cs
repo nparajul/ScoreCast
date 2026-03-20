@@ -50,7 +50,7 @@ public partial class GlobalSearch
         if (comps is { Success: true, Data: not null })
         {
             foreach (var c in comps.Data)
-                _allItems.Add(new("🏆", c.Name, c.LogoUrl, "Competition", $"/scores"));
+                _allItems.Add(new("🏆", c.Name, c.LogoUrl, "Competition", $"/competitions/{c.Id}"));
 
             foreach (var comp in comps.Data)
             {
