@@ -21,6 +21,8 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     private int _elapsedSecs;
     private string? _clockDisplay;
     private string _activeTab = "Events";
+    private PointsTableResult? _table;
+    private List<CompetitionZoneResult> _zones = [];
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -39,7 +41,18 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         {
             _match = resp.Data;
             InitClock();
+            _ = LoadTableAsync();
         }
+    }
+
+    private async Task LoadTableAsync()
+    {
+        var tableTask = Api.GetPointsTableAsync(_match!.SeasonId, CancellationToken.None);
+        var zonesTask = Api.GetCompetitionZonesAsync(_match.CompetitionCode, CancellationToken.None);
+        await Task.WhenAll(tableTask, zonesTask);
+        if ((await tableTask) is { Success: true, Data: not null } t) _table = t.Data;
+        if ((await zonesTask) is { Success: true, Data: not null } z) _zones = z.Data;
+        await InvokeAsync(StateHasChanged);
     }
 
     private void InitClock()
