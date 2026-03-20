@@ -9,7 +9,8 @@ internal sealed record PulseFixtureResponse(
     PulseClock? Clock,
     string? Phase,
     List<PulseTeamScore>? Teams,
-    string? Status);
+    string? Status,
+    PulseHalfTimeScore? HalfTimeScore);
 
 internal sealed record PulseTeamScore(
     PulseTeamRef? Team,
@@ -18,14 +19,18 @@ internal sealed record PulseTeamScore(
 internal sealed record PulseTeamList(
     PulseTeamRef? Team,
     List<PulsePlayer>? Lineup,
-    List<PulsePlayer>? Substitutes);
+    List<PulsePlayer>? Substitutes,
+    PulseFormation? Formation);
 
 internal sealed record PulseTeamRef(double Id, string? Name);
 
 internal sealed record PulsePlayer(
     int Id,
     PulsePlayerName? Name,
-    PulsePlayerBirth? Birth);
+    PulsePlayerBirth? Birth,
+    int? MatchShirtNumber,
+    string? MatchPosition,
+    bool? Captain);
 
 internal sealed record PulsePlayerName(
     string? Display, string? First, string? Last);
@@ -51,3 +56,9 @@ internal sealed record PulseClock(
 
 internal sealed record PulseGround(
     string? Name, string? City);
+
+internal sealed record PulseFormation(
+    string? Label, List<List<int>>? Players);
+
+internal sealed record PulseHalfTimeScore(
+    int? HomeScore, int? AwayScore);
