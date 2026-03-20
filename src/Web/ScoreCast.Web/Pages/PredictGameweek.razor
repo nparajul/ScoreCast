@@ -62,8 +62,75 @@
 
         var showPoints = _matches.All(m => m.IsLocked) && _matches.Any(m => m.HasPrediction);
 
-        <div class="d-flex flex-column flex-md-row gap-4 @(showPoints ? "" : "justify-center")">
-            <div style="width:100%;max-width:600px;margin:0 auto;border:1px solid var(--mud-palette-lines-default);border-radius:8px;overflow:hidden;">
+        @if (showPoints)
+        {
+            var breakdown = ScoringBreakdown.Calculate(_matches, _scoringRules);
+            var total = breakdown.Sum(b => b.Total);
+            var totalPossible = _matches.Count(m => m.Status == nameof(MatchStatus.Finished) && m.HasPrediction) * _scoringRules.Max(r => r.Points);
+
+            <MudPaper Elevation="1" Class="pa-3 rounded-lg mb-3" Style="text-align:center;">
+                <MudText Typo="Typo.h4" Style="font-weight:800;">@total</MudText>
+                <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">out of @totalPossible possible</MudText>
+                <div class="mt-2">
+                    <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Primary"
+                               EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+                               OnClick="@(() => _showBreakdown = !_showBreakdown)">
+                        @(_showBreakdown ? "Hide" : "Show") Breakdown
+                    </MudButton>
+                </div>
+            </MudPaper>
+
+            @if (_showBreakdown)
+            {
+                <MudPaper Elevation="1" Class="pa-3 rounded-lg mb-3" id="points-breakdown">
+                    <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mb-2">Points Breakdown</MudText>
+                    @foreach (var row in breakdown)
+                    {
+                        <div class="@row.CssClass" style="border-radius:6px;margin-bottom:4px;">
+                            <div class="d-flex align-center justify-space-between" style="padding:6px 8px;cursor:@(row.Count > 0 ? "pointer" : "default");"
+                                 @onclick="@(() => { if (row.Count > 0) ToggleRule(row.Label); })">
+                                <span style="font-size:13px;">@row.Label</span>
+                                <div class="d-flex align-center gap-2">
+                                    <span style="font-size:12px;color:var(--mud-palette-text-secondary);">@row.Points × @row.Count</span>
+                                    <span style="font-weight:700;font-size:13px;min-width:28px;text-align:right;">@row.Total</span>
+                                    @if (row.Count > 0)
+                                    {
+                                        <MudIcon Icon="@(_expandedRules.Contains(row.Label) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Size="Size.Small" />
+                                    }
+                                </div>
+                            </div>
+                            @if (row.Count > 0 && _expandedRules.Contains(row.Label))
+                            {
+                                <div style="padding:0 8px 6px;">
+                                    @foreach (var m in row.Matches)
+                                    {
+                                        <div class="d-flex align-center justify-space-between" style="padding:3px 0;font-size:12px;border-top:1px solid rgba(128,128,128,0.2);">
+                                            <div class="d-flex align-center gap-1" style="flex:1;min-width:0;">
+                                                @if (m.HomeLogo is not null) { <img src="@m.HomeLogo" alt="" style="width:14px;height:14px;" /> }
+                                                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@m.Home vs @m.Away</span>
+                                            </div>
+                                            <div class="d-flex align-center gap-2" style="flex-shrink:0;">
+                                                <span style="color:var(--mud-palette-text-secondary);">@m.PredHome-@m.PredAway</span>
+                                                <span style="font-weight:600;">(@m.ActualHome-@m.ActualAway)</span>
+                                                <span style="font-weight:700;color:var(--mud-palette-primary);">+@m.Points</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    <div style="border-top:2px solid var(--mud-palette-lines-default);padding:6px 8px;margin-top:4px;">
+                        <div class="d-flex justify-space-between">
+                            <span style="font-weight:700;">Total</span>
+                            <span style="font-weight:700;font-size:16px;">@total / @totalPossible</span>
+                        </div>
+                    </div>
+                </MudPaper>
+            }
+        }
+
+        <div style="width:100%;max-width:600px;margin:0 auto;border:1px solid var(--mud-palette-lines-default);border-radius:8px;overflow:hidden;">
                 @foreach (var match in _matches)
                 {
                     <div class="predict-row @match.GetRowClass()">
@@ -97,42 +164,6 @@
                     </div>
                 }
             </div>
-
-            @if (showPoints)
-            {
-                var breakdown = ScoringBreakdown.Calculate(_matches, _scoringRules);
-                var total = breakdown.Sum(b => b.Total);
-                var totalPossible = _matches.Count(m => m.Status == nameof(MatchStatus.Finished) && m.HasPrediction) * _scoringRules.Max(r => r.Points);
-                <MudPaper Elevation="1" Class="pa-3 rounded-lg" Style="min-width:0;align-self:flex-start;width:100%;max-width:450px;">
-                    <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mb-2">Points Breakdown</MudText>
-                    <MudSimpleTable Dense="true" Elevation="0" Style="background:transparent;">
-                        <thead>
-                            <tr>
-                                <th style="padding:4px 8px;">Rule</th>
-                                <th style="padding:4px 8px;text-align:center;">Pts</th>
-                                <th style="padding:4px 8px;text-align:center;">×</th>
-                                <th style="padding:4px 8px;text-align:right;">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var row in breakdown)
-                            {
-                                <tr class="@row.CssClass">
-                                    <td style="padding:4px 8px;font-size:13px;">@row.Label</td>
-                                    <td style="padding:4px 8px;text-align:center;font-size:13px;">@row.Points</td>
-                                    <td style="padding:4px 8px;text-align:center;font-size:13px;">@row.Count</td>
-                                    <td style="padding:4px 8px;text-align:right;font-weight:600;font-size:13px;">@row.Total</td>
-                                </tr>
-                            }
-                            <tr style="border-top:2px solid var(--mud-palette-lines-default);">
-                                <td colspan="3" style="padding:6px 8px;font-weight:700;">Total</td>
-                                <td style="padding:6px 8px;text-align:right;font-weight:700;font-size:16px;">@total / @totalPossible</td>
-                            </tr>
-                        </tbody>
-                    </MudSimpleTable>
-                </MudPaper>
-            }
-        </div>
 
         @if (_matches.Any(m => !m.IsLocked))
         {
