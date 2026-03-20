@@ -45,13 +45,29 @@ internal sealed record CreatePredictionLeagueCommandHandler(
             inviteCode = GenerateInviteCode();
         } while (await DbContext.PredictionLeagues.AnyAsync(l => l.InviteCode == inviteCode, ct));
 
+        // Determine starting gameweek: next GW that hasn't started yet (Upcoming)
+        // If current GW is active, start from the next one so players have time to join & predict
+        var startingGw = await DbContext.Gameweeks
+            .AsNoTracking()
+            .Where(g => g.SeasonId == season.Id && g.Status == GameweekStatus.Upcoming)
+            .OrderBy(g => g.Number)
+            .FirstOrDefaultAsync(ct);
+
+        // Fallback: if no upcoming GW, use the first GW of the season (league created before season starts or at end)
+        startingGw ??= await DbContext.Gameweeks
+            .AsNoTracking()
+            .Where(g => g.SeasonId == season.Id)
+            .OrderBy(g => g.Number)
+            .FirstOrDefaultAsync(ct);
+
         var league = new PredictionLeague
         {
             Name = request.Name,
             InviteCode = inviteCode,
             CompetitionId = competition.Id,
             SeasonId = season.Id,
-            CreatedByUserId = user.Id
+            CreatedByUserId = user.Id,
+            StartingGameweekId = startingGw?.Id
         };
 
         DbContext.PredictionLeagues.Add(league);
