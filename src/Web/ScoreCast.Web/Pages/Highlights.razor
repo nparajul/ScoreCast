@@ -15,6 +15,26 @@
     }
     .main-container { padding: 0 !important; }
     .mud-layout > footer { display: none !important; }
+    .reels-close {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 10;
+        background: rgba(0,0,0,0.5);
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        cursor: pointer;
+        backdrop-filter: blur(8px);
+    }
+    @@media (min-width: 960px) {
+        .reels-close { display: none; }
+    }
     .reels-container {
         height: calc(100vh - var(--mud-appbar-height));
         overflow-y: scroll;
@@ -86,6 +106,10 @@
     }
 </style>
 
+<button class="reels-close" @onclick="OnClose">
+    <MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
+</button>
+
 <div class="reels-container" @ref="_containerRef">
     @if (_items.Count == 0 && !Loading.IsLoading)
     {
@@ -122,9 +146,9 @@
                             {
                                 <img src="@item.HomeLogoUrl" alt="" class="reel-team-logo" />
                             }
-                            <span class="reel-team-name">@ShortName(item.HomeTeam)</span>
+                            <span class="reel-team-name">@(item.HomeShortName ?? item.HomeTeam)</span>
                             <span class="reel-score">@(item.HomeScore ?? 0) - @(item.AwayScore ?? 0)</span>
-                            <span class="reel-team-name">@ShortName(item.AwayTeam)</span>
+                            <span class="reel-team-name">@(item.AwayShortName ?? item.AwayTeam)</span>
                             @if (item.AwayLogoUrl is not null)
                             {
                                 <img src="@item.AwayLogoUrl" alt="" class="reel-team-logo" />

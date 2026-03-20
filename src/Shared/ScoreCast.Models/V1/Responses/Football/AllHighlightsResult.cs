@@ -6,6 +6,8 @@ public record HighlightItem(
     long MatchId,
     string HomeTeam,
     string AwayTeam,
+    string? HomeShortName,
+    string? AwayShortName,
     string? HomeLogoUrl,
     string? AwayLogoUrl,
     int? HomeScore,
