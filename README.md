@@ -1,5 +1,9 @@
 # ScoreCast
 
+<p align="center">
+  <img src="docs/social-preview.png" alt="ScoreCast" width="100%" />
+</p>
+
 **🏆 Predict. Compete. Prove You Know Football.**
 
 ScoreCast is a free football prediction game where you predict exact scorelines, compete with friends in private leagues, and track every match with live scores and AI-powered insights. No money, no gambling — just bragging rights.
