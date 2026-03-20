@@ -71,6 +71,8 @@ internal sealed record GetMatchPageQueryHandler(
         var awayLineup = new List<MatchPageLineupPlayer>();
         var awaySubs = new List<MatchPageLineupPlayer>();
         int? htHome = null, htAway = null;
+        int? clockSeconds = null;
+        string? phase = null;
 
         var pulseMapping = await DbContext.ExternalMappings.AsNoTracking()
             .Where(m => m.EntityId == query.MatchId && m.EntityType == EntityType.Match
@@ -92,6 +94,8 @@ internal sealed record GetMatchPageQueryHandler(
                 {
                     htHome = pulse.HalfTimeScore?.HomeScore;
                     htAway = pulse.HalfTimeScore?.AwayScore;
+                    clockSeconds = pulse.Clock?.Secs is not null ? (int)pulse.Clock.Secs : null;
+                    phase = pulse.Phase;
 
                     // Build Pulse player ID → our player ID map
                     var pulsePlayerIds = (pulse.TeamLists ?? [])
@@ -151,6 +155,7 @@ internal sealed record GetMatchPageQueryHandler(
 
         return ScoreCastResponse<MatchPageResult>.Ok(new MatchPageResult(
             match.Id, match.KickoffTime, match.Status.ToString(), match.Minute,
+            clockSeconds, phase,
             match.HomeTeamId, match.HomeTeamName, match.HomeTeamLogo, match.HomeTeamShortName,
             match.AwayTeamId, match.AwayTeamName, match.AwayTeamLogo, match.AwayTeamShortName,
             match.HomeScore, match.AwayScore, match.Venue, match.Referee,
