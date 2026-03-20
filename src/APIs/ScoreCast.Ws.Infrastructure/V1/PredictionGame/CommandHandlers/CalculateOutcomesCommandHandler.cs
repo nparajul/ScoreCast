@@ -49,30 +49,17 @@ internal sealed record CalculateOutcomesCommandHandler(
             foreach (var user in users)
                 user.TotalPoints += pointsByUser[user.Id];
 
-            // Recalculate streaks for affected users
+            // Recalculate best gameweek and avg points/GW for affected users
             foreach (var user in users)
             {
-                var allOutcomes = await DbContext.Predictions
-                    .Include(p => p.Match)
-                    .Where(p => p.UserId == user.Id && p.Outcome != null && p.Match!.KickoffTime != null)
-                    .OrderBy(p => p.Match!.KickoffTime)
-                    .Select(p => p.Outcome!.Value)
+                var gwPoints = await DbContext.Predictions
+                    .Where(p => p.UserId == user.Id && p.Outcome != null)
+                    .GroupBy(p => new { p.SeasonId, p.Match!.GameweekId })
+                    .Select(g => g.Sum(p => scoringRules.GetValueOrDefault(p.Outcome!.Value)))
                     .ToListAsync(ct);
 
-                var current = 0;
-                var longest = 0;
-                var streak = 0;
-                foreach (var outcome in allOutcomes)
-                {
-                    if (outcome != PredictionOutcome.Incorrect)
-                        streak++;
-                    else
-                        streak = 0;
-                    if (streak > longest) longest = streak;
-                }
-                current = streak;
-                user.CurrentStreak = current;
-                user.LongestStreak = longest;
+                user.CurrentStreak = gwPoints.Count > 0 ? gwPoints.Max() : 0;
+                user.LongestStreak = gwPoints.Count > 0 ? (int)Math.Round(gwPoints.Average()) : 0;
             }
         }
 
