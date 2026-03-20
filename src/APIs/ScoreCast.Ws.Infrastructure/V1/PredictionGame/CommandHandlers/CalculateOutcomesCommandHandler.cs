@@ -48,6 +48,32 @@ internal sealed record CalculateOutcomesCommandHandler(
 
             foreach (var user in users)
                 user.TotalPoints += pointsByUser[user.Id];
+
+            // Recalculate streaks for affected users
+            foreach (var user in users)
+            {
+                var allOutcomes = await DbContext.Predictions
+                    .Include(p => p.Match)
+                    .Where(p => p.UserId == user.Id && p.Outcome != null && p.Match!.KickoffTime != null)
+                    .OrderBy(p => p.Match!.KickoffTime)
+                    .Select(p => p.Outcome!.Value)
+                    .ToListAsync(ct);
+
+                var current = 0;
+                var longest = 0;
+                var streak = 0;
+                foreach (var outcome in allOutcomes)
+                {
+                    if (outcome != PredictionOutcome.Incorrect)
+                        streak++;
+                    else
+                        streak = 0;
+                    if (streak > longest) longest = streak;
+                }
+                current = streak;
+                user.CurrentStreak = current;
+                user.LongestStreak = longest;
+            }
         }
 
         await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(CalculateOutcomesCommand), ct);
