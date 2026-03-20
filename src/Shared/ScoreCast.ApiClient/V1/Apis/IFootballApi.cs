@@ -47,4 +47,7 @@ public partial interface IScoreCastApiClient
 
     [Get("/api/v1/football/teams/search")]
     Task<ScoreCastResponse<TeamSearchResult>> SearchTeamsAsync(string? q, int skip, int take, CancellationToken ct);
+
+    [Get("/api/v1/football/matches/{matchId}")]
+    Task<ScoreCastResponse<MatchPageResult>> GetMatchPageAsync(long matchId, CancellationToken ct);
 }
