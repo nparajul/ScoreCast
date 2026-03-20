@@ -16,7 +16,7 @@
         {
             <div @onclick:stopPropagation="true"
                  style="position:absolute;top:100%;right:0;width:320px;z-index:9999;background:var(--mud-palette-surface);box-shadow:0 4px 12px rgba(0,0,0,0.2);border-radius:0 0 8px 8px;max-height:50vh;overflow-y:auto;">
-                <SearchResults Loading="_loading" Filtered="_filtered" Query="_query" OnNavigate="Navigate" />
+                <SearchResults Loading="_loading" Filtered="_filtered" Suggestions="_suggestions" Query="_query" OnNavigate="Navigate" />
             </div>
         }
     </div>
@@ -24,23 +24,28 @@
 }
 else if (Visible)
 {
-    <div style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;background:rgba(0,0,0,0.4);" @onclick="Close"></div>
-    <div style="position:fixed;top:var(--mud-appbar-height);left:0;right:0;z-index:9999;background:var(--mud-palette-surface);box-shadow:0 4px 12px rgba(0,0,0,0.15);max-height:70vh;overflow-y:auto;">
-        <div style="padding:12px 16px 8px;">
-            <div class="d-flex align-center gap-2">
-                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="Close" Size="Size.Small" />
-                <MudTextField @bind-Value="_query"
-                              Placeholder="Search competitions, teams..."
-                              Variant="Variant.Outlined"
-                              Immediate="true"
-                              AutoFocus="true"
-                              Adornment="Adornment.Start"
-                              AdornmentIcon="@Icons.Material.Filled.Search"
-                              TextChanged="OnSearchChanged"
-                              Margin="Margin.Dense"
-                              Style="flex:1;" />
-            </div>
+    @* Mobile: animated inline expansion in app bar area *@
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;" @onclick="Close"></div>
+    <div style="position:fixed;top:var(--mud-appbar-height);left:0;right:0;z-index:9999;background:var(--mud-palette-surface);box-shadow:0 4px 12px rgba(0,0,0,0.15);max-height:70vh;overflow-y:auto;animation:slideDown 0.15s ease-out;">
+        <div style="padding:10px 12px 6px;">
+            <MudTextField @bind-Value="_query"
+                          Placeholder="Search competitions, teams..."
+                          Variant="Variant.Outlined"
+                          Immediate="true"
+                          AutoFocus="true"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          TextChanged="OnSearchChanged"
+                          Margin="Margin.Dense"
+                          Style="flex:1;" />
         </div>
-        <SearchResults Loading="_loading" Filtered="_filtered" Query="_query" OnNavigate="Navigate" />
+        <SearchResults Loading="_loading" Filtered="_filtered" Suggestions="_suggestions" Query="_query" OnNavigate="Navigate" />
     </div>
 }
+
+<style>
+    @@keyframes slideDown {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
