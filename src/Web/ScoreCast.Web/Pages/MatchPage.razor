@@ -182,104 +182,85 @@
         {
             @if (_match.HomeLineup.Count > 0 || _match.AwayLineup.Count > 0)
             {
-                @* Formation Pitch *@
                 @if (_match.HomeFormation is not null || _match.AwayFormation is not null)
                 {
-                    <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;background:linear-gradient(180deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);position:relative;padding:16px 8px;">
-                        @* Pitch lines *@
-                        <div style="position:absolute;inset:0;pointer-events:none;">
-                            <div style="position:absolute;top:50%;left:10%;right:10%;height:1px;background:rgba(255,255,255,0.2);"></div>
-                            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border:1px solid rgba(255,255,255,0.2);border-radius:50%;"></div>
-                        </div>
-
-                        @* Home formation (top half) *@
-                        @if (_match.HomeFormation is not null)
-                        {
-                            <div style="text-align:center;margin-bottom:6px;">
-                                <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);">@_match.HomeTeamShortName — @_match.HomeFormation</span>
+                    @if (IsMobile)
+                    {
+                        @* Mobile: stacked vertically *@
+                        <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;background:linear-gradient(180deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);position:relative;padding:12px 4px;">
+                            <div style="position:absolute;inset:0;pointer-events:none;">
+                                <div style="position:absolute;top:50%;left:8%;right:8%;height:1px;background:rgba(255,255,255,0.15);"></div>
+                                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border:1px solid rgba(255,255,255,0.15);border-radius:50%;"></div>
                             </div>
-                            @foreach (var row in GetFormationRows(_match.HomeLineup, _match.HomeFormation, false))
+                            @if (_match.HomeFormation is not null)
                             {
-                                <div class="d-flex justify-center" style="gap:@(IsMobile ? "6" : "12")px;margin-bottom:8px;">
-                                    @foreach (var p in row)
-                                    {
-                                        <div style="text-align:center;width:@(IsMobile ? "48" : "56")px;">
-                                            <div style="position:relative;display:inline-block;">
-                                                @if (p.PhotoUrl is not null)
-                                                {
-                                                    <img src="@p.PhotoUrl" alt="" style="width:@(IsMobile ? 32 : 38)px;height:@(IsMobile ? 32 : 38)px;border-radius:50%;object-fit:cover;background:#333;" />
-                                                }
-                                                else
-                                                {
-                                                    <div style="width:@(IsMobile ? 32 : 38)px;height:@(IsMobile ? 32 : 38)px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;">
-                                                        <span style="font-size:@((IsMobile ? 32 : 38)/3)px;color:white;font-weight:700;">@(p.Name.Length > 0 ? p.Name[0].ToString() : "?")</span>
-                                                    </div>
-                                                }
-                                                @if (p.Icons.Count > 0)
-                                                {
-                                                    <div style="position:absolute;bottom:-2px;right:-4px;font-size:10px;line-height:1;">
-                                                        @string.Join("", p.Icons.Select(PlayerIcon))
-                                                    </div>
-                                                }
-                                            </div>
-                                            @if (p.ShirtNumber is not null)
-                                            {
-                                                <div style="font-size:9px;color:rgba(255,255,255,0.6);">@p.ShirtNumber</div>
-                                            }
-                                            <div style="font-size:@(IsMobile ? "9" : "10")px;color:white;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                                @LastName(p.Name)
-                                            </div>
-                                        </div>
-                                    }
+                                <div style="text-align:center;margin-bottom:4px;">
+                                    <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);">@_match.HomeTeamShortName · @_match.HomeFormation</span>
+                                </div>
+                                @foreach (var row in GetFormationRows(_match.HomeLineup, _match.HomeFormation, false))
+                                {
+                                    <div class="d-flex justify-center" style="gap:2px;margin-bottom:6px;">
+                                        @foreach (var p in row) { @RenderPlayerCard(p, 36) }
+                                    </div>
+                                }
+                            }
+                            <div style="height:12px;"></div>
+                            @if (_match.AwayFormation is not null)
+                            {
+                                @foreach (var row in GetFormationRows(_match.AwayLineup, _match.AwayFormation, true))
+                                {
+                                    <div class="d-flex justify-center" style="gap:2px;margin-bottom:6px;">
+                                        @foreach (var p in row) { @RenderPlayerCard(p, 36) }
+                                    </div>
+                                }
+                                <div style="text-align:center;margin-top:4px;">
+                                    <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);">@_match.AwayTeamShortName · @_match.AwayFormation</span>
                                 </div>
                             }
-                        }
-
-                        <div style="height:16px;"></div>
-
-                        @* Away formation (bottom half, reversed) *@
-                        @if (_match.AwayFormation is not null)
-                        {
-                            @foreach (var row in GetFormationRows(_match.AwayLineup, _match.AwayFormation, true))
-                            {
-                                <div class="d-flex justify-center" style="gap:@(IsMobile ? "6" : "12")px;margin-bottom:8px;">
-                                    @foreach (var p in row)
+                        </MudPaper>
+                    }
+                    else
+                    {
+                        @* Desktop: side-by-side *@
+                        <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;background:linear-gradient(90deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);position:relative;padding:16px 8px;">
+                            <div style="position:absolute;inset:0;pointer-events:none;">
+                                <div style="position:absolute;left:50%;top:8%;bottom:8%;width:1px;background:rgba(255,255,255,0.15);"></div>
+                                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70px;height:70px;border:1px solid rgba(255,255,255,0.15);border-radius:50%;"></div>
+                            </div>
+                            <div class="d-flex" style="gap:0;">
+                                @* Home (left half) *@
+                                <div style="flex:1;">
+                                    <div style="text-align:center;margin-bottom:6px;">
+                                        <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);">@_match.HomeTeamShortName · @_match.HomeFormation</span>
+                                    </div>
+                                    @if (_match.HomeFormation is not null)
                                     {
-                                        <div style="text-align:center;width:@(IsMobile ? "48" : "56")px;">
-                                            <div style="position:relative;display:inline-block;">
-                                                @if (p.PhotoUrl is not null)
-                                                {
-                                                    <img src="@p.PhotoUrl" alt="" style="width:@(IsMobile ? 32 : 38)px;height:@(IsMobile ? 32 : 38)px;border-radius:50%;object-fit:cover;background:#333;" />
-                                                }
-                                                else
-                                                {
-                                                    <div style="width:@(IsMobile ? 32 : 38)px;height:@(IsMobile ? 32 : 38)px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;">
-                                                        <span style="font-size:@((IsMobile ? 32 : 38)/3)px;color:white;font-weight:700;">@(p.Name.Length > 0 ? p.Name[0].ToString() : "?")</span>
-                                                    </div>
-                                                }
-                                                @if (p.Icons.Count > 0)
-                                                {
-                                                    <div style="position:absolute;bottom:-2px;right:-4px;font-size:10px;line-height:1;">
-                                                        @string.Join("", p.Icons.Select(PlayerIcon))
-                                                    </div>
-                                                }
+                                        @foreach (var row in GetFormationRows(_match.HomeLineup, _match.HomeFormation, false))
+                                        {
+                                            <div class="d-flex justify-center" style="gap:8px;margin-bottom:10px;">
+                                                @foreach (var p in row) { @RenderPlayerCard(p, 44) }
                                             </div>
-                                            @if (p.ShirtNumber is not null)
-                                            {
-                                                <div style="font-size:9px;color:rgba(255,255,255,0.6);">@p.ShirtNumber</div>
-                                            }
-                                            <div style="font-size:@(IsMobile ? "9" : "10")px;color:white;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                                @LastName(p.Name)
-                                            </div>
-                                        </div>
+                                        }
                                     }
                                 </div>
-                            }
-                            <div style="text-align:center;margin-top:6px;">
-                                <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);">@_match.AwayTeamShortName — @_match.AwayFormation</span>
+                                @* Away (right half) *@
+                                <div style="flex:1;">
+                                    <div style="text-align:center;margin-bottom:6px;">
+                                        <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);">@_match.AwayTeamShortName · @_match.AwayFormation</span>
+                                    </div>
+                                    @if (_match.AwayFormation is not null)
+                                    {
+                                        @foreach (var row in GetFormationRows(_match.AwayLineup, _match.AwayFormation, true))
+                                        {
+                                            <div class="d-flex justify-center" style="gap:8px;margin-bottom:10px;">
+                                                @foreach (var p in row) { @RenderPlayerCard(p, 44) }
+                                            </div>
+                                        }
+                                    }
+                                </div>
                             </div>
-                        }
-                    </MudPaper>
+                        </MudPaper>
+                    }
                 }
 
                 @* Coaches *@
@@ -310,22 +291,28 @@
                                 @foreach (var p in _match.HomeSubs)
                                 {
                                     <div class="d-flex align-center gap-2" style="margin-bottom:6px;">
-                                        @if (p.PhotoUrl is not null)
-                                        {
-                                            <img src="@p.PhotoUrl" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#333;" />
-                                        }
-                                        else
-                                        {
-                                            <div style="width:28px;height:28px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;">
-                                                <span style="font-size:9px;color:white;font-weight:700;">@(p.Name.Length > 0 ? p.Name[0].ToString() : "?")</span>
-                                            </div>
-                                        }
+                                        <div style="position:relative;">
+                                            @if (p.PhotoUrl is not null)
+                                            {
+                                                <img src="@p.PhotoUrl" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#333;" />
+                                            }
+                                            else
+                                            {
+                                                <div style="width:28px;height:28px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;">
+                                                    <span style="font-size:9px;color:white;font-weight:700;">@(p.Name.Length > 0 ? p.Name[0].ToString() : "?")</span>
+                                                </div>
+                                            }
+                                            @if (p.SubMinute is not null)
+                                            {
+                                                <span style="position:absolute;top:-4px;left:-4px;font-size:8px;background:#4caf50;color:white;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;">↑</span>
+                                            }
+                                        </div>
                                         <div>
                                             <div style="font-size:12px;font-weight:600;">@p.Name</div>
-                                            @if (p.Icons.Count > 0)
-                                            {
-                                                <span style="font-size:10px;">@string.Join(" ", p.Icons.Select(PlayerIcon))</span>
-                                            }
+                                            <div style="font-size:10px;color:var(--mud-palette-text-secondary);">
+                                                @if (p.SubMinute is not null) { <span>@p.SubMinute</span> }
+                                                @string.Join(" ", p.Icons.Select(PlayerIcon))
+                                            </div>
                                         </div>
                                     </div>
                                 }
@@ -335,22 +322,28 @@
                                 @foreach (var p in _match.AwaySubs)
                                 {
                                     <div class="d-flex align-center gap-2" style="margin-bottom:6px;">
-                                        @if (p.PhotoUrl is not null)
-                                        {
-                                            <img src="@p.PhotoUrl" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#333;" />
-                                        }
-                                        else
-                                        {
-                                            <div style="width:28px;height:28px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;">
-                                                <span style="font-size:9px;color:white;font-weight:700;">@(p.Name.Length > 0 ? p.Name[0].ToString() : "?")</span>
-                                            </div>
-                                        }
+                                        <div style="position:relative;">
+                                            @if (p.PhotoUrl is not null)
+                                            {
+                                                <img src="@p.PhotoUrl" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#333;" />
+                                            }
+                                            else
+                                            {
+                                                <div style="width:28px;height:28px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;">
+                                                    <span style="font-size:9px;color:white;font-weight:700;">@(p.Name.Length > 0 ? p.Name[0].ToString() : "?")</span>
+                                                </div>
+                                            }
+                                            @if (p.SubMinute is not null)
+                                            {
+                                                <span style="position:absolute;top:-4px;left:-4px;font-size:8px;background:#4caf50;color:white;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;">↑</span>
+                                            }
+                                        </div>
                                         <div>
                                             <div style="font-size:12px;font-weight:600;">@p.Name</div>
-                                            @if (p.Icons.Count > 0)
-                                            {
-                                                <span style="font-size:10px;">@string.Join(" ", p.Icons.Select(PlayerIcon))</span>
-                                            }
+                                            <div style="font-size:10px;color:var(--mud-palette-text-secondary);">
+                                                @if (p.SubMinute is not null) { <span>@p.SubMinute</span> }
+                                                @string.Join(" ", p.Icons.Select(PlayerIcon))
+                                            </div>
                                         </div>
                                     </div>
                                 }

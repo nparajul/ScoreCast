@@ -164,6 +164,11 @@ internal sealed record GetMatchPageQueryHandler(
                         .GroupBy(e => e.PlayerId)
                         .ToDictionary(g => g.Key, g => g.Select(e => e.EventType).ToList());
 
+                    // Sub minutes: SubOut minute for starters, SubIn minute for subs
+                    var subMinutes = events
+                        .Where(e => e.EventType is EventTypes.SubOut or EventTypes.SubIn)
+                        .ToDictionary(e => e.PlayerId, e => (string?)e.Minute);
+
                     // teamLists[0] = home, teamLists[1] = away (Pulse convention)
                     var teamLists = pulse.TeamLists ?? [];
                     for (var i = 0; i < teamLists.Count && i < 2; i++)
@@ -176,13 +181,13 @@ internal sealed record GetMatchPageQueryHandler(
                         var lineupById = (tl.Lineup ?? []).ToDictionary(p => p.Id);
                         var orderedLineup = formationOrder
                             .Where(lineupById.ContainsKey)
-                            .Select(id => MapPlayer(lineupById[id], pulsePlayerMap, playerPhotos, playerIcons))
+                            .Select(id => MapPlayer(lineupById[id], pulsePlayerMap, playerPhotos, playerIcons, subMinutes))
                             .ToList();
                         foreach (var p in tl.Lineup ?? [])
                             if (!formationOrder.Contains(p.Id))
-                                orderedLineup.Add(MapPlayer(p, pulsePlayerMap, playerPhotos, playerIcons));
+                                orderedLineup.Add(MapPlayer(p, pulsePlayerMap, playerPhotos, playerIcons, subMinutes));
 
-                        var subs = (tl.Substitutes ?? []).Select(p => MapPlayer(p, pulsePlayerMap, playerPhotos, playerIcons)).ToList();
+                        var subs = (tl.Substitutes ?? []).Select(p => MapPlayer(p, pulsePlayerMap, playerPhotos, playerIcons, subMinutes)).ToList();
 
                         if (isHome)
                         {
@@ -219,14 +224,16 @@ internal sealed record GetMatchPageQueryHandler(
         PulsePlayer p,
         Dictionary<string, long> pulsePlayerMap,
         Dictionary<long, string?> playerPhotos,
-        Dictionary<long, List<string>> playerIcons)
+        Dictionary<long, List<string>> playerIcons,
+        Dictionary<long, string?> subMinutes)
     {
         var ourId = pulsePlayerMap.GetValueOrDefault(p.Id.ToString());
         var photo = ourId > 0 ? playerPhotos.GetValueOrDefault(ourId) : null;
         var icons = ourId > 0 ? playerIcons.GetValueOrDefault(ourId, []) : [];
+        var subMin = ourId > 0 ? subMinutes.GetValueOrDefault(ourId) : null;
         return new MatchPageLineupPlayer(
             ourId, p.Name?.Display ?? "Unknown", photo,
-            p.MatchShirtNumber, p.MatchPosition, p.Captain ?? false, icons);
+            p.MatchShirtNumber, p.MatchPosition, p.Captain ?? false, icons, subMin);
     }
 
     private static double ParseMinute(string? minute)
