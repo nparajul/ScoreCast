@@ -2,11 +2,6 @@
 
 <PageGuard>
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
-    <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack"
-               OnClick="@(() => Nav.NavigateTo("/dashboard"))" Class="mb-2">
-        Back to Dashboard
-    </MudButton>
-
     @if (_standings is not null)
     {
         <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center gap-2 mb-4">
