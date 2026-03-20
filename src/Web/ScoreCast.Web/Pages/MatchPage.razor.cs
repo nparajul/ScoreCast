@@ -153,7 +153,7 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         .OrderBy(e => _match.Status == nameof(MatchStatus.Live) ? -e.SortKey : e.SortKey)
         .ToList() ?? [];
 
-    private static List<List<MatchPageLineupPlayer>> GetFormationRows(List<MatchPageLineupPlayer> players, string formation, bool reverse)
+    private static List<List<MatchPageLineupPlayer>> GetFormationRows(List<MatchPageLineupPlayer> players, string formation, bool reverse, bool mirrorRows = false)
     {
         if (players.Count == 0) return [];
         var rows = new List<List<MatchPageLineupPlayer>> { new() { players[0] } }; // GK
@@ -167,6 +167,8 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
             idx += count;
         }
         if (reverse) rows.Reverse();
+        if (mirrorRows)
+            foreach (var row in rows) row.Reverse();
         return rows;
     }
 
@@ -196,7 +198,7 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     {
         EventTypes.Goal => "⚽",
         EventTypes.PenaltyGoal => "⚽",
-        EventTypes.OwnGoal => "⚽(OG)",
+        EventTypes.OwnGoal => "<span style=\"color:#f44336;font-weight:800;font-size:9px;\">OG</span>",
         EventTypes.Assist => "👟",
         EventTypes.YellowCard => "🟨",
         EventTypes.RedCard => "🟥",
@@ -215,15 +217,6 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "style", $"text-align:center;width:{s + 16}px;");
 
-        // Sub minute badge (top-left)
-        if (p.SubMinute is not null)
-        {
-            builder.OpenElement(2, "div");
-            builder.AddAttribute(3, "style", "font-size:9px;font-weight:700;color:rgba(255,255,255,0.7);margin-bottom:1px;");
-            builder.AddContent(4, p.SubMinute);
-            builder.CloseElement();
-        }
-
         // Avatar container
         builder.OpenElement(5, "div");
         builder.AddAttribute(6, "style", "position:relative;display:inline-block;");
@@ -232,13 +225,13 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         {
             builder.OpenElement(7, "img");
             builder.AddAttribute(8, "src", p.PhotoUrl);
-            builder.AddAttribute(9, "style", $"width:{s}px;height:{s}px;border-radius:50%;object-fit:cover;background:#333;border:2px solid rgba(255,255,255,0.3);");
+            builder.AddAttribute(9, "style", $"width:{s}px;height:{s}px;border-radius:50%;object-fit:cover;background:#333;border:2px solid rgba(255,255,255,0.3);{(p.SubMinute is not null ? "opacity:0.5;" : "")}");
             builder.CloseElement();
         }
         else
         {
             builder.OpenElement(10, "div");
-            builder.AddAttribute(11, "style", $"width:{s}px;height:{s}px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.3);");
+            builder.AddAttribute(11, "style", $"width:{s}px;height:{s}px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.3);{(p.SubMinute is not null ? "opacity:0.5;" : "")}");
             builder.OpenElement(12, "span");
             builder.AddAttribute(13, "style", $"font-size:{s / 3}px;color:white;font-weight:700;");
             builder.AddContent(14, p.Name.Length > 0 ? p.Name[0].ToString() : "?");
@@ -246,12 +239,12 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
             builder.CloseElement();
         }
 
-        // Event badges (sub arrow, cards, goals)
+        // Sub badge
         if (p.SubMinute is not null)
         {
             builder.OpenElement(15, "span");
-            builder.AddAttribute(16, "style", "position:absolute;top:-2px;left:-2px;font-size:10px;background:#f44336;color:white;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;");
-            builder.AddMarkupContent(17, "↩");
+            builder.AddAttribute(16, "style", "position:absolute;top:-4px;left:-4px;font-size:7px;background:#f44336;color:white;border-radius:6px;padding:1px 3px;font-weight:800;line-height:1;");
+            builder.AddContent(17, p.SubMinute);
             builder.CloseElement();
         }
         if (p.IsCaptain)
@@ -263,13 +256,15 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         }
         if (p.Icons.Count > 0)
         {
-            builder.OpenElement(21, "div");
-            builder.AddAttribute(22, "style", "position:absolute;bottom:-2px;right:-4px;font-size:10px;line-height:1;display:flex;gap:1px;");
-            foreach (var icon in p.Icons.Where(i => i is not EventTypes.SubIn and not EventTypes.SubOut))
+            var filtered = p.Icons.Where(i => i is not EventTypes.SubIn and not EventTypes.SubOut).ToList();
+            if (filtered.Count > 0)
             {
-                builder.AddMarkupContent(23, PlayerIcon(icon));
+                builder.OpenElement(21, "div");
+                builder.AddAttribute(22, "style", "position:absolute;bottom:-2px;right:-4px;font-size:10px;line-height:1;display:flex;gap:1px;");
+                foreach (var icon in filtered)
+                    builder.AddMarkupContent(23, PlayerIcon(icon));
+                builder.CloseElement();
             }
-            builder.CloseElement();
         }
 
         builder.CloseElement(); // avatar container
