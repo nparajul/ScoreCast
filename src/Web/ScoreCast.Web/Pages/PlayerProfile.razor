@@ -40,6 +40,13 @@
                 {
                     <MudText Typo="Typo.body2" Color="Color.Secondary">❤️ @_profile.FavoriteTeam</MudText>
                 }
+                <div class="d-flex align-center gap-1" style="margin-top:2px;">
+                    @if (_competitionLogoUrl is not null)
+                    {
+                        <img src="@_competitionLogoUrl" alt="" style="width:16px;height:16px;" />
+                    }
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@_leagueName · @_competitionName</MudText>
+                </div>
             </div>
         </div>
 
@@ -66,13 +73,13 @@
             <MudItem xs="4" sm="2">
                 <MudPaper Elevation="1" Class="stat-card rounded-lg">
                     <div class="stat-value">@_profile.ExactScores</div>
-                    <div class="stat-label">Exact</div>
+                    <div class="stat-label">Exact Scores</div>
                 </MudPaper>
             </MudItem>
             <MudItem xs="4" sm="2">
                 <MudPaper Elevation="1" Class="stat-card rounded-lg">
                     <div class="stat-value">@_profile.CorrectResults</div>
-                    <div class="stat-label">Correct</div>
+                    <div class="stat-label">Correct Results</div>
                 </MudPaper>
             </MudItem>
             <MudItem xs="4" sm="2">
@@ -90,7 +97,7 @@
 
             <div class="d-flex align-center justify-center gap-3 mb-3">
                 <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Size="Size.Small"
-                               Disabled="@(_gameweek.GameweekNumber <= 1)"
+                               Disabled="@(_gameweek.GameweekNumber <= _startingGwNumber)"
                                OnClick="PreviousGameweek" />
                 <MudText Typo="Typo.h6">Gameweek @_gameweek.GameweekNumber</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small"
@@ -102,6 +109,12 @@
             {
                 <MudAlert Severity="Severity.Info" Variant="Variant.Text" Dense="true" Class="mb-3">
                     🔒 Predictions are hidden until matches kick off.
+                </MudAlert>
+            }
+            else if (!_matches.Any(m => m.HasPrediction))
+            {
+                <MudAlert Severity="Severity.Warning" Variant="Variant.Text" Dense="true" Class="mb-3">
+                    @_profile.DisplayName didn't make any predictions this gameweek.
                 </MudAlert>
             }
             else

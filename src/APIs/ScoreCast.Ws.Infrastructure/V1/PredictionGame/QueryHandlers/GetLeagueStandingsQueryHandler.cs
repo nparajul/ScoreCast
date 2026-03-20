@@ -15,10 +15,31 @@ internal sealed record GetLeagueStandingsQueryHandler(
     {
         var league = await DbContext.PredictionLeagues
             .AsNoTracking()
+            .Include(l => l.Competition)
             .FirstOrDefaultAsync(l => l.Id == query.PredictionLeagueId, ct);
 
         if (league is null)
             return ScoreCastResponse<LeagueStandingsResult>.Error("League not found");
+
+        // Resolve starting gameweek number for scoping
+        int? startingGwNumber = null;
+        long? startingGwId = league.StartingGameweekId;
+        if (startingGwId.HasValue)
+        {
+            startingGwNumber = await DbContext.Gameweeks.AsNoTracking()
+                .Where(g => g.Id == startingGwId.Value)
+                .Select(g => (int?)g.Number)
+                .FirstOrDefaultAsync(ct);
+        }
+
+        // Get all GW ids in scope
+        var scopedGwIds = await DbContext.Gameweeks.AsNoTracking()
+            .Where(g => g.SeasonId == league.SeasonId
+                        && (!startingGwNumber.HasValue || g.Number >= startingGwNumber.Value))
+            .Select(g => g.Id)
+            .ToListAsync(ct);
+
+        var scopedGwIdSet = scopedGwIds.ToHashSet();
 
         var scoringRules = await DbContext.PredictionScoringRules
             .AsNoTracking()
@@ -41,7 +62,10 @@ internal sealed record GetLeagueStandingsQueryHandler(
             .Select(p => new { p.UserId, p.Outcome, GameweekId = p.Match!.GameweekId })
             .ToListAsync(ct);
 
-        var predictionStats = predictions
+        // Filter to scoped GWs in memory
+        var scopedPredictions = predictions.Where(p => scopedGwIdSet.Contains(p.GameweekId)).ToList();
+
+        var predictionStats = scopedPredictions
             .GroupBy(p => p.UserId)
             .ToDictionary(g => g.Key, g => new
             {
@@ -51,11 +75,12 @@ internal sealed record GetLeagueStandingsQueryHandler(
                 Count = g.Select(p => p.GameweekId).Distinct().Count()
             });
 
-        // Include resolved risk play bonus/penalty
+        // Include resolved risk play bonus/penalty — scoped to GWs
         var riskBonusByUser = await DbContext.RiskPlays
             .AsNoTracking()
             .Where(r => r.SeasonId == league.SeasonId && r.IsResolved == true
-                        && !r.IsDeleted && memberUserIds.Contains(r.UserId))
+                        && !r.IsDeleted && memberUserIds.Contains(r.UserId)
+                        && scopedGwIds.Contains(r.GameweekId))
             .GroupBy(r => r.UserId)
             .ToDictionaryAsync(g => g.Key, g => g.Sum(r => r.BonusPoints ?? 0), ct);
 
@@ -77,6 +102,7 @@ internal sealed record GetLeagueStandingsQueryHandler(
             .ToList();
 
         return ScoreCastResponse<LeagueStandingsResult>.Ok(
-            new LeagueStandingsResult(league.Name, league.SeasonId, standings));
+            new LeagueStandingsResult(league.Name, league.SeasonId, startingGwNumber,
+                league.Competition.Name, league.Competition.LogoUrl, standings));
     }
 }
