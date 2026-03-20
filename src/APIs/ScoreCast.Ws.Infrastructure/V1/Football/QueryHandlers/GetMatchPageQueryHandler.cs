@@ -73,6 +73,7 @@ internal sealed record GetMatchPageQueryHandler(
         int? htHome = null, htAway = null;
         int? clockSeconds = null;
         string? phase = null;
+        long? secondHalfStartMillis = null;
 
         var pulseMapping = await DbContext.ExternalMappings.AsNoTracking()
             .Where(m => m.EntityId == query.MatchId && m.EntityType == EntityType.Match
@@ -96,6 +97,18 @@ internal sealed record GetMatchPageQueryHandler(
                     htAway = pulse.HalfTimeScore?.AwayScore;
                     clockSeconds = pulse.Clock?.Secs is not null ? (int)pulse.Clock.Secs : null;
                     phase = pulse.Phase;
+
+                    // PS event with phase "2" = second half kickoff time
+                    // PE event with phase "1" = half-time whistle (fallback: + 15 min)
+                    var ps2 = pulse.Events?.FirstOrDefault(e => e.Type == "PS" && e.Phase == "2");
+                    if (ps2?.Time?.Millis is not null)
+                        secondHalfStartMillis = ps2.Time.Millis.Value;
+                    else
+                    {
+                        var pe1 = pulse.Events?.FirstOrDefault(e => e.Type == "PE" && e.Phase == "1");
+                        if (pe1?.Time?.Millis is not null)
+                            secondHalfStartMillis = pe1.Time.Millis.Value + (long)TimeSpan.FromMinutes(15).TotalMilliseconds;
+                    }
 
                     // Build Pulse player ID → our player ID map
                     var pulsePlayerIds = (pulse.TeamLists ?? [])
@@ -155,7 +168,7 @@ internal sealed record GetMatchPageQueryHandler(
 
         return ScoreCastResponse<MatchPageResult>.Ok(new MatchPageResult(
             match.Id, match.KickoffTime, match.Status.ToString(), match.Minute,
-            clockSeconds, phase,
+            clockSeconds, phase, secondHalfStartMillis,
             match.HomeTeamId, match.HomeTeamName, match.HomeTeamLogo, match.HomeTeamShortName,
             match.AwayTeamId, match.AwayTeamName, match.AwayTeamLogo, match.AwayTeamShortName,
             match.HomeScore, match.AwayScore, match.Venue, match.Referee,

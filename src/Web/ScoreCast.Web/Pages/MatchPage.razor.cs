@@ -1,7 +1,6 @@
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
-using ScoreCast.Shared.Types;
 using ScoreCast.Web.Components;
 using ScoreCast.Web.Components.Helpers;
 
@@ -53,11 +52,10 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
 
         if (_match.Phase == PulseApi.Phase.HalfTime)
         {
-            // Estimate 2nd half start: kickoff + 60 min (45 play + 15 break)
-            if (_match.KickoffTime.HasValue)
+            if (_match.SecondHalfStartMillis is not null)
             {
-                var secondHalfStart = _match.KickoffTime.Value.AddMinutes(60);
-                _htRemainingSeconds = (int)(secondHalfStart - ScoreCastDateTime.Now).TotalSeconds;
+                var secondHalfStart = DateTimeOffset.FromUnixTimeMilliseconds(_match.SecondHalfStartMillis.Value);
+                _htRemainingSeconds = (int)(secondHalfStart - DateTimeOffset.UtcNow).TotalSeconds;
                 if (_htRemainingSeconds < 0) _htRemainingSeconds = 0;
                 UpdateHtDisplay();
                 _clockTimer = new System.Timers.Timer(1000);
