@@ -14,7 +14,7 @@
                         Predict. Compete. Prove You Know Football.
                     </MudText>
                     <MudText Typo="Typo.body1" Align="Align.Center" Class="mt-2" Style="max-width:500px; color:var(--mud-palette-text-secondary);">
-                        Predict exact scorelines, compete with friends in private leagues, and track every match with live scores and AI-powered insights.
+                        Predict exact scorelines, compete with friends in private leagues, and spice things up with risk plays — all for free, no betting involved.
                     </MudText>
                     <MudButton Variant="Variant.Filled"
                                Color="Color.Tertiary"
@@ -86,6 +86,18 @@
                         </MudCardHeader>
                         <MudCardContent>
                             <MudText Typo="Typo.body2">Create a league, invite your mates, and compete head-to-head across the season. Your group, your rules.</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="3" Class="rounded-lg" Style="height:100%;">
+                        <MudCardHeader>
+                            <CardHeaderAvatar><MudAvatar Style="background:linear-gradient(135deg,#7c4dff,#651fff);color:#fff;">🎲</MudAvatar></CardHeaderAvatar>
+                            <CardHeaderContent><MudText Typo="Typo.h6">Risk Plays</MudText></CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.body2">Feeling brave? Place optional side bets each gameweek — Double Down, Exact Score Boost, Clean Sheet, and more. Earn bonus points or pay the price. No real money involved.</MudText>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
@@ -171,7 +183,10 @@
                             <MudText Typo="Typo.body2">I'm a full-time developer building ScoreCast in my spare time. Core features work — predictions, live scores, leagues, insights — but you may run into occasional bugs or rough edges. If you find any issues, please report them on <MudLink Href="https://github.com/nparajul/ScoreCast/issues" Target="_blank">GitHub Issues</MudLink> — it really helps!</MudText>
                         </MudExpansionPanel>
                         <MudExpansionPanel Text="How does scoring work?">
-                            <MudText Typo="Typo.body2">You earn points based on how close your prediction is to the actual result. Exact scorelines earn the most, followed by correct result and goal difference, then correct result alone. Scoring rules are being finalized as development progresses — check the points breakdown on the predict page after matches finish to see how you did.</MudText>
+                            <MudText Typo="Typo.body2">You earn points based on how close your prediction is to the actual result. Exact scorelines earn 10 points, correct result and goal difference earns 7, correct result earns 5, and correct goal difference earns 3. You can also place optional risk plays each gameweek for bonus points (or penalties if you get them wrong).</MudText>
+                        </MudExpansionPanel>
+                        <MudExpansionPanel Text="What are Risk Plays?">
+                            <MudText Typo="Typo.body2">Risk plays are optional side challenges you can add to your predictions each gameweek. Choose from Double Down, Exact Score Boost, Clean Sheet Bet, First Goal Team, or Over/Under 2.5 Goals. Get them right for bonus points, get them wrong and you lose points. They're purely for fun — no real money is involved.</MudText>
                         </MudExpansionPanel>
                         <MudExpansionPanel Text="Can I play with friends?">
                             <MudText Typo="Typo.body2">Absolutely. Create a private league, share the invite code, and compete against your group. You can join multiple leagues at once.</MudText>
