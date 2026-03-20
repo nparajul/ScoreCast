@@ -25,8 +25,10 @@ internal sealed record GetMatchPageQueryHandler(
                 m.HomeTeamId, m.AwayTeamId,
                 HomeTeamName = m.HomeTeam.Name, HomeTeamLogo = m.HomeTeam.LogoUrl,
                 HomeTeamShortName = m.HomeTeam.ShortName ?? m.HomeTeam.Name,
+                HomeCoach = m.HomeTeam.Coach,
                 AwayTeamName = m.AwayTeam.Name, AwayTeamLogo = m.AwayTeam.LogoUrl,
                 AwayTeamShortName = m.AwayTeam.ShortName ?? m.AwayTeam.Name,
+                AwayCoach = m.AwayTeam.Coach,
                 CompetitionName = m.Gameweek.Season.Competition.Name,
                 CompetitionLogo = m.Gameweek.Season.Competition.LogoUrl,
                 SeasonId = m.Gameweek.SeasonId
@@ -175,6 +177,18 @@ internal sealed record GetMatchPageQueryHandler(
             catch { /* Pulse unavailable — show page without lineups */ }
         }
 
+        // Build substitution pairs
+        var subIns = events.Where(e => e.EventType == EventTypes.SubIn).ToList();
+        var subOuts = events.Where(e => e.EventType == EventTypes.SubOut).ToList();
+        var matchSubs = subIns.Select(si =>
+        {
+            var so = subOuts.FirstOrDefault(s => s.Minute == si.Minute
+                && playerTeamMap.GetValueOrDefault(s.PlayerId) == playerTeamMap.GetValueOrDefault(si.PlayerId));
+            if (so is not null) subOuts.Remove(so);
+            var isHome = playerTeamMap.GetValueOrDefault(si.PlayerId) == match.HomeTeamId;
+            return new MatchPageSub(si.Name, so?.Name ?? "", si.Minute, isHome);
+        }).ToList();
+
         return ScoreCastResponse<MatchPageResult>.Ok(new MatchPageResult(
             match.Id, match.KickoffTime, match.Status.ToString(), match.Minute,
             clockSeconds, phase, secondHalfStartMillis,
@@ -183,8 +197,9 @@ internal sealed record GetMatchPageQueryHandler(
             match.HomeScore, match.AwayScore, match.Venue, match.Referee,
             htHome, htAway, match.CompetitionName, match.CompetitionLogo,
             homeFormation, awayFormation,
+            match.HomeCoach, match.AwayCoach,
             homeLineup, homeSubs, awayLineup, awaySubs,
-            matchEvents));
+            matchEvents, matchSubs));
     }
 
     private static MatchPageLineupPlayer MapPlayer(
