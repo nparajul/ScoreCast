@@ -56,4 +56,10 @@ public partial interface IScoreCastApiClient
 
     [Get("/api/v1/football/matches/{matchId}/prediction")]
     Task<ScoreCastResponse<MatchPredictionResult>> GetMatchPredictionAsync(long matchId, CancellationToken ct);
+
+    [Get("/api/v1/football/matches/{matchId}/highlights")]
+    Task<ScoreCastResponse<MatchHighlightsResult>> GetMatchHighlightsAsync(long matchId, CancellationToken ct);
+
+    [Get("/api/v1/football/highlights")]
+    Task<ScoreCastResponse<AllHighlightsResult>> GetAllHighlightsAsync(int skip, int take, CancellationToken ct);
 }
