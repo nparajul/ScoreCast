@@ -29,6 +29,7 @@ public partial class PlayerProfile : ScoreCastComponentBase
     private int _startingGwNumber = 1;
     private string? _competitionName;
     private string? _competitionLogoUrl;
+    private string? _leagueName;
     private bool _showBreakdown;
     private readonly HashSet<string> _expandedRules = [];
 
@@ -45,6 +46,7 @@ public partial class PlayerProfile : ScoreCastComponentBase
             _startingGwNumber = standingsResponse.Data.StartingGameweekNumber ?? 1;
             _competitionName = standingsResponse.Data.CompetitionName;
             _competitionLogoUrl = standingsResponse.Data.CompetitionLogoUrl;
+            _leagueName = standingsResponse.Data.LeagueName;
 
             var profileTask = Api.GetPlayerProfileAsync(UserId, LeagueId, CancellationToken.None);
             var rulesTask = Api.GetScoringRulesAsync(CancellationToken.None);
