@@ -22,13 +22,13 @@
                 <tr style="@(zone is not null ? $"background:{zone.Color}15;border-left:3px solid {zone.Color};" : "")">
                     <td style="color:var(--mud-palette-text-secondary);">@row.Position</td>
                     <td>
-                        <div class="d-flex align-center gap-2">
+                        <a href="/teams/@row.TeamId" class="d-flex align-center gap-2" style="color:inherit;text-decoration:none;">
                             @if (!string.IsNullOrEmpty(row.TeamLogo))
                             {
                                 <img src="@row.TeamLogo" alt="" style="width:18px;height:18px;" />
                             }
-                            <a href="/teams/@row.TeamId" style="font-size:0.8125rem;color:inherit;text-decoration:none;">@row.TeamName</a>
-                        </div>
+                            <span style="font-size:0.8125rem;">@row.TeamName</span>
+                        </a>
                     </td>
                     <td style="text-align:center;">@row.Played</td>
                     <td style="text-align:center;">@row.Won</td>
