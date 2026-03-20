@@ -87,7 +87,7 @@
 
         @* Tabs *@
         <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:3px;margin:12px 0;">
-            @foreach (var tab in new[] { "Events", "Lineups" })
+            @foreach (var tab in new[] { "Events", "Lineups", "Table" })
             {
                 var isActive = _activeTab == tab;
                 <div @onclick="@(() => _activeTab = tab)"
@@ -356,6 +356,31 @@
             {
                 <MudPaper Elevation="1" Style="border-radius:12px;padding:24px;text-align:center;">
                     <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">Lineups not available yet</MudText>
+                </MudPaper>
+            }
+        }
+
+        @* Table Tab *@
+        @if (_activeTab == "Table")
+        {
+            @if (_table is not null && _table.Groups.Count > 0)
+            {
+                @foreach (var group in _table.Groups)
+                {
+                    @if (_table.Groups.Count > 1 && group.GroupName is not null)
+                    {
+                        <MudText Typo="Typo.subtitle2" Style="font-weight:700;margin:8px 0 4px;">@group.GroupName</MudText>
+                    }
+                    <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;margin-bottom:12px;">
+                        <LeagueTableView Rows="group.Rows" Zones="_zones"
+                            HighlightTeamNames="@(new List<string> { _match.HomeTeamName, _match.AwayTeamName })" />
+                    </MudPaper>
+                }
+            }
+            else
+            {
+                <MudPaper Elevation="1" Style="border-radius:12px;padding:24px;text-align:center;">
+                    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">Table not available</MudText>
                 </MudPaper>
             }
         }
