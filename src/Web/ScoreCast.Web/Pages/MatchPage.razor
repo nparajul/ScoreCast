@@ -107,20 +107,16 @@
                 {
                     @foreach (var evt in OrderedEvents)
                     {
-                        <div style="display:flex;align-items:center;padding:10px 14px;gap:10px;border-bottom:1px solid var(--mud-palette-divider);">
-                            <span style="min-width:36px;font-size:12px;font-weight:700;color:var(--mud-palette-text-secondary);text-align:center;">@evt.Minute</span>
-                            <span style="font-size:16px;min-width:24px;text-align:center;">@EventIcon(evt.EventType)</span>
-                            <div style="flex:1;">
-                                <div style="font-weight:600;font-size:13px;@(evt.IsHome ? "" : "text-align:right;")">
-                                    @evt.PlayerName
-                                </div>
+                        <div style="display:flex;align-items:center;padding:10px 14px;gap:8px;border-bottom:1px solid var(--mud-palette-divider);flex-direction:@(evt.IsHome ? "row" : "row-reverse");">
+                            <span style="font-size:14px;min-width:22px;text-align:center;">@((MarkupString)EventIcon(evt.EventType))</span>
+                            <div style="flex:1;@(evt.IsHome ? "" : "text-align:right;")">
+                                <div style="font-weight:600;font-size:13px;">@evt.PlayerName</div>
                                 @if (evt.AssistName is not null)
                                 {
-                                    <div style="font-size:11px;color:var(--mud-palette-text-secondary);@(evt.IsHome ? "" : "text-align:right;")">
-                                        👟 @evt.AssistName
-                                    </div>
+                                    <div style="font-size:11px;color:var(--mud-palette-text-secondary);">👟 @evt.AssistName</div>
                                 }
                             </div>
+                            <span style="min-width:36px;font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);text-align:center;">@evt.Minute</span>
                         </div>
                     }
                 }
