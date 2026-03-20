@@ -13,8 +13,7 @@ public record MatchPageResult(
     string? HomeCoach, string? AwayCoach,
     List<MatchPageLineupPlayer> HomeLineup, List<MatchPageLineupPlayer> HomeSubs,
     List<MatchPageLineupPlayer> AwayLineup, List<MatchPageLineupPlayer> AwaySubs,
-    List<MatchPageEvent> Events,
-    List<MatchPageSub> Subs);
+    List<MatchPageEvent> Events);
 
 public record MatchPageLineupPlayer(
     long PlayerId, string Name, string? PhotoUrl,
@@ -23,6 +22,5 @@ public record MatchPageLineupPlayer(
 
 public record MatchPageEvent(
     string EventType, string PlayerName, string? AssistName,
-    string? Minute, bool IsHome, double SortKey);
-
-public record MatchPageSub(string PlayerOn, string PlayerOff, string? Minute, bool IsHome);
+    string? Minute, bool IsHome, double SortKey,
+    string? PlayerOff, string? RunningScore);
