@@ -198,7 +198,7 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     {
         EventTypes.Goal => "⚽",
         EventTypes.PenaltyGoal => "⚽",
-        EventTypes.OwnGoal => "<span style=\"color:#f44336;font-weight:800;font-size:9px;\">OG</span>",
+        EventTypes.OwnGoal => "<span style=\"font-size:9px;\">⚽</span><span style=\"color:#f44336;font-weight:800;font-size:7px;vertical-align:super;\">OG</span>",
         EventTypes.Assist => "👟",
         EventTypes.YellowCard => "🟨",
         EventTypes.RedCard => "🟥",
