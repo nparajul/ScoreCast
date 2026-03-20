@@ -10,7 +10,12 @@ public record UserProfileResult(
     string? AvatarUrl,
     string? FavoriteTeam,
     int TotalPoints,
-    int CurrentStreak,
-    int LongestStreak,
+    int BestGameweek,
+    int CompletedGameweeks,
     bool IsActive,
-    ScoreCastDateTime MemberSince);
+    ScoreCastDateTime MemberSince)
+{
+    public string AvgPerGameweek => CompletedGameweeks > 0
+        ? ((double)TotalPoints / CompletedGameweeks).ToString("F2")
+        : "0.00";
+}

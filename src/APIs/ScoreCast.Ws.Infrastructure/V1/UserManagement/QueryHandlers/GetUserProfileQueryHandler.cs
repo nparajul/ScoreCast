@@ -2,6 +2,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.UserManagement;
+using ScoreCast.Shared.Enums;
 using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Application.V1.UserManagement.Queries;
 
@@ -19,11 +20,17 @@ internal sealed record GetUserProfileQueryHandler(
         if (user is null)
             return ScoreCastResponse<UserProfileResult>.NotFound("User profile not found");
 
+        var completedGws = await DbContext.UserSeasons
+            .Where(us => us.UserId == user.Id)
+            .SelectMany(us => us.Season.Gameweeks)
+            .Where(gw => gw.Matches.Any(m => m.Status == MatchStatus.Finished))
+            .CountAsync(ct);
+
         return ScoreCastResponse<UserProfileResult>.Ok(
             new UserProfileResult(
                 user.Id, user.UserId, user.Email, user.DisplayName,
                 user.AvatarUrl, user.FavoriteTeam, user.TotalPoints,
-                user.CurrentStreak, user.LongestStreak, user.IsActive,
+                user.CurrentStreak, completedGws, user.IsActive,
                 user.CreatedDate));
     }
 }

@@ -49,12 +49,7 @@ internal sealed record CalculateOutcomesCommandHandler(
             foreach (var user in users)
                 user.TotalPoints += pointsByUser[user.Id];
 
-            // Recalculate best gameweek and avg points/GW for affected users
-            var completedGameweeks = await DbContext.Gameweeks
-                .Where(gw => gw.SeasonId == command.Request.SeasonId
-                    && gw.Matches.Any(m => m.Status == MatchStatus.Finished))
-                .CountAsync(ct);
-
+            // Recalculate best gameweek score for affected users
             foreach (var user in users)
             {
                 var gwPoints = await DbContext.Predictions
@@ -64,9 +59,6 @@ internal sealed record CalculateOutcomesCommandHandler(
                     .ToListAsync(ct);
 
                 user.CurrentStreak = gwPoints.Count > 0 ? gwPoints.Max() : 0;
-                user.LongestStreak = completedGameweeks > 0
-                    ? (int)Math.Round((double)user.TotalPoints / completedGameweeks)
-                    : 0;
             }
         }
 
