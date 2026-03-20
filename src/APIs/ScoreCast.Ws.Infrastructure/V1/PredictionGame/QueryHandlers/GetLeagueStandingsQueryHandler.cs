@@ -77,6 +77,6 @@ internal sealed record GetLeagueStandingsQueryHandler(
             .ToList();
 
         return ScoreCastResponse<LeagueStandingsResult>.Ok(
-            new LeagueStandingsResult(league.Name, standings));
+            new LeagueStandingsResult(league.Name, league.SeasonId, standings));
     }
 }
