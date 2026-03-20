@@ -27,6 +27,7 @@ public interface IScoreCastDbContext
     DbSet<PredictionLeague> PredictionLeagues { get; }
     DbSet<PredictionLeagueMember> PredictionLeagueMembers { get; }
     DbSet<Prediction> Predictions { get; }
+    DbSet<RiskPlay> RiskPlays { get; }
     DbSet<Player> Players { get; }
     DbSet<TeamPlayer> TeamPlayers { get; }
     DbSet<CompetitionZone> CompetitionZones { get; }
