@@ -54,7 +54,7 @@
                 else
                 {
                     <span style="font-size:12px;color:var(--mud-palette-text-secondary);">
-                        @(Match.KickoffTime?.ToLocalTime().ToString("HH:mm") ?? "TBD")
+                        @(Match.KickoffTime.HasValue ? FormatLocal(Match.KickoffTime.Value, "HH:mm") : "TBD")
                     </span>
                 }
             </div>
@@ -107,7 +107,7 @@
                     }
                     @if (Match.KickoffTime.HasValue)
                     {
-                        <div>🕐 @Match.KickoffTime.Value.ToLocalTime().ToString("ddd dd MMM yyyy, HH:mm")</div>
+                        <div>🕐 @FormatLocal(Match.KickoffTime.Value, "ddd dd MMM yyyy, HH:mm")</div>
                     }
                     @if (Match.Referee is not null)
                     {
