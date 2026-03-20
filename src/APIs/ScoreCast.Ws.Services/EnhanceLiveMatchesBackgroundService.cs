@@ -18,8 +18,15 @@ public sealed class EnhanceLiveMatchesBackgroundService(ILogger<EnhanceLiveMatch
         {
             try
             {
-                var result = await new EnhanceLiveMatchesCommand(new EnhanceLiveMatchesRequest()).ExecuteAsync(stoppingToken);
-                logger.LogInformation("EnhanceLive background: {Message}", result.Message);
+                var result = await new EnhanceLiveMatchesCommand(new EnhanceLiveMatchesRequest()
+                {
+                    AppName = nameof(EnhanceLiveMatchesBackgroundService),
+                }).ExecuteAsync(stoppingToken);
+
+                if (!result.Success)
+                    logger.LogError("Failed Response EnhanceLive background: {Message}", result.Message);
+
+                logger.LogInformation("Success Response EnhanceLive background: {Message}", result.Message);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
