@@ -104,6 +104,12 @@
                     🔒 Predictions are hidden until matches kick off.
                 </MudAlert>
             }
+            else if (!_matches.Any(m => m.HasPrediction))
+            {
+                <MudAlert Severity="Severity.Warning" Variant="Variant.Text" Dense="true" Class="mb-3">
+                    @_profile.DisplayName didn't make any predictions this gameweek.
+                </MudAlert>
+            }
             else
             {
                 @* Points breakdown *@
