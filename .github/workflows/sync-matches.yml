@@ -38,25 +38,30 @@ jobs:
           done
           if [ -z "$CODES" ]; then
             echo "::error::No competitions returned after 3 attempts"
-            echo "Last response: $RESPONSE"
             exit 1
           fi
           echo "codes=$CODES" >> $GITHUB_OUTPUT
 
       - name: Sync matches per competition
         run: |
-          FAILED=0
+          SUCCEEDED=0
+          TOTAL=0
           for CODE in ${{ steps.competitions.outputs.codes }}; do
+            TOTAL=$((TOTAL + 1))
             echo "Syncing $CODE..."
-            RESULT=$(curl -s --max-time 120 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
-              -d "{\"competitionCode\":\"$CODE\",\"appName\":\"GITHUB-ACTIONS:SYNC-MATCHES\"}" \
-              "$API_BASE_URL/api/v1/master-data/sync/matches")
-            SUCCESS=$(echo "$RESULT" | jq -r '.success // false' 2>/dev/null)
-            MSG=$(echo "$RESULT" | jq -r '.message // empty' 2>/dev/null)
-            echo "$CODE: success=$SUCCESS message=$MSG"
-            if [ "$SUCCESS" != "true" ]; then FAILED=1; fi
+            for i in 1 2 3; do
+              RESULT=$(curl -s --max-time 120 -X POST -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+                -d "{\"competitionCode\":\"$CODE\",\"appName\":\"GITHUB-ACTIONS:SYNC-MATCHES\"}" \
+                "$API_BASE_URL/api/v1/master-data/sync/matches")
+              SUCCESS=$(echo "$RESULT" | jq -r '.success // false' 2>/dev/null)
+              MSG=$(echo "$RESULT" | jq -r '.message // empty' 2>/dev/null)
+              echo "Attempt $i - $CODE: success=$SUCCESS message=$MSG"
+              if [ "$SUCCESS" = "true" ]; then SUCCEEDED=$((SUCCEEDED + 1)); break; fi
+              sleep 5
+            done
           done
-          if [ "$FAILED" = "1" ]; then
-            echo "::error::One or more competitions failed to sync"
+          echo "Synced $SUCCEEDED/$TOTAL competitions"
+          if [ "$SUCCEEDED" = "0" ]; then
+            echo "::error::All competitions failed to sync"
             exit 1
           fi

@@ -35,6 +35,5 @@ jobs:
           MSG=$(echo "$RESULT" | jq -r '.message // empty' 2>/dev/null)
           echo "success=$SUCCESS message=$MSG"
           if [ "$SUCCESS" != "true" ]; then
-            echo "::error::update-matchday failed: $MSG"
-            exit 1
+            echo "::warning::update-matchday: $MSG"
           fi
