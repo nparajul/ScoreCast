@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.JSInterop;
+using MudBlazor;
 
 namespace ScoreCast.Web.Layout;
 
@@ -8,6 +9,7 @@ public partial class MainLayout : IDisposable
 {
     [Inject] private NavigationManager Nav { get; set; } = null!;
     [Inject] private IJSRuntime Js { get; set; } = null!;
+    [Inject] private IDialogService Dialog { get; set; } = null!;
 
     private bool _drawerOpen = false;
     private bool _isMobile = false;
@@ -77,6 +79,12 @@ public partial class MainLayout : IDisposable
     }
 
     private async Task GoBack() => await Js.InvokeVoidAsync("history.back");
+
+    private async Task OpenSearch()
+    {
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, NoHeader = true, FullScreen = _isMobile };
+        await Dialog.ShowAsync<ScoreCast.Web.Components.Shared.GlobalSearch>("Search", options);
+    }
 
     private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
