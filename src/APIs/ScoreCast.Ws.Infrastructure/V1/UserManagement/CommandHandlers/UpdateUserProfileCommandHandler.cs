@@ -15,7 +15,7 @@ internal sealed record UpdateUserProfileCommandHandler(
     public async Task<ScoreCastResponse<UserProfileResult>> ExecuteAsync(UpdateUserProfileCommand command, CancellationToken ct)
     {
         var user = await DbContext.UserMasters
-            .FirstOrDefaultAsync(u => u.KeycloakUserId == command.KeycloakUserId, ct);
+            .FirstOrDefaultAsync(u => u.FirebaseUid == command.FirebaseUid, ct);
 
         if (user is null)
             return ScoreCastResponse<UserProfileResult>.NotFound("User profile not found");
