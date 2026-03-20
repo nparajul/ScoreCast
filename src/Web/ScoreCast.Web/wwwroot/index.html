@@ -39,6 +39,14 @@
                     }
                 });
             });
+            // Check for updates every 30 minutes
+            setInterval(() => reg.update(), 30 * 60 * 1000);
+        });
+        // Check for updates when user returns to the app
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                navigator.serviceWorker.ready.then(reg => reg.update());
+            }
         });
     </script>
 </body>
