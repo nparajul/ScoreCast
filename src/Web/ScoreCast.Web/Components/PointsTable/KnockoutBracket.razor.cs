@@ -76,6 +76,7 @@ public partial class KnockoutBracket
         {
             await Task.Delay(200);
             await Js.InvokeVoidAsync("bracketLines.draw", "bracket-container");
+            await Js.InvokeVoidAsync("bracketLines.scaleToFit", "bracket-container", "bracket-inner");
         }
     }
 

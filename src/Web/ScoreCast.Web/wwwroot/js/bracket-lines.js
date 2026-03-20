@@ -11,9 +11,27 @@ window.bracketLines = {
         var timeout;
         this._resizeHandler = function () {
             clearTimeout(timeout);
-            timeout = setTimeout(function () { self._drawLines(containerId); }, 16);
+            timeout = setTimeout(function () {
+                self.scaleToFit(containerId, 'bracket-inner');
+                self._drawLines(containerId);
+            }, 16);
         };
         window.addEventListener('resize', this._resizeHandler);
+    },
+    scaleToFit: function (containerId, innerId) {
+        var container = document.getElementById(containerId);
+        var inner = document.getElementById(innerId);
+        if (!container || !inner) return;
+
+        inner.style.transform = 'none';
+        container.style.height = 'auto';
+        var cw = container.clientWidth;
+        var iw = inner.scrollWidth;
+        if (iw > cw && cw > 0) {
+            var scale = cw / iw;
+            inner.style.transform = 'scale(' + scale + ')';
+            container.style.height = (inner.scrollHeight * scale) + 'px';
+        }
     },
     _drawLines: function (containerId) {
         var container = document.getElementById(containerId);
