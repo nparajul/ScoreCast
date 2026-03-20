@@ -205,7 +205,53 @@
                         <MudExpansionPanel Text="Will my data be safe?">
                             <MudText Typo="Typo.body2">Authentication is handled by Google Firebase. We don't store passwords. Your predictions and profile data are stored securely and never shared with third parties.</MudText>
                         </MudExpansionPanel>
+                        <MudExpansionPanel Text="What stats and data are available?">
+                            <MudText Typo="Typo.body2">ScoreCast gives you player stats, team profiles, squad lists, recent form, and full season data — all inside the app. No need to switch between tabs or apps to do your research.</MudText>
+                        </MudExpansionPanel>
+                        <MudExpansionPanel Text="Can I follow fixtures and match events live?">
+                            <MudText Typo="Typo.body2">Yes. You get live scores, match timelines with goals, cards, and substitutions, plus upcoming fixtures and full results — everything you need to follow the action and plan your next predictions.</MudText>
+                        </MudExpansionPanel>
                     </MudExpansionPanels>
+                </MudItem>
+            </MudGrid>
+
+            @* Powered By *@
+            <MudGrid Justify="Justify.Center" Class="mb-10">
+                <MudItem xs="12" sm="10" md="7">
+                    <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight:700;" Class="mb-2">Powered By</MudText>
+                    <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary" Class="mb-4">ScoreCast wouldn't be possible without these amazing services and APIs.</MudText>
+                    <MudGrid Justify="Justify.Center" Spacing="3">
+                        <MudItem xs="6" sm="4" Class="d-flex flex-column align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.SportsSoccer" Size="Size.Large" Color="Color.Primary" />
+                            <MudText Typo="Typo.subtitle2" Class="mt-1">Premier League Pulse API</MudText>
+                            <MudText Typo="Typo.caption" Align="Align.Center">Live scores, fixtures, events & team data</MudText>
+                        </MudItem>
+                        <MudItem xs="6" sm="4" Class="d-flex flex-column align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.Storage" Size="Size.Large" Color="Color.Primary" />
+                            <MudText Typo="Typo.subtitle2" Class="mt-1">Football-Data.org</MudText>
+                            <MudText Typo="Typo.caption" Align="Align.Center">Match data & competition coverage</MudText>
+                        </MudItem>
+                        <MudItem xs="6" sm="4" Class="d-flex flex-column align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" Color="Color.Primary" />
+                            <MudText Typo="Typo.subtitle2" Class="mt-1">FPL API</MudText>
+                            <MudText Typo="Typo.caption" Align="Align.Center">Player data & enrichment</MudText>
+                        </MudItem>
+                        <MudItem xs="6" sm="4" Class="d-flex flex-column align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.Psychology" Size="Size.Large" Color="Color.Primary" />
+                            <MudText Typo="Typo.subtitle2" Class="mt-1">OpenAI</MudText>
+                            <MudText Typo="Typo.caption" Align="Align.Center">AI-powered match insights</MudText>
+                        </MudItem>
+                        <MudItem xs="6" sm="4" Class="d-flex flex-column align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Primary" />
+                            <MudText Typo="Typo.subtitle2" Class="mt-1">Firebase Auth</MudText>
+                            <MudText Typo="Typo.caption" Align="Align.Center">Secure authentication</MudText>
+                        </MudItem>
+                        <MudItem xs="6" sm="4" Class="d-flex flex-column align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.Cloud" Size="Size.Large" Color="Color.Primary" />
+                            <MudText Typo="Typo.subtitle2" Class="mt-1">Cloudflare & Neon</MudText>
+                            <MudText Typo="Typo.caption" Align="Align.Center">Hosting & PostgreSQL database</MudText>
+                        </MudItem>
+                    </MudGrid>
                 </MudItem>
             </MudGrid>
 
