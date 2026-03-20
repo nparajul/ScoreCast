@@ -18,7 +18,7 @@ public record MatchPageResult(
 public record MatchPageLineupPlayer(
     long PlayerId, string Name, string? PhotoUrl,
     int? ShirtNumber, string? Position, bool IsCaptain,
-    List<string> Icons);
+    List<string> Icons, string? SubMinute);
 
 public record MatchPageEvent(
     string EventType, string PlayerName, string? AssistName,

@@ -209,6 +209,82 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         return parts.Length > 1 ? parts[^1] : name;
     }
 
+    private RenderFragment RenderPlayerCard(MatchPageLineupPlayer p, int size) => builder =>
+    {
+        var s = size;
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "style", $"text-align:center;width:{s + 16}px;");
+
+        // Sub minute badge (top-left)
+        if (p.SubMinute is not null)
+        {
+            builder.OpenElement(2, "div");
+            builder.AddAttribute(3, "style", "font-size:9px;font-weight:700;color:rgba(255,255,255,0.7);margin-bottom:1px;");
+            builder.AddContent(4, p.SubMinute);
+            builder.CloseElement();
+        }
+
+        // Avatar container
+        builder.OpenElement(5, "div");
+        builder.AddAttribute(6, "style", "position:relative;display:inline-block;");
+
+        if (p.PhotoUrl is not null)
+        {
+            builder.OpenElement(7, "img");
+            builder.AddAttribute(8, "src", p.PhotoUrl);
+            builder.AddAttribute(9, "style", $"width:{s}px;height:{s}px;border-radius:50%;object-fit:cover;background:#333;border:2px solid rgba(255,255,255,0.3);");
+            builder.CloseElement();
+        }
+        else
+        {
+            builder.OpenElement(10, "div");
+            builder.AddAttribute(11, "style", $"width:{s}px;height:{s}px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.3);");
+            builder.OpenElement(12, "span");
+            builder.AddAttribute(13, "style", $"font-size:{s / 3}px;color:white;font-weight:700;");
+            builder.AddContent(14, p.Name.Length > 0 ? p.Name[0].ToString() : "?");
+            builder.CloseElement();
+            builder.CloseElement();
+        }
+
+        // Event badges (sub arrow, cards, goals)
+        if (p.SubMinute is not null)
+        {
+            builder.OpenElement(15, "span");
+            builder.AddAttribute(16, "style", "position:absolute;top:-2px;left:-2px;font-size:10px;background:#f44336;color:white;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;");
+            builder.AddMarkupContent(17, "↩");
+            builder.CloseElement();
+        }
+        if (p.IsCaptain)
+        {
+            builder.OpenElement(18, "span");
+            builder.AddAttribute(19, "style", "position:absolute;bottom:-2px;left:-2px;font-size:8px;background:white;color:#333;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:800;");
+            builder.AddContent(20, "C");
+            builder.CloseElement();
+        }
+        if (p.Icons.Count > 0)
+        {
+            builder.OpenElement(21, "div");
+            builder.AddAttribute(22, "style", "position:absolute;bottom:-2px;right:-4px;font-size:10px;line-height:1;display:flex;gap:1px;");
+            foreach (var icon in p.Icons.Where(i => i is not EventTypes.SubIn and not EventTypes.SubOut))
+            {
+                builder.AddMarkupContent(23, PlayerIcon(icon));
+            }
+            builder.CloseElement();
+        }
+
+        builder.CloseElement(); // avatar container
+
+        // Shirt number + name
+        builder.OpenElement(24, "div");
+        builder.AddAttribute(25, "style", $"font-size:{(s < 40 ? 9 : 10)}px;color:white;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;");
+        if (p.ShirtNumber is not null)
+            builder.AddContent(26, $"{p.ShirtNumber} ");
+        builder.AddContent(27, LastName(p.Name));
+        builder.CloseElement();
+
+        builder.CloseElement(); // outer div
+    };
+
     public void Dispose()
     {
         _pollCts?.Cancel();
