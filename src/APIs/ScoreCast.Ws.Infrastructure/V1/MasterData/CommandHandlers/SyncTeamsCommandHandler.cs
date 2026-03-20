@@ -235,7 +235,8 @@ internal sealed record SyncTeamsCommandHandler(
                 Founded = api.Founded,
                 Venue = api.Venue,
                 ClubColors = api.ClubColors,
-                Website = api.Website
+                Website = api.Website,
+                Coach = api.Coach?.Name
             };
             DbContext.Teams.Add(team);
         }
@@ -248,6 +249,7 @@ internal sealed record SyncTeamsCommandHandler(
             team.Venue = api.Venue;
             team.ClubColors = api.ClubColors;
             team.Website = api.Website;
+            team.Coach = api.Coach?.Name;
         }
 
         return team;

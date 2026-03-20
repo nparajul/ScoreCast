@@ -241,6 +241,24 @@
                     </MudPaper>
                 }
 
+                @* Coaches *@
+                @if (_match.HomeCoach is not null || _match.AwayCoach is not null)
+                {
+                    <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;margin-top:12px;">
+                        <div class="d-flex" style="padding:10px 14px;">
+                            <div style="flex:1;">
+                                <div style="font-size:10px;color:var(--mud-palette-text-secondary);font-weight:700;">COACH</div>
+                                <div style="font-size:13px;font-weight:600;">@(_match.HomeCoach ?? "—")</div>
+                            </div>
+                            <div style="width:1px;background:var(--mud-palette-divider);margin:0 10px;"></div>
+                            <div style="flex:1;text-align:right;">
+                                <div style="font-size:10px;color:var(--mud-palette-text-secondary);font-weight:700;">COACH</div>
+                                <div style="font-size:13px;font-weight:600;">@(_match.AwayCoach ?? "—")</div>
+                            </div>
+                        </div>
+                    </MudPaper>
+                }
+
                 @* Substitutes *@
                 @if (_match.HomeSubs.Count > 0 || _match.AwaySubs.Count > 0)
                 {
@@ -297,6 +315,24 @@
                                 }
                             </div>
                         </div>
+                    </MudPaper>
+                }
+
+                @* Substitutions made *@
+                @if (_match.Subs.Count > 0)
+                {
+                    <MudText Typo="Typo.subtitle2" Style="font-weight:700;margin:12px 0 6px;">Substitutions</MudText>
+                    <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;">
+                        @foreach (var sub in _match.Subs)
+                        {
+                            <div style="display:flex;align-items:center;padding:8px 14px;gap:8px;border-bottom:1px solid var(--mud-palette-divider);flex-direction:@(sub.IsHome ? "row" : "row-reverse");">
+                                <div style="@(sub.IsHome ? "" : "text-align:right;")flex:1;">
+                                    <div style="font-size:12px;font-weight:600;"><span style="color:#4caf50;">▲</span> @sub.PlayerOn</div>
+                                    <div style="font-size:11px;color:var(--mud-palette-text-secondary);"><span style="color:#f44336;">▼</span> @sub.PlayerOff</div>
+                                </div>
+                                <span style="font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);min-width:32px;text-align:center;">@sub.Minute</span>
+                            </div>
+                        }
                     </MudPaper>
                 }
             }
