@@ -99,47 +99,142 @@
                 case "Players":
                     @if (_playerStats is not null)
                     {
-                        <div style="display:flex;overflow-x:auto;gap:0;margin-bottom:12px;">
-                            @foreach (var stat in new[] { "Goals", "Assists" })
-                            {
-                                var active = stat == _playerStatTab;
-                                <div @onclick="@(() => _playerStatTab = stat)"
-                                     style="padding:8px 14px;font-size:12px;font-weight:@(active ? "700" : "500");cursor:pointer;white-space:nowrap;
-                                            border-bottom:@(active ? "2px solid var(--mud-palette-primary)" : "2px solid transparent");
-                                            color:@(active ? "var(--mud-palette-primary)" : "var(--mud-palette-text-secondary)");">
-                                    @stat
-                                </div>
-                            }
-                        </div>
-                        var players = GetPlayerStatRows();
-                        <MudSimpleTable Dense="true" Elevation="1" Style="border-radius:10px;">
-                            <thead>
-                                <tr style="font-size:0.75rem;color:var(--mud-palette-text-secondary);">
-                                    <th style="padding:8px 4px;width:20px;">#</th>
-                                    <th style="padding:8px 4px;">Player</th>
-                                    <th style="padding:8px 4px;text-align:center;width:40px;">@_playerStatTab.Split(' ')[0]</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @for (var i = 0; i < players.Count; i++)
+                        @if (IsMobile)
+                        {
+                            <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:3px;margin-bottom:12px;overflow-x:auto;">
+                                @foreach (var tab in new[] { "Overall", "Goals", "Assists", "Discipline" })
                                 {
-                                    var p = players[i];
-                                    <tr style="font-size:0.875rem;border-bottom:1px solid var(--mud-palette-lines-default);">
-                                        <td style="padding:8px 4px;font-weight:600;">@(i + 1)</td>
-                                        <td style="padding:8px 4px;">
-                                            <div class="d-flex align-center gap-2">
-                                                @if (!string.IsNullOrEmpty(p.TeamLogo))
-                                                {
-                                                    <img src="@p.TeamLogo" alt="" style="width:20px;height:20px;" />
-                                                }
-                                                <span style="font-weight:500;">@p.PlayerName</span>
-                                            </div>
-                                        </td>
-                                        <td style="padding:8px 4px;text-align:center;font-weight:700;">@p.Value</td>
-                                    </tr>
+                                    var isActive = _playerStatTab == tab;
+                                    <div @onclick="@(() => _playerStatTab = tab)"
+                                         style="flex:1;text-align:center;padding:5px 8px;border-radius:24px;font-size:0.65rem;font-weight:700;cursor:pointer;white-space:nowrap;
+                                                background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
+                                                color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
+                                        @tab
+                                    </div>
                                 }
-                            </tbody>
-                        </MudSimpleTable>
+                            </div>
+                            var mobileRows = MobileTabRows.Take(50).ToList();
+                            <MudSimpleTable Dense="true" Elevation="0" Style="background:transparent;border:none;">
+                                <thead>
+                                    <tr style="font-size:0.75rem;color:var(--mud-palette-text-secondary);">
+                                        <th style="padding:8px 2px;width:20px;">#</th>
+                                        <th style="padding:8px 2px;">Player</th>
+                                        @if (_playerStatTab == "Overall")
+                                        {
+                                            <th style="padding:8px 2px;text-align:center;width:26px;">⚽</th>
+                                            <th style="padding:8px 2px;text-align:center;width:26px;">👟</th>
+                                            <th style="padding:8px 2px;text-align:center;width:26px;"><span style="display:inline-block;width:8px;height:11px;background:#fdd835;border-radius:1px;"></span></th>
+                                            <th style="padding:8px 2px;text-align:center;width:26px;"><span style="display:inline-block;width:8px;height:11px;background:#d32f2f;border-radius:1px;"></span></th>
+                                        }
+                                        else if (_playerStatTab == "Goals")
+                                        {
+                                            <th style="padding:8px 2px;text-align:center;width:30px;">⚽</th>
+                                            <th style="padding:8px 2px;text-align:center;width:30px;">Pen</th>
+                                        }
+                                        else if (_playerStatTab == "Assists")
+                                        {
+                                            <th style="padding:8px 2px;text-align:center;width:30px;">👟</th>
+                                        }
+                                        else
+                                        {
+                                            <th style="padding:8px 2px;text-align:center;width:30px;"><span style="display:inline-block;width:8px;height:11px;background:#fdd835;border-radius:1px;"></span></th>
+                                            <th style="padding:8px 2px;text-align:center;width:30px;"><span style="display:inline-block;width:8px;height:11px;background:#d32f2f;border-radius:1px;"></span></th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (var i = 0; i < mobileRows.Count; i++)
+                                    {
+                                        var row = mobileRows[i];
+                                        <tr style="font-size:0.8125rem;border-bottom:1px solid var(--mud-palette-lines-default);">
+                                            <td style="padding:8px 2px;font-weight:600;">@(i + 1)</td>
+                                            <td style="padding:8px 2px;">
+                                                <div class="d-flex align-center gap-1" style="min-width:0;">
+                                                    @if (row.TeamLogo is not null)
+                                                    {
+                                                        <img src="@row.TeamLogo" alt="" style="width:18px;height:18px;flex-shrink:0;" />
+                                                    }
+                                                    <span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@row.PlayerName</span>
+                                                </div>
+                                            </td>
+                                            @if (_playerStatTab == "Overall")
+                                            {
+                                                <td style="padding:8px 2px;text-align:center;font-weight:700;">@(row.Goals + row.PenaltyGoals)</td>
+                                                <td style="padding:8px 2px;text-align:center;">@row.Assists</td>
+                                                <td style="padding:8px 2px;text-align:center;">@row.YellowCards</td>
+                                                <td style="padding:8px 2px;text-align:center;">@row.RedCards</td>
+                                            }
+                                            else if (_playerStatTab == "Goals")
+                                            {
+                                                <td style="padding:8px 2px;text-align:center;font-weight:700;">@(row.Goals + row.PenaltyGoals)</td>
+                                                <td style="padding:8px 2px;text-align:center;color:var(--mud-palette-text-secondary);font-size:0.75rem;">@row.PenaltyGoals</td>
+                                            }
+                                            else if (_playerStatTab == "Assists")
+                                            {
+                                                <td style="padding:8px 2px;text-align:center;font-weight:700;">@row.Assists</td>
+                                            }
+                                            else
+                                            {
+                                                <td style="padding:8px 2px;text-align:center;font-weight:700;">@row.YellowCards</td>
+                                                <td style="padding:8px 2px;text-align:center;font-weight:700;">@row.RedCards</td>
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                            </MudSimpleTable>
+                        }
+                        else
+                        {
+                            <MudTable Items="@SortedPlayerRows" Dense="true" Hover="true" Striped="true" Elevation="1" Style="border-radius:8px;" RowsPerPage="25">
+                                <HeaderContent>
+                                    <MudTh Style="width:50px;">#</MudTh>
+                                    <MudTh>Player</MudTh>
+                                    <MudTh>Team</MudTh>
+                                    <MudTh Style="cursor:pointer;" @onclick="@(() => SortBy("Goals"))">
+                                        ⚽ Goals @if (SortIcon("Goals") != "") { <MudIcon Icon="@SortIcon("Goals")" Size="Size.Small" /> }
+                                    </MudTh>
+                                    <MudTh Style="cursor:pointer;" @onclick="@(() => SortBy("Assists"))">
+                                        👟 Assists @if (SortIcon("Assists") != "") { <MudIcon Icon="@SortIcon("Assists")" Size="Size.Small" /> }
+                                    </MudTh>
+                                    <MudTh Style="cursor:pointer;" @onclick="@(() => SortBy("YellowCards"))">
+                                        <span style="display:inline-block;width:8px;height:11px;background:#fdd835;border-radius:1px;vertical-align:middle;"></span> Yellows
+                                        @if (SortIcon("YellowCards") != "") { <MudIcon Icon="@SortIcon("YellowCards")" Size="Size.Small" /> }
+                                    </MudTh>
+                                    <MudTh Style="cursor:pointer;" @onclick="@(() => SortBy("RedCards"))">
+                                        <span style="display:inline-block;width:8px;height:11px;background:#d32f2f;border-radius:1px;vertical-align:middle;"></span> Reds
+                                        @if (SortIcon("RedCards") != "") { <MudIcon Icon="@SortIcon("RedCards")" Size="Size.Small" /> }
+                                    </MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd>@(SortedPlayerRows.ToList().IndexOf(context) + 1)</MudTd>
+                                    <MudTd Style="font-weight:600;">
+                                        <div class="d-flex align-center gap-2">
+                                            @if (context.PlayerImageUrl is not null)
+                                            {
+                                                <MudAvatar Size="Size.Medium"><MudImage Src="@context.PlayerImageUrl" /></MudAvatar>
+                                            }
+                                            @context.PlayerName <span style="font-weight:400;color:var(--mud-palette-text-secondary);font-size:0.8rem;">(@ScoreCast.Shared.Constants.PlayerPositions.ToShortName(context.Position))</span>
+                                        </div>
+                                    </MudTd>
+                                    <MudTd>
+                                        <div class="d-flex align-center gap-2">
+                                            @if (context.TeamLogo is not null) { <img src="@context.TeamLogo" alt="" style="width:20px;height:20px;object-fit:contain;" /> }
+                                            @context.TeamName
+                                        </div>
+                                    </MudTd>
+                                    <MudTd Style="font-weight:700;">
+                                        @(context.Goals + context.PenaltyGoals)
+                                        @if (context.PenaltyGoals > 0) { <span style="font-size:12px;color:var(--mud-palette-text-secondary);"> (@context.PenaltyGoals pen)</span> }
+                                    </MudTd>
+                                    <MudTd>@context.Assists</MudTd>
+                                    <MudTd>@context.YellowCards</MudTd>
+                                    <MudTd>@context.RedCards</MudTd>
+                                </RowTemplate>
+                                <PagerContent>
+                                    <MudTablePager PageSizeOptions="new[] { 25, 50, 100 }" />
+                                </PagerContent>
+                            </MudTable>
+                        }
                     }
                     break;
             }
