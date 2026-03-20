@@ -21,9 +21,15 @@ internal sealed record UpdateCurrentMatchdayCommandHandler(
         var updated = 0;
         foreach (var season in seasons)
         {
-            // Active gameweek = the one currently in play
+            // Active gameweek = the one currently in play, or next upcoming if none active
             var activeGw = await DbContext.Gameweeks
                 .Where(g => g.SeasonId == season.Id && g.Status == GameweekStatus.Active && !g.IsDeleted)
+                .Select(g => (int?)g.Number)
+                .FirstOrDefaultAsync(ct);
+
+            activeGw ??= await DbContext.Gameweeks
+                .Where(g => g.SeasonId == season.Id && g.Status != GameweekStatus.Completed && !g.IsDeleted)
+                .OrderBy(g => g.Number)
                 .Select(g => (int?)g.Number)
                 .FirstOrDefaultAsync(ct);
 
@@ -45,7 +51,7 @@ internal sealed record UpdateCurrentMatchdayCommandHandler(
                 var matches = gw.Matches.Where(m => !m.IsDeleted).ToList();
                 if (matches.Count == 0) continue;
 
-                if (matches.All(m => m.Status == MatchStatus.Finished))
+                if (matches.All(m => m.Status is MatchStatus.Finished or MatchStatus.Postponed))
                     gw.Status = GameweekStatus.Completed;
                 else if (matches.Any(m => m.Status is MatchStatus.Live or MatchStatus.Finished))
                     gw.Status = GameweekStatus.Active;
