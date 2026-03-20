@@ -40,6 +40,13 @@
                 {
                     <MudText Typo="Typo.body2" Color="Color.Secondary">❤️ @_profile.FavoriteTeam</MudText>
                 }
+                <div class="d-flex align-center gap-1" style="margin-top:2px;">
+                    @if (_competitionLogoUrl is not null)
+                    {
+                        <img src="@_competitionLogoUrl" alt="" style="width:16px;height:16px;" />
+                    }
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@_competitionName</MudText>
+                </div>
             </div>
         </div>
 

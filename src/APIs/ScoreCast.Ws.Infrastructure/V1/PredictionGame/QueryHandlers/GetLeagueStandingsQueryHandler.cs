@@ -15,6 +15,7 @@ internal sealed record GetLeagueStandingsQueryHandler(
     {
         var league = await DbContext.PredictionLeagues
             .AsNoTracking()
+            .Include(l => l.Competition)
             .FirstOrDefaultAsync(l => l.Id == query.PredictionLeagueId, ct);
 
         if (league is null)
@@ -101,6 +102,7 @@ internal sealed record GetLeagueStandingsQueryHandler(
             .ToList();
 
         return ScoreCastResponse<LeagueStandingsResult>.Ok(
-            new LeagueStandingsResult(league.Name, league.SeasonId, startingGwNumber, standings));
+            new LeagueStandingsResult(league.Name, league.SeasonId, startingGwNumber,
+                league.Competition.Name, league.Competition.LogoUrl, standings));
     }
 }
