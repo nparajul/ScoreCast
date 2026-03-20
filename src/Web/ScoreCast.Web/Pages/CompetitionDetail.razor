@@ -100,7 +100,7 @@
                     @if (_playerStats is not null)
                     {
                         <div style="display:flex;overflow-x:auto;gap:0;margin-bottom:12px;">
-                            @foreach (var stat in new[] { "Goals", "Assists", "Clean Sheets" })
+                            @foreach (var stat in new[] { "Goals", "Assists" })
                             {
                                 var active = stat == _playerStatTab;
                                 <div @onclick="@(() => _playerStatTab = stat)"
