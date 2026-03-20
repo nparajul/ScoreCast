@@ -66,12 +66,20 @@ internal sealed record SyncPulseEventsCommandHandler(
             .Select(m => m.EntityId)
             .ToHashSetAsync(ct);
 
-        // Build pending list — live always, finished only if not fully synced
+        // Finished matches missing lineups need re-sync for lineup data
+        var matchIdsWithLineups = await DbContext.MatchLineups
+            .Select(l => l.MatchId)
+            .Distinct()
+            .ToHashSetAsync(ct);
+
+        // Build pending list — live always, finished only if not fully synced or missing lineups
         var pendingMatches = new List<(int PulseId, long MatchId, long HomeTeamId, long AwayTeamId)>();
         foreach (var pm in pulseRefMappings)
         {
             if (!matchDetails.TryGetValue(pm.MatchId, out var md)) continue;
-            if (md.Status == MatchStatus.Finished && pulseSyncedMatchIds.Contains(pm.MatchId)) continue;
+            if (md.Status == MatchStatus.Finished
+                && pulseSyncedMatchIds.Contains(pm.MatchId)
+                && matchIdsWithLineups.Contains(pm.MatchId)) continue;
             pendingMatches.Add((pm.PulseId, pm.MatchId, md.HomeTeamId, md.AwayTeamId));
         }
 
