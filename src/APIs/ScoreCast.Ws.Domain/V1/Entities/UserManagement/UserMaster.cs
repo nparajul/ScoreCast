@@ -4,7 +4,7 @@ namespace ScoreCast.Ws.Domain.V1.Entities.UserManagement;
 
 public sealed record UserMaster : ScoreCastEntity
 {
-    public required string KeycloakUserId { get; set; }
+    public required string FirebaseUid { get; set; }
     public required string UserId { get; set; }
     public required string Email { get; set; }
     public string? DisplayName { get; set; }
