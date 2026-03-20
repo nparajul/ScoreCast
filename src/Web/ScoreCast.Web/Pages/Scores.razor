@@ -74,7 +74,7 @@
                                 {
                                     <div style="padding:10px 14px;display:flex;align-items:center;gap:8px;">
                                         <div style="flex:1;text-align:right;">
-                                            <span style="font-weight:600;font-size:14px;">@match.HomeTeamShortName</span>
+                                            <a href="/teams/@match.HomeTeamId" style="font-weight:600;font-size:14px;color:inherit;text-decoration:none;">@match.HomeTeamShortName</a>
                                         </div>
                                         @if (!string.IsNullOrEmpty(match.HomeTeamLogo))
                                         {
@@ -97,7 +97,7 @@
                                             <img src="@match.AwayTeamLogo" alt="" style="width:24px;height:24px;" />
                                         }
                                         <div style="flex:1;">
-                                            <span style="font-weight:600;font-size:14px;">@match.AwayTeamShortName</span>
+                                            <a href="/teams/@match.AwayTeamId" style="font-weight:600;font-size:14px;color:inherit;text-decoration:none;">@match.AwayTeamShortName</a>
                                         </div>
                                     </div>
                                     @if (!string.IsNullOrEmpty(match.Venue))
