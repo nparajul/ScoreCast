@@ -3,6 +3,14 @@
 <PageGuard>
 <MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
 
+    <div class="d-flex justify-end mb-2">
+        <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.HelpOutline"
+                   Href="/how-to-play">
+            How to Play
+        </MudButton>
+    </div>
+
     @if (_userSeasons.Count > 0)
     {
         <MudText Typo="Typo.h5" Style="font-weight:700;text-align:center;" Class="mb-3">Predictions</MudText>
