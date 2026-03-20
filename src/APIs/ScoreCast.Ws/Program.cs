@@ -31,6 +31,7 @@ try
     builder.AddScoreCastExternalHttpClients();
     builder.AddAiServices();
     builder.Services.AddScoreCastInfrastructure(builder.Environment.EnvironmentName);
+    builder.Services.AddHostedService<EnhanceLiveMatchesBackgroundService>();
 
     builder.Services.AddApiVersioning(o =>
     {

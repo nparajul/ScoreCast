@@ -9,4 +9,5 @@ global using ScoreCast.Ws.Endpoints;
 global using ScoreCast.Ws.Endpoints.Preprocessors;
 global using ScoreCast.Ws.Extensions;
 global using ScoreCast.Ws.Infrastructure;
+global using ScoreCast.Ws.Services;
 global using Serilog;
