@@ -107,16 +107,57 @@
                 {
                     @foreach (var evt in OrderedEvents)
                     {
-                        <div style="display:flex;align-items:center;padding:10px 14px;gap:8px;border-bottom:1px solid var(--mud-palette-divider);flex-direction:@(evt.IsHome ? "row" : "row-reverse");">
-                            <span style="font-size:14px;min-width:22px;text-align:center;">@((MarkupString)EventIcon(evt.EventType))</span>
-                            <div style="flex:1;@(evt.IsHome ? "" : "text-align:right;")">
-                                <div style="font-weight:600;font-size:13px;">@evt.PlayerName</div>
-                                @if (evt.AssistName is not null)
+                        var isSub = evt.EventType == EventTypes.SubIn;
+                        <div style="display:flex;align-items:center;padding:12px 10px;gap:0;border-bottom:1px solid var(--mud-palette-divider);">
+                            @* Left side (home) *@
+                            <div style="flex:1;text-align:right;padding-right:8px;">
+                                @if (evt.IsHome)
                                 {
-                                    <div style="font-size:11px;color:var(--mud-palette-text-secondary);">👟 @evt.AssistName</div>
+                                    @if (isSub)
+                                    {
+                                        <div style="font-size:12px;font-weight:600;color:#4caf50;">@evt.PlayerName</div>
+                                        <div style="font-size:12px;color:#f44336;">@evt.PlayerOff</div>
+                                    }
+                                    else
+                                    {
+                                        <div style="font-weight:600;font-size:13px;">
+                                            @evt.PlayerName
+                                            @if (evt.RunningScore is not null) { <span style="color:var(--mud-palette-text-secondary);font-size:11px;">(@((MarkupString)FormatRunningScore(evt.RunningScore, true)))</span> }
+                                        </div>
+                                        @if (evt.EventType == EventTypes.OwnGoal) { <div style="font-size:11px;color:var(--mud-palette-text-secondary);">Own goal</div> }
+                                        @if (evt.EventType == EventTypes.PenaltyGoal) { <div style="font-size:11px;color:var(--mud-palette-text-secondary);">Penalty</div> }
+                                        @if (evt.AssistName is not null) { <div style="font-size:11px;color:var(--mud-palette-text-secondary);">@evt.AssistName</div> }
+                                    }
                                 }
                             </div>
-                            <span style="min-width:36px;font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);text-align:center;">@evt.Minute</span>
+
+                            @* Center: icon + minute badge *@
+                            <div style="display:flex;flex-direction:column;align-items:center;min-width:56px;">
+                                <span style="font-size:15px;">@((MarkupString)EventIcon(evt.EventType))</span>
+                                <span style="font-size:12px;font-weight:800;margin-top:2px;">@evt.Minute</span>
+                            </div>
+
+                            @* Right side (away) *@
+                            <div style="flex:1;padding-left:8px;">
+                                @if (!evt.IsHome)
+                                {
+                                    @if (isSub)
+                                    {
+                                        <div style="font-size:12px;font-weight:600;color:#4caf50;">@evt.PlayerName</div>
+                                        <div style="font-size:12px;color:#f44336;">@evt.PlayerOff</div>
+                                    }
+                                    else
+                                    {
+                                        <div style="font-weight:600;font-size:13px;">
+                                            @evt.PlayerName
+                                            @if (evt.RunningScore is not null) { <span style="color:var(--mud-palette-text-secondary);font-size:11px;">(@((MarkupString)FormatRunningScore(evt.RunningScore, false)))</span> }
+                                        </div>
+                                        @if (evt.EventType == EventTypes.OwnGoal) { <div style="font-size:11px;color:var(--mud-palette-text-secondary);">Own goal</div> }
+                                        @if (evt.EventType == EventTypes.PenaltyGoal) { <div style="font-size:11px;color:var(--mud-palette-text-secondary);">Penalty</div> }
+                                        @if (evt.AssistName is not null) { <div style="font-size:11px;color:var(--mud-palette-text-secondary);">@evt.AssistName</div> }
+                                    }
+                                }
+                            </div>
                         </div>
                     }
                 }
@@ -315,24 +356,6 @@
                                 }
                             </div>
                         </div>
-                    </MudPaper>
-                }
-
-                @* Substitutions made *@
-                @if (_match.Subs.Count > 0)
-                {
-                    <MudText Typo="Typo.subtitle2" Style="font-weight:700;margin:12px 0 6px;">Substitutions</MudText>
-                    <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;">
-                        @foreach (var sub in _match.Subs)
-                        {
-                            <div style="display:flex;align-items:center;padding:8px 14px;gap:8px;border-bottom:1px solid var(--mud-palette-divider);flex-direction:@(sub.IsHome ? "row" : "row-reverse");">
-                                <div style="@(sub.IsHome ? "" : "text-align:right;")flex:1;">
-                                    <div style="font-size:12px;font-weight:600;"><span style="color:#4caf50;">▲</span> @sub.PlayerOn</div>
-                                    <div style="font-size:11px;color:var(--mud-palette-text-secondary);"><span style="color:#f44336;">▼</span> @sub.PlayerOff</div>
-                                </div>
-                                <span style="font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);min-width:32px;text-align:center;">@sub.Minute</span>
-                            </div>
-                        }
                     </MudPaper>
                 }
             }
