@@ -16,6 +16,7 @@ public partial class TeamDetail
     [Inject] private ILoadingService Loading { get; set; } = null!;
     [Inject] private IAlertService Alert { get; set; } = null!;
     [Inject] private IJSRuntime Js { get; set; } = null!;
+    [Inject] private IClientTimeProvider ClientTime { get; set; } = null!;
 
     private static readonly string[] _tabs = ["Overview", "Fixtures", "Table", "Stats", "Squad"];
     private string _activeTab = "Overview";
@@ -59,6 +60,7 @@ public partial class TeamDetail
     private async Task LoadTeamAsync()
     {
         _loadedTeamId = TeamId;
+        await ClientTime.InitializeAsync();
         await Loading.While(async () =>
         {
             var response = await Api.GetTeamDetailAsync(TeamId, CancellationToken.None);
@@ -167,9 +169,9 @@ public partial class TeamDetail
     private List<DateGroup> GetMatchesByDate()
     {
         if (_matches is null) return [];
-        var today = ScoreCastDateTime.Now.Date;
+        var today = ClientTime.Today;
         return _matches.Matches
-            .GroupBy(m => m.KickoffTime is not null ? DateOnly.FromDateTime(m.KickoffTime.Value.ToLocalTime()) : (DateOnly?)null)
+            .GroupBy(m => m.KickoffTime is not null ? DateOnly.FromDateTime(ClientTime.ToLocal(m.KickoffTime.Value)) : (DateOnly?)null)
             .OrderBy(g => g.Key)
             .Select(g =>
             {
@@ -189,7 +191,7 @@ public partial class TeamDetail
     private void QueueScrollToFocusGroup()
     {
         var groups = GetMatchesByDate();
-        var today = ScoreCastDateTime.Now.Date;
+        var today = ClientTime.Today;
         var todayAnchor = $"team-date-{today:yyyy-MM-dd}";
         var target = groups.FirstOrDefault(g => g.AnchorId == todayAnchor)
             ?? groups.LastOrDefault(g => g.Matches.Any(m => m.Status == nameof(MatchStatus.Finished)))
