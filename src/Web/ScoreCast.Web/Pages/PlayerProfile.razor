@@ -1,0 +1,289 @@
+@page "/dashboard/{LeagueId:long}/player/{UserId:long}"
+
+<style>
+    .predict-row { padding: 8px 6px; border-bottom: 1px solid var(--mud-palette-lines-default); }
+    .predict-exact { background: rgba(46, 125, 50, 0.25); }
+    .predict-result-gd { background: rgba(0, 131, 143, 0.25); }
+    .predict-correct { background: rgba(255, 179, 0, 0.25); }
+    .predict-gd { background: rgba(156, 39, 176, 0.2); }
+    .predict-wrong { background: rgba(211, 47, 47, 0.2); }
+    .predict-none { background: rgba(158, 158, 158, 0.15); }
+    .stat-card { text-align:center; padding:10px 6px; }
+    .stat-value { font-weight:800; font-size:20px; }
+    .stat-label { font-size:11px; color:var(--mud-palette-text-secondary); }
+</style>
+
+<PageGuard>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
+    <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack"
+               OnClick="@(() => Nav.NavigateTo($"/dashboard/{LeagueId}"))" Class="mb-2">
+        Back to League
+    </MudButton>
+
+    @if (_profile is not null)
+    {
+        @* Profile Header *@
+        <div class="d-flex align-center gap-3 mb-4">
+            <MudAvatar Size="Size.Large" Style="width:56px;height:56px;font-size:24px;">
+                @if (_profile.AvatarUrl is not null)
+                {
+                    <MudImage Src="@_profile.AvatarUrl" />
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Person" />
+                }
+            </MudAvatar>
+            <div>
+                <MudText Typo="Typo.h5" Style="font-weight:700;">@_profile.DisplayName</MudText>
+                @if (_profile.FavoriteTeam is not null)
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">❤️ @_profile.FavoriteTeam</MudText>
+                }
+            </div>
+        </div>
+
+        @* Stats Grid *@
+        <MudGrid Spacing="2" Class="mb-4">
+            <MudItem xs="4" sm="2">
+                <MudPaper Elevation="1" Class="stat-card rounded-lg">
+                    <div class="stat-value">@_profile.TotalPoints</div>
+                    <div class="stat-label">Total Pts</div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="4" sm="2">
+                <MudPaper Elevation="1" Class="stat-card rounded-lg">
+                    <div class="stat-value">@_profile.BestGameweek</div>
+                    <div class="stat-label">Best GW</div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="4" sm="2">
+                <MudPaper Elevation="1" Class="stat-card rounded-lg">
+                    <div class="stat-value">@_profile.AveragePointsPerGameweek.ToString("0.#")</div>
+                    <div class="stat-label">Avg / GW</div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="4" sm="2">
+                <MudPaper Elevation="1" Class="stat-card rounded-lg">
+                    <div class="stat-value">@_profile.ExactScores</div>
+                    <div class="stat-label">Exact</div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="4" sm="2">
+                <MudPaper Elevation="1" Class="stat-card rounded-lg">
+                    <div class="stat-value">@_profile.CorrectResults</div>
+                    <div class="stat-label">Correct</div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="4" sm="2">
+                <MudPaper Elevation="1" Class="stat-card rounded-lg">
+                    <div class="stat-value">@_profile.MatchweeksPlayed</div>
+                    <div class="stat-label">MW Played</div>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        @* Gameweek Navigation *@
+        @if (_gameweek is not null)
+        {
+            <MudText Typo="Typo.subtitle1" Style="font-weight:700;" Class="mb-2">Predictions</MudText>
+
+            <div class="d-flex align-center justify-center gap-3 mb-3">
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Size="Size.Small"
+                               Disabled="@(_gameweek.GameweekNumber <= 1)"
+                               OnClick="PreviousGameweek" />
+                <MudText Typo="Typo.h6">Gameweek @_gameweek.GameweekNumber</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small"
+                               Disabled="@(_gameweek.GameweekNumber >= _gameweek.TotalGameweeks)"
+                               OnClick="NextGameweek" />
+            </div>
+
+            @if (!_predictionsVisible)
+            {
+                <MudAlert Severity="Severity.Info" Variant="Variant.Text" Dense="true" Class="mb-3">
+                    🔒 Predictions are hidden until matches kick off.
+                </MudAlert>
+            }
+            else
+            {
+                @* Points breakdown *@
+                var predictedMatches = _matches.Where(m => m.HasPrediction && m.Outcome is not null).ToList();
+                @if (predictedMatches.Count > 0)
+                {
+                    var breakdown = ScoringBreakdown.Calculate(_matches, _scoringRules);
+                    var total = breakdown.Sum(b => b.Total);
+                    var riskBonus = _riskPlays.Where(r => r.BonusPoints.HasValue).Sum(r => r.BonusPoints!.Value);
+                    var grandTotal = total + riskBonus;
+
+                    <MudPaper Elevation="1" Class="pa-3 rounded-lg mb-3" Style="text-align:center;">
+                        <MudText Typo="Typo.h4" Style="font-weight:800;">@grandTotal</MudText>
+                        <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">points this gameweek</MudText>
+                        <div class="mt-2">
+                            <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Primary"
+                                       EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+                                       OnClick="@(() => _showBreakdown = !_showBreakdown)">
+                                @(_showBreakdown ? "Hide" : "Show") Breakdown
+                            </MudButton>
+                        </div>
+                    </MudPaper>
+
+                    @if (_showBreakdown)
+                    {
+                        <MudPaper Elevation="1" Class="pa-3 rounded-lg mb-3">
+                            <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mb-2">Points Breakdown</MudText>
+                            @foreach (var row in breakdown)
+                            {
+                                <div class="@row.CssClass" style="border-radius:6px;margin-bottom:4px;">
+                                    <div class="d-flex align-center justify-space-between" style="padding:6px 8px;cursor:@(row.Count > 0 ? "pointer" : "default");"
+                                         @onclick="@(() => { if (row.Count > 0) ToggleRule(row.Label); })">
+                                        <span style="font-size:13px;">@row.Label</span>
+                                        <div class="d-flex align-center gap-2">
+                                            <span style="font-size:12px;color:var(--mud-palette-text-secondary);">@row.Points × @row.Count</span>
+                                            <span style="font-weight:700;font-size:13px;min-width:28px;text-align:right;">@row.Total</span>
+                                            @if (row.Count > 0)
+                                            {
+                                                <MudIcon Icon="@(_expandedRules.Contains(row.Label) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Size="Size.Small" />
+                                            }
+                                        </div>
+                                    </div>
+                                    @if (row.Count > 0 && _expandedRules.Contains(row.Label))
+                                    {
+                                        <div style="padding:0 8px 6px;">
+                                            @foreach (var m in row.Matches)
+                                            {
+                                                <div class="d-flex align-center justify-space-between" style="padding:3px 0;font-size:12px;border-top:1px solid rgba(128,128,128,0.2);">
+                                                    <div class="d-flex align-center gap-1" style="flex:1;min-width:0;">
+                                                        @if (m.HomeLogo is not null) { <img src="@m.HomeLogo" alt="" style="width:14px;height:14px;" /> }
+                                                        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@m.Home vs @m.Away</span>
+                                                    </div>
+                                                    <div class="d-flex align-center gap-2" style="flex-shrink:0;">
+                                                        <span style="color:var(--mud-palette-text-secondary);">@m.PredHome-@m.PredAway</span>
+                                                        <span style="font-weight:600;">(@m.ActualHome-@m.ActualAway)</span>
+                                                        <span style="font-weight:700;color:var(--mud-palette-primary);">+@m.Points</span>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            @if (_riskPlays.Any(r => r.BonusPoints.HasValue))
+                            {
+                                <div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--mud-palette-lines-default);">
+                                    <div style="font-size:12px;font-weight:700;padding:0 8px 4px;color:var(--mud-palette-text-secondary);">🎲 Risk Plays</div>
+                                    @foreach (var rp in _riskPlays.Where(r => r.BonusPoints.HasValue))
+                                    {
+                                        var rpColor = rp.IsWon == true ? "#4caf50" : "#f44336";
+                                        <div class="d-flex align-center justify-space-between" style="padding:4px 8px;font-size:12px;">
+                                            <div class="d-flex align-center gap-1">
+                                                <span>@rp.Icon</span>
+                                                <span>@rp.Label</span>
+                                                <span style="color:var(--mud-palette-text-secondary);">· @MatchLabel(rp.MatchId!.Value)</span>
+                                            </div>
+                                            <span style="font-weight:700;color:@rpColor;">
+                                                @(rp.BonusPoints > 0 ? "+" : "")@rp.BonusPoints
+                                                @if (rp.IsResolved != true) { <span style="font-size:10px;opacity:0.7;">(live)</span> }
+                                            </span>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            <div style="border-top:2px solid var(--mud-palette-lines-default);padding:6px 8px;margin-top:4px;">
+                                <div class="d-flex justify-space-between">
+                                    <span style="font-weight:700;">Total</span>
+                                    <span style="font-weight:700;font-size:16px;">@grandTotal</span>
+                                </div>
+                            </div>
+                        </MudPaper>
+                    }
+                }
+
+                @* Match list *@
+                <div style="width:100%;max-width:600px;margin:0 auto;border:1px solid var(--mud-palette-lines-default);border-radius:8px;overflow:hidden;">
+                    @foreach (var match in _matches)
+                    {
+                        var hasPred = _predictionsVisible && match.HasPrediction;
+                        <div class="predict-row @(hasPred ? match.GetRowClass() : "")">
+                            <div class="d-flex align-center justify-space-between">
+                                <div class="d-flex align-center gap-1" style="flex:1;justify-content:flex-end;overflow:hidden;">
+                                    <span style="font-weight:600;font-size:@(IsMobile ? "13" : "15")px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@match.HomeTeamShortName</span>
+                                    @if (match.HomeTeamLogo is not null)
+                                    {
+                                        <img src="@match.HomeTeamLogo" alt="" style="width:@(IsMobile ? "18" : "22")px;height:@(IsMobile ? "18" : "22")px;flex-shrink:0;" />
+                                    }
+                                </div>
+                                <div class="d-flex align-center justify-center gap-1" style="flex-shrink:0;padding:0 8px;">
+                                    @if (hasPred)
+                                    {
+                                        <span style="font-weight:700;font-size:15px;">@match.PredictedHomeScore - @match.PredictedAwayScore</span>
+                                    }
+                                    else if (match.IsLocked)
+                                    {
+                                        <span style="font-size:12px;color:var(--mud-palette-text-secondary);">—</span>
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" Style="opacity:0.4;" />
+                                    }
+                                </div>
+                                <div class="d-flex align-center gap-1" style="flex:1;overflow:hidden;">
+                                    @if (match.AwayTeamLogo is not null)
+                                    {
+                                        <img src="@match.AwayTeamLogo" alt="" style="width:@(IsMobile ? "18" : "22")px;height:@(IsMobile ? "18" : "22")px;flex-shrink:0;" />
+                                    }
+                                    <span style="font-weight:600;font-size:@(IsMobile ? "13" : "15")px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@match.AwayTeamShortName</span>
+                                </div>
+                            </div>
+                            <div style="text-align:center;font-size:11px;font-weight:600;color:var(--mud-palette-text-secondary);margin-top:2px;">
+                                @if (match.Status == nameof(MatchStatus.Finished)) { <text>FT @match.HomeScore-@match.AwayScore</text> }
+                                else if (match.KickoffTime.HasValue) { @ClientTime.ToLocal(match.KickoffTime.Value).ToString("dd MMM HH:mm") }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @* Risk Plays (only if visible and any exist) *@
+                @if (_riskPlaysVisible && _riskPlays.Count > 0)
+                {
+                    <div style="width:100%;max-width:600px;margin:12px auto 0;">
+                        <div class="d-flex align-center gap-2" style="padding:10px 12px;background:linear-gradient(135deg,#7c4dff,#651fff);border-radius:10px;color:#fff;">
+                            <span style="font-size:18px;">🎲</span>
+                            <div style="font-weight:700;font-size:14px;">Risk Plays</div>
+                        </div>
+                        <div style="border:1px solid var(--mud-palette-lines-default);border-top:none;border-radius:0 0 10px 10px;overflow:hidden;">
+                            @foreach (var rp in _riskPlays)
+                            {
+                                var statusColor = rp.IsResolved == true
+                                    ? (rp.IsWon == true ? "#4caf50" : "#f44336")
+                                    : rp.BonusPoints.HasValue ? "#ff9800" : "var(--mud-palette-text-secondary)";
+                                <div style="padding:10px 12px;border-bottom:1px solid var(--mud-palette-lines-default);">
+                                    <div class="d-flex align-center justify-space-between">
+                                        <div class="d-flex align-center gap-1">
+                                            <span>@rp.Icon</span>
+                                            <span style="font-weight:700;font-size:13px;">@rp.Label</span>
+                                            <span style="font-size:12px;color:var(--mud-palette-text-secondary);">· @MatchLabel(rp.MatchId!.Value)</span>
+                                        </div>
+                                        @if (rp.BonusPoints.HasValue)
+                                        {
+                                            <span style="font-weight:700;font-size:13px;color:@statusColor;">
+                                                @(rp.BonusPoints > 0 ? "+" : "")@rp.BonusPoints
+                                                @if (rp.IsResolved != true) { <span style="font-size:10px;opacity:0.7;"> (live)</span> }
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else if (!_riskPlaysVisible && _predictionsVisible)
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Text" Dense="true" Class="mt-3" Style="max-width:600px;margin:12px auto 0;">
+                        🎲 Risk plays are hidden until all matches in this gameweek have kicked off.
+                    </MudAlert>
+                }
+            }
+        }
+    }
+</MudContainer>
+</PageGuard>
