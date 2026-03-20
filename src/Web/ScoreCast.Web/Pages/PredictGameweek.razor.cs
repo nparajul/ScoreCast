@@ -1,7 +1,9 @@
 using ScoreCast.Models.V1.Requests.Prediction;
+using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Models.V1.Responses.Prediction;
 using ScoreCast.Shared.Constants;
+using ScoreCast.Shared.Enums;
 using ScoreCast.Web.Components.Helpers;
 using ScoreCast.Web.Validation.Prediction;
 using ScoreCast.Web.ViewModels;
@@ -16,6 +18,7 @@ public partial class PredictGameweek
     [Inject] private IAlertService Alert { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
     [Inject] private IClientTimeProvider ClientTime { get; set; } = null!;
+    [Inject] private IDialogService Dialog { get; set; } = null!;
 
     [Parameter] public long SeasonId { get; set; }
 
@@ -24,11 +27,17 @@ public partial class PredictGameweek
     private List<ScoringRuleResult> _scoringRules = [];
     private bool _showBreakdown;
     private readonly HashSet<string> _expandedRules = [];
+    private bool _showRiskPlays;
+    private List<RiskPlayViewModel> _riskPlays = [];
 
     private void ToggleRule(string label)
     {
         if (!_expandedRules.Remove(label)) _expandedRules.Add(label);
     }
+
+    private bool AllLocked => _matches.All(m => m.IsLocked);
+    private List<PredictionMatchViewModel> UnlockedMatches => _matches.Where(m => !m.IsLocked).ToList();
+    private string MatchLabel(long matchId) => _matches.FirstOrDefault(x => x.MatchId == matchId) is { } m ? $"{m.HomeTeamShortName} vs {m.AwayTeamShortName}" : "";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -61,10 +70,13 @@ public partial class PredictGameweek
             _gameweek = response.Data;
             _matches = _gameweek.Matches.Select(PredictionMatchViewModel.FromMatch).ToList();
 
-            var predictionsResponse = await Api.GetMyPredictionsAsync(SeasonId, _gameweek.GameweekId, CancellationToken.None);
-            if (predictionsResponse is { Success: true, Data: not null })
+            var predictionsTask = Api.GetMyPredictionsAsync(SeasonId, _gameweek.GameweekId, CancellationToken.None);
+            var riskPlaysTask = Api.GetMyRiskPlaysAsync(SeasonId, _gameweek.GameweekId, CancellationToken.None);
+            await Task.WhenAll(predictionsTask, riskPlaysTask);
+
+            if (predictionsTask.Result is { Success: true, Data: not null })
             {
-                foreach (var prediction in predictionsResponse.Data)
+                foreach (var prediction in predictionsTask.Result.Data)
                 {
                     var match = _matches.FirstOrDefault(m => m.MatchId == prediction.MatchId);
                     if (match is not null)
@@ -76,7 +88,33 @@ public partial class PredictGameweek
                     }
                 }
             }
+
+            InitRiskPlays(riskPlaysTask.Result);
         }
+    }
+
+    private void InitRiskPlays(ScoreCastResponse<List<RiskPlayResult>>? response)
+    {
+        _riskPlays =
+        [
+            new() { RiskType = RiskPlayType.DoubleDown },
+            new() { RiskType = RiskPlayType.ExactScoreBoost },
+            new() { RiskType = RiskPlayType.CleanSheetBet },
+            new() { RiskType = RiskPlayType.FirstGoalTeam },
+            new() { RiskType = RiskPlayType.OverUnderGoals },
+        ];
+        if (response is not { Success: true, Data: not null }) return;
+        foreach (var saved in response.Data)
+        {
+            var rp = _riskPlays.FirstOrDefault(r => r.RiskType == saved.RiskType);
+            if (rp is null) continue;
+            rp.MatchId = saved.MatchId;
+            rp.Selection = saved.Selection;
+            rp.BonusPoints = saved.BonusPoints;
+            rp.IsWon = saved.IsWon;
+            rp.IsResolved = saved.IsResolved;
+        }
+        _showRiskPlays = _riskPlays.Any(r => r.IsActive);
     }
 
     private async Task PreviousGameweek()
@@ -125,6 +163,16 @@ public partial class PredictGameweek
             })
             .ToList();
 
+        // Nudge if no risk plays active
+        if (!_riskPlays.Any(r => r.IsActive))
+        {
+            var proceed = await Dialog.ShowMessageBoxAsync(
+                "No Risk Plays? 🎲",
+                "Playing it safe? Risk plays can earn you bonus points — or cost you. Are you brave enough?",
+                "Save without risks", cancelText: "Let me add some");
+            if (proceed != true) { _showRiskPlays = true; return; }
+        }
+
         await Loading.While(async () =>
         {
             var response = await Api.SubmitPredictionsAsync(
@@ -135,6 +183,13 @@ public partial class PredictGameweek
             {
                 foreach (var m in _matches.Where(m => !m.IsLocked && m.HasPrediction))
                     m.HasSavedPrediction = true;
+
+                var riskEntries = _riskPlays.Where(r => r.IsActive)
+                    .Select(r => new RiskPlayEntry { MatchId = r.MatchId!.Value, RiskType = r.RiskType, Selection = r.Selection })
+                    .ToList();
+                if (riskEntries.Count > 0)
+                    await Api.SubmitRiskPlaysAsync(new SubmitRiskPlaysRequest { SeasonId = SeasonId, RiskPlays = riskEntries }, CancellationToken.None);
+
                 Alert.Add(response.Message ?? "Predictions saved!", Severity.Success);
             }
             else
