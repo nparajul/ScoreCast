@@ -201,7 +201,18 @@
                         <span style="font-size:18px;">🎲</span>
                         <div>
                             <div style="font-weight:700;font-size:14px;">Risk Plays</div>
-                            <div style="font-size:11px;opacity:0.8;">@(_riskPlays.Count(r => r.IsActive)) active</div>
+                            <div style="font-size:11px;opacity:0.8;">
+                                @if (AllLocked)
+                                {
+                                    var won = _riskPlays.Count(r => r.IsWon == true);
+                                    var lost = _riskPlays.Count(r => r.IsWon == false);
+                                    @($"{won} won · {lost} lost")
+                                }
+                                else
+                                {
+                                    @($"{_riskPlays.Count(r => r.IsActive)} active")
+                                }
+                            </div>
                         </div>
                     </div>
                     <MudIcon Icon="@(_showRiskPlays ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Style="color:#fff;" />
