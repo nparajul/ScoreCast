@@ -39,7 +39,7 @@ internal sealed record SyncUserCommandHandler(
         var newUser = new UserMaster
         {
             KeycloakUserId = request.KeycloakUserId!,
-            UserId = request.ChosenUsername,
+            UserId = request.Email,
             Email = request.Email,
             DisplayName = request.DisplayName,
         };
