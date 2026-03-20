@@ -27,14 +27,15 @@ ScoreCast is a free football prediction game where you predict exact scorelines,
 
 ## Tech Stack
 
-- **.NET 10** with latest C# features
-- **FastEndpoints** — REPR pattern, CQRS without MediatR
-- **Entity Framework Core** with **Npgsql** (Neon PostgreSQL)
+- **.NET 10** (SDK 10.0.101) with latest C# features
+- **FastEndpoints 8.0.1** — REPR pattern, CQRS without MediatR
+- **Entity Framework Core 10.0.4** with **Npgsql** (Neon PostgreSQL)
 - **Firebase Auth** — Email/Password + Google Sign-In
-- **Blazor WASM** with **MudBlazor**
-- **Refit** — typed HTTP API clients
-- **FluentValidation** — form validation
-- **Serilog** — structured logging
+- **Blazor WASM** (standalone) with **MudBlazor 9.1.0**
+- **Refit 10.0.1** — typed HTTP API clients
+- **FluentValidation** — form validation with MudBlazor bridge
+- **Serilog** — structured logging (console + rolling file)
+- Central Package Management, `.slnx` solution format
 
 ## Hosting
 
@@ -106,20 +107,47 @@ Web.Server → Web (WASM) → Web.Components → Models, ApiClient
 
 ## Data Sync
 
+Match data flows through two stages:
+
+1. **Sync Matches** — historical data sync that pulls fixtures, kickoff times, and final scores from external APIs. Runs every 6 hours to pick up schedule changes, postponements, and results for matches that finished outside live hours.
+
+2. **Enhance Live** — during match hours (12-23 UTC), polls the Pulse API every 2 minutes for real-time scores, match minute, and events (goals, cards, subs) for any match not yet marked as finished.
+
+After scores are in, two follow-up jobs run every 10 minutes during match hours:
+- **Calculate Points** — computes prediction outcomes and resolves risk plays for finished matches
+- **Update Matchday** — advances the current gameweek per season
+
 | Workflow | Schedule | What it does |
 |---|---|---|
-| `sync-matches.yml` | Every 6 hours | Fixtures, scores, statuses |
-| `enhance-live.yml` | Every 2 min (12-23 UTC) | Live scores, match events |
+| `sync-matches.yml` | Every 6 hours | Fixtures, scores, statuses from Pulse/football-data.org |
+| `enhance-live.yml` | Every 2 min (12-23 UTC) | Live scores, match events, minute-by-minute updates |
 | `calculate-points.yml` | Every 10 min (12-23 UTC) | Prediction outcomes + risk play resolution |
 | `update-matchday.yml` | Every 10 min (12-23 UTC) | Current gameweek per season |
-| `generate-insights.yml` | Daily 6 AM UTC | AI match previews |
+| `generate-insights.yml` | Daily 6 AM UTC | AI match previews for upcoming fixtures |
+
+Manual sync also available via admin page (`/master-data-sync`).
+
+## Data Sources
+
+| Source | Usage |
+|---|---|
+| **Pulse API** | Primary for Premier League (fixtures, scores, events, teams, lineups) |
+| **Football-data.org** | Fallback for non-PL or when Pulse fails |
+| **FPL API** | Player data enrichment, Pulse ID mappings |
+
+## Authentication
+
+- **Frontend**: Firebase JS SDK via interop. `ScoreCastAuthStateProvider` manages auth state. `FirebaseTokenHandler` attaches ID tokens to API requests. Persistent login via IndexedDB.
+- **Backend**: Firebase JWT validation (`securetoken.google.com/{projectId}`). `FirebaseUserPreprocessor` extracts user identity and populates `ScoreCastRequest.UserId`.
+- **API Key Auth**: For GitHub Actions sync jobs. `ApiKeyAuthHandler` validates `X-Api-Key` header. Sets `UserId` to client name (e.g., `ScoreCast.Jobs`).
+- Firebase API key is public (client-side) — this is by design.
 
 ## Running Locally
 
 ### Prerequisites
 - .NET 10 SDK
 
-### Configure user secrets
+### 1. Configure user secrets
 ```bash
 cd src/APIs/ScoreCast.Ws
 dotnet user-secrets set "ConnectionStrings:ScoreCastDb" "<neon-connection-string>"
@@ -129,10 +157,12 @@ dotnet user-secrets set "AI:GitHubToken" "<github-token>"
 dotnet user-secrets set "ApiSettings:FootballDataApi:ApiKey" "<football-data-api-key>"
 ```
 
-### Run
+### 2. Run the app
 Run both projects:
-- **ScoreCast.Ws** → API (port 5105)
-- **ScoreCast.Web.Server** → Blazor WASM (port 5200)
+- **ScoreCast.Ws** → API on port 5105
+- **ScoreCast.Web.Server** → Blazor WASM on port 5200
+
+> Do NOT run `ScoreCast.Web` directly — there's a .NET 10.0.101 WasmAppHost bug.
 
 ## Git Workflow
 
