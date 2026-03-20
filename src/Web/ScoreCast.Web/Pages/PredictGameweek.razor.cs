@@ -15,6 +15,7 @@ public partial class PredictGameweek
     [Inject] private ILoadingService Loading { get; set; } = null!;
     [Inject] private IAlertService Alert { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
+    [Inject] private IClientTimeProvider ClientTime { get; set; } = null!;
 
     [Parameter] public long SeasonId { get; set; }
 
@@ -25,6 +26,8 @@ public partial class PredictGameweek
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
+
+        await ClientTime.InitializeAsync();
 
         if (SeasonId <= 0)
         {
