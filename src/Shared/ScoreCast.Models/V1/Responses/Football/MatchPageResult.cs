@@ -2,6 +2,7 @@ namespace ScoreCast.Models.V1.Responses.Football;
 
 public record MatchPageResult(
     long MatchId, DateTime? KickoffTime, string Status, string? Minute,
+    int? ClockSeconds, string? Phase,
     long HomeTeamId, string HomeTeamName, string? HomeTeamLogo, string HomeTeamShortName,
     long AwayTeamId, string AwayTeamName, string? AwayTeamLogo, string AwayTeamShortName,
     int? HomeScore, int? AwayScore,
