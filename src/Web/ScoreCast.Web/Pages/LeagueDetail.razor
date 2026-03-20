@@ -23,16 +23,13 @@
 
         <MudSimpleTable Dense="true" Elevation="1" Style="border-radius:12px;">
             <thead>
-                <tr style="font-size:0.75rem;color:var(--mud-palette-text-secondary);">
-                    <th style="padding:8px 4px;text-align:left;width:20px;">#</th>
-                    <th style="padding:8px 4px;text-align:left;">Player</th>
-                    <th style="padding:8px 4px;text-align:center;width:30px;font-weight:700;">Points</th>
-                    @if (!IsMobile)
-                    {
-                        <th style="padding:8px 4px;text-align:center;width:40px;">Exact</th>
-                        <th style="padding:8px 4px;text-align:center;width:50px;">Correct</th>
-                    }
-                    <th style="padding:8px 4px;text-align:center;width:50px;">Played</th>
+                <tr style="font-size:0.65rem;color:var(--mud-palette-text-secondary);">
+                    <th style="padding:6px 2px;text-align:left;width:16px;">#</th>
+                    <th style="padding:6px 2px;text-align:left;">Player</th>
+                    <th style="padding:6px 2px;text-align:center;width:28px;font-weight:700;">Pts</th>
+                    <th style="padding:6px 2px;text-align:center;width:28px;">Exact</th>
+                    <th style="padding:6px 2px;text-align:center;width:34px;">Correct</th>
+                    <th style="padding:6px 2px;text-align:center;width:28px;">Preds</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,9 +37,9 @@
                 @foreach (var row in _standings.Standings)
                 {
                     rank++;
-                    <tr style="font-size:0.875rem;border-bottom:1px solid var(--mud-palette-lines-default);">
-                        <td style="padding:10px 4px;font-weight:600;">@rank</td>
-                        <td style="padding:10px 4px;">
+                    <tr style="font-size:0.8rem;border-bottom:1px solid var(--mud-palette-lines-default);">
+                        <td style="padding:8px 2px;font-weight:600;">@rank</td>
+                        <td style="padding:8px 2px;">
                             <div class="d-flex align-center gap-2">
                                 <MudAvatar Size="Size.Small" Style="width:28px;height:28px;font-size:14px;">
                                     @if (row.AvatarUrl is not null)
@@ -54,16 +51,13 @@
                                         <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
                                     }
                                 </MudAvatar>
-                                <span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:@(IsMobile ? "120px" : "none");">@row.DisplayName</span>
+                                <span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:@(IsMobile ? "100px" : "none");">@row.DisplayName</span>
                             </div>
                         </td>
-                        <td style="padding:10px 4px;text-align:center;font-weight:700;font-size:16px;">@row.TotalPoints</td>
-                        @if (!IsMobile)
-                        {
-                            <td style="padding:10px 4px;text-align:center;">@row.ExactScores</td>
-                            <td style="padding:10px 4px;text-align:center;">@row.CorrectResults</td>
-                        }
-                        <td style="padding:10px 4px;text-align:center;">@row.PredictionCount</td>
+                        <td style="padding:8px 2px;text-align:center;font-weight:700;font-size:15px;">@row.TotalPoints</td>
+                        <td style="padding:8px 2px;text-align:center;">@row.ExactScores</td>
+                        <td style="padding:8px 2px;text-align:center;">@row.CorrectResults</td>
+                        <td style="padding:8px 2px;text-align:center;">@row.PredictionCount</td>
                     </tr>
                 }
             </tbody>
