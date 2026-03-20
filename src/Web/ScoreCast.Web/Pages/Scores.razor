@@ -2,53 +2,125 @@
 
 <PageGuard>
 <div>
-    <div id="scores-header" style="position:sticky;top:var(--mud-appbar-height);z-index:10;background:var(--mud-palette-background);padding:8px 0 4px;">
+    <div style="position:sticky;top:var(--mud-appbar-height);z-index:10;background:var(--mud-palette-background);padding:8px 0 4px;">
         <MudContainer MaxWidth="MaxWidth.Medium">
-            <div class="d-flex align-center justify-space-between mb-2">
-                <MudText Typo="Typo.h6" Style="font-weight:700;">Scores & Fixtures</MudText>
-                @if (_gameweek is not null)
-                {
-                    <div class="d-flex align-center gap-0">
-                        <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="PreviousGameweek"
-                                       Disabled="@(_gameweek.GameweekNumber <= 1)" Size="Size.Small" />
-                        <MudChip T="string" Color="Color.Primary" Size="Size.Small"
-                                 Style="font-weight:700;font-size:12px;">
-                            MW @_gameweek.GameweekNumber
-                        </MudChip>
-                        <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="NextGameweek"
-                                       Disabled="@(_gameweek.GameweekNumber >= _gameweek.TotalGameweeks)" Size="Size.Small" />
-                    </div>
-                }
-            </div>
-            <CompetitionFilter OnStateChanged="OnFilterChanged" />
+            <MudText Typo="Typo.h6" Style="font-weight:700;">Scores & Fixtures</MudText>
         </MudContainer>
     </div>
 
     <MudContainer MaxWidth="MaxWidth.Medium" Style="padding-top:8px;padding-bottom:100px;">
-        @if (_gameweek is not null)
+        @if (_loaded)
         {
-            @foreach (var group in GetMatchesByDate())
+            @foreach (var comp in _sections)
             {
                 <MudPaper Class="mb-3" Elevation="1" Style="border-radius:10px;overflow:hidden;">
-                    <div id="@group.AnchorId" style="padding:@(IsMobile ? "8px 10px 4px" : "12px 14px 6px");font-weight:700;font-size:@(IsMobile ? "13" : "15")px;text-align:center;">
-                        @group.Label
-                    </div>
-                    <MudDivider />
-
-                    @foreach (var match in group.Matches)
-                    {
-                        <MatchTile Match="MatchTileModel.From(match)" IsExpanded="_expandedMatches.Contains(match.MatchId)" OnToggle="() => ToggleMatch(match.MatchId)" />
-                        @if (match != group.Matches.Last())
+                    <div @onclick="@(() => ToggleSection(comp))"
+                         style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;">
+                        @if (!string.IsNullOrEmpty(comp.Competition.LogoUrl))
                         {
-                            <MudDivider />
+                            <img src="@comp.Competition.LogoUrl" alt="" style="width:24px;height:24px;object-fit:contain;" />
+                        }
+                        <MudText Typo="Typo.subtitle1" Style="font-weight:700;flex:1;">@comp.Competition.Name</MudText>
+                        <MudIcon Icon="@(comp.Expanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                                 Size="Size.Small" Color="Color.Default" />
+                    </div>
+
+                    @if (comp.Expanded)
+                    {
+                        <MudDivider />
+
+                        @if (comp.Loading)
+                        {
+                            <div class="d-flex justify-center pa-4">
+                                <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                            </div>
+                        }
+                        else if (comp.TodayMatches.Count > 0)
+                        {
+                            <div style="padding:6px 10px 2px;font-weight:700;font-size:13px;text-align:center;color:var(--mud-palette-text-secondary);">
+                                Today
+                            </div>
+                            @foreach (var match in comp.TodayMatches)
+                            {
+                                <MatchTile Match="MatchTileModel.From(match)" IsExpanded="_expandedMatches.Contains(match.MatchId)" OnToggle="() => ToggleMatch(match.MatchId)" />
+                                @if (match != comp.TodayMatches.Last()) { <MudDivider /> }
+                            }
+                        }
+                        else
+                        {
+                            @if (comp.LastGwMatches.Count > 0)
+                            {
+                                <div style="padding:6px 10px 2px;font-weight:700;font-size:13px;text-align:center;color:var(--mud-palette-text-secondary);">
+                                    Matchweek @comp.LastGwNumber — Results
+                                </div>
+                                @foreach (var match in comp.LastGwMatches)
+                                {
+                                    <MatchTile Match="MatchTileModel.From(match)" IsExpanded="_expandedMatches.Contains(match.MatchId)" OnToggle="() => ToggleMatch(match.MatchId)" />
+                                    @if (match != comp.LastGwMatches.Last()) { <MudDivider /> }
+                                }
+                            }
+
+                            @if (comp.NextGwMatches.Count > 0)
+                            {
+                                @if (comp.LastGwMatches.Count > 0)
+                                {
+                                    <MudDivider Class="my-1" />
+                                }
+                                <div style="padding:6px 10px 2px;font-weight:700;font-size:13px;text-align:center;color:var(--mud-palette-text-secondary);">
+                                    Matchweek @comp.NextGwNumber — Upcoming
+                                </div>
+                                @foreach (var match in comp.NextGwMatches)
+                                {
+                                    <div style="padding:10px 14px;display:flex;align-items:center;gap:8px;">
+                                        <div style="flex:1;text-align:right;">
+                                            <span style="font-weight:600;font-size:14px;">@match.HomeTeamShortName</span>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(match.HomeTeamLogo))
+                                        {
+                                            <img src="@match.HomeTeamLogo" alt="" style="width:24px;height:24px;" />
+                                        }
+                                        <div style="min-width:60px;text-align:center;">
+                                            <div style="font-size:12px;font-weight:600;color:var(--mud-palette-text-secondary);">
+                                                @if (match.KickoffTime.HasValue)
+                                                {
+                                                    @ClientTime.ToLocal(match.KickoffTime.Value).ToString("dd MMM")
+                                                    <br />
+                                                    @ClientTime.ToLocal(match.KickoffTime.Value).ToString("HH:mm")
+                                                }
+                                                else
+                                                {
+                                                    <text>TBD</text>
+                                                }
+                                            </div>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(match.AwayTeamLogo))
+                                        {
+                                            <img src="@match.AwayTeamLogo" alt="" style="width:24px;height:24px;" />
+                                        }
+                                        <div style="flex:1;">
+                                            <span style="font-weight:600;font-size:14px;">@match.AwayTeamShortName</span>
+                                        </div>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(match.Venue))
+                                    {
+                                        <div style="text-align:center;font-size:11px;color:var(--mud-palette-text-secondary);margin-top:-6px;padding-bottom:6px;">
+                                            📍 @match.Venue
+                                        </div>
+                                    }
+                                    @if (match != comp.NextGwMatches.Last()) { <MudDivider /> }
+                                }
+                            }
+
+                            @if (comp.LastGwMatches.Count == 0 && comp.NextGwMatches.Count == 0)
+                            {
+                                <div style="padding:16px;text-align:center;color:var(--mud-palette-text-secondary);font-size:13px;">
+                                    No matches available
+                                </div>
+                            }
                         }
                     }
                 </MudPaper>
             }
-        }
-        else if (_selectedSeason is not null && !Loading.IsLoading)
-        {
-            <MudAlert Severity="Severity.Info">No match data available. Sync matches first.</MudAlert>
         }
     </MudContainer>
 </div>
