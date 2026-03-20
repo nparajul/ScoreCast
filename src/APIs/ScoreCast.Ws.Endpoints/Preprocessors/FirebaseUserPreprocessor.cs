@@ -39,12 +39,12 @@ public sealed class FirebaseUserPreprocessor : IGlobalPreProcessor
         if (ctx.Request is ScoreCastRequest request)
         {
             if (request is SyncUserRequest syncRequest)
-                syncRequest.KeycloakUserId = firebaseUserId;
+                syncRequest.FirebaseUid = firebaseUserId;
 
             var dbContext = ctx.HttpContext.RequestServices.GetRequiredService<IScoreCastDbContext>();
             var userId = await dbContext.UserMasters
                 .AsNoTracking()
-                .Where(u => u.KeycloakUserId == firebaseUserId)
+                .Where(u => u.FirebaseUid == firebaseUserId)
                 .Select(u => u.UserId)
                 .FirstOrDefaultAsync(ct);
 

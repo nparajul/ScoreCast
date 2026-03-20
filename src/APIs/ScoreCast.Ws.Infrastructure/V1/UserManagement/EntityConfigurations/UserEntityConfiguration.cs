@@ -17,7 +17,7 @@ internal sealed class UserEntityConfiguration : BaseEntityConfiguration<UserMast
 
         var order = 1;
 
-        builder.Property(u => u.KeycloakUserId)
+        builder.Property(u => u.FirebaseUid)
             .HasColumnName("keycloak_user_id")
             .HasColumnOrder(order++)
             .IsRequired()
@@ -68,7 +68,7 @@ internal sealed class UserEntityConfiguration : BaseEntityConfiguration<UserMast
             .HasColumnName("last_login_date")
             .HasColumnOrder(order++);
 
-        builder.HasIndex(u => u.KeycloakUserId).IsUnique();
+        builder.HasIndex(u => u.FirebaseUid).IsUnique();
         builder.HasIndex(u => u.UserId).IsUnique();
         builder.HasIndex(u => u.Email).IsUnique();
     }

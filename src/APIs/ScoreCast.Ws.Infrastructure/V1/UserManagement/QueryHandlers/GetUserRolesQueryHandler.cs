@@ -14,7 +14,7 @@ internal sealed record GetUserRolesQueryHandler(
     {
         var roles = await DbContext.UserRoles
             .AsNoTracking()
-            .Where(ur => ur.User.KeycloakUserId == query.KeycloakUserId && ur.Role.IsActive)
+            .Where(ur => ur.User.FirebaseUid == query.FirebaseUid && ur.Role.IsActive)
             .OrderBy(ur => ur.Role.SortOrder)
             .Select(ur => new RoleResult(ur.Role.Id, ur.Role.Name))
             .ToListAsync(ct);

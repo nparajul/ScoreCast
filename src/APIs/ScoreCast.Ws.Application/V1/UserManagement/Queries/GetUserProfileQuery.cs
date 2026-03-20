@@ -4,4 +4,4 @@ using ScoreCast.Models.V1.Responses.UserManagement;
 
 namespace ScoreCast.Ws.Application.V1.UserManagement.Queries;
 
-public record GetUserProfileQuery(string KeycloakUserId) : IQuery<ScoreCastResponse<UserProfileResult>>;
+public record GetUserProfileQuery(string FirebaseUid) : IQuery<ScoreCastResponse<UserProfileResult>>;
