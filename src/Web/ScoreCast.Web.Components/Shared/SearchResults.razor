@@ -5,38 +5,45 @@
         <MudText Typo="Typo.body2" Class="ml-2" Style="color:var(--mud-palette-text-secondary);">Loading...</MudText>
     </div>
 }
-else if (Filtered.Count > 0)
+else
 {
-    <div style="padding:0 16px 12px;">
-        @{
-            string? lastCat = null;
-        }
-        @foreach (var item in Filtered)
-        {
-            if (item.Category != lastCat)
-            {
-                lastCat = item.Category;
-                <MudText Typo="Typo.overline" Class="mt-2 mb-1" Style="font-weight:700;letter-spacing:0.1em;">@item.Category</MudText>
+    var items = Filtered.Count > 0 ? Filtered
+        : (string.IsNullOrWhiteSpace(Query) && Suggestions.Count > 0) ? Suggestions
+        : null;
+
+    @if (items is not null)
+    {
+        <div style="padding:0 16px 12px;">
+            @{
+                string? lastCat = null;
             }
-            <div @onclick="@(() => OnNavigate.InvokeAsync(item))"
-                 style="display:flex;align-items:center;gap:12px;padding:8px 4px;cursor:pointer;border-radius:8px;"
-                 class="hover-highlight">
-                @if (!string.IsNullOrEmpty(item.ImageUrl))
+            @foreach (var item in items)
+            {
+                if (item.Category != lastCat)
                 {
-                    <img src="@item.ImageUrl" alt="" style="width:24px;height:24px;object-fit:contain;" />
+                    lastCat = item.Category;
+                    <MudText Typo="Typo.overline" Class="mt-2 mb-1" Style="font-weight:700;letter-spacing:0.1em;">@item.Category</MudText>
                 }
-                else
-                {
-                    <span style="font-size:18px;width:24px;text-align:center;">@item.Emoji</span>
-                }
-                <MudText Typo="Typo.body2" Style="font-weight:500;">@item.Name</MudText>
-            </div>
-        }
-    </div>
-}
-else if (!string.IsNullOrWhiteSpace(Query))
-{
-    <MudText Typo="Typo.body2" Align="Align.Center" Style="color:var(--mud-palette-text-secondary);padding:16px;">
-        No results for "@Query"
-    </MudText>
+                <div @onclick="@(() => OnNavigate.InvokeAsync(item))"
+                     style="display:flex;align-items:center;gap:12px;padding:8px 4px;cursor:pointer;border-radius:8px;"
+                     class="hover-highlight">
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl" alt="" style="width:24px;height:24px;object-fit:contain;" />
+                    }
+                    else
+                    {
+                        <span style="font-size:18px;width:24px;text-align:center;">@item.Emoji</span>
+                    }
+                    <MudText Typo="Typo.body2" Style="font-weight:500;">@item.Name</MudText>
+                </div>
+            }
+        </div>
+    }
+    else if (Query?.Length >= 2)
+    {
+        <MudText Typo="Typo.body2" Align="Align.Center" Style="color:var(--mud-palette-text-secondary);padding:16px;">
+            No results for "@Query"
+        </MudText>
+    }
 }
