@@ -41,4 +41,14 @@ public sealed class RiskPlayViewModel
         RiskPlayType.OverUnderGoals => "📊",
         _ => "🎲"
     };
+
+    public int MaxBonus(int maxPredictionPoints) => RiskType switch
+    {
+        RiskPlayType.DoubleDown => maxPredictionPoints,
+        RiskPlayType.ExactScoreBoost => 15,
+        RiskPlayType.CleanSheetBet => 5,
+        RiskPlayType.FirstGoalTeam => 3,
+        RiskPlayType.OverUnderGoals => 3,
+        _ => 0
+    };
 }

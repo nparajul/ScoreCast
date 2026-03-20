@@ -69,10 +69,11 @@
             var riskBonus = _riskPlays.Where(r => r.BonusPoints.HasValue).Sum(r => r.BonusPoints!.Value);
             var grandTotal = total + riskBonus;
             var totalPossible = _matches.Count(m => m.Status == nameof(MatchStatus.Finished) && m.HasPrediction) * _scoringRules.Max(r => r.Points);
+            var maxRiskBonus = _riskPlays.Sum(r => r.MaxBonus(_scoringRules.Max(sr => sr.Points)));
 
             <MudPaper Elevation="1" Class="pa-3 rounded-lg mb-3" Style="text-align:center;">
                 <MudText Typo="Typo.h4" Style="font-weight:800;">@grandTotal</MudText>
-                <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">out of @totalPossible possible</MudText>
+                <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">out of @totalPossible + @maxRiskBonus possible</MudText>
                 <div class="mt-2">
                     <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Primary"
                                EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
@@ -148,7 +149,7 @@
                     <div style="border-top:2px solid var(--mud-palette-lines-default);padding:6px 8px;margin-top:4px;">
                         <div class="d-flex justify-space-between">
                             <span style="font-weight:700;">Total</span>
-                            <span style="font-weight:700;font-size:16px;">@grandTotal / @totalPossible</span>
+                            <span style="font-weight:700;font-size:16px;">@grandTotal / @totalPossible + @maxRiskBonus</span>
                         </div>
                     </div>
                 </MudPaper>
