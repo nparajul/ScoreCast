@@ -28,12 +28,33 @@
                            aria-label="Go back" />
         }
 
-        @* Mobile: full brand logo *@
-        <MudImage Src="scorecast-logo-dark.svg" Alt="ScoreCast" Height="32" Class="d-flex d-md-none" Style="object-fit:contain;" />
+        @* Mobile: full brand logo — links to home only if not logged in *@
+        <AuthorizeView>
+            <Authorized>
+                <MudImage Src="scorecast-logo-dark.svg" Alt="ScoreCast" Height="32" Class="d-flex d-md-none" Style="object-fit:contain;" />
+            </Authorized>
+            <NotAuthorized>
+                <a href="/" class="d-flex d-md-none" style="text-decoration:none;">
+                    <MudImage Src="scorecast-logo-dark.svg" Alt="ScoreCast" Height="32" Style="object-fit:contain;" />
+                </a>
+            </NotAuthorized>
+        </AuthorizeView>
 
-        @* Desktop: icon + text *@
-        <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="36" Height="36" Class="mr-2 d-none d-md-flex" />
-        <MudText Typo="Typo.h6" Class="mr-4 d-none d-md-flex">ScoreCast</MudText>
+        @* Desktop: icon + text — links to dashboard if logged in, home if not *@
+        <AuthorizeView>
+            <Authorized>
+                <a href="/dashboard" class="d-none d-md-flex align-center" style="text-decoration:none;color:inherit;">
+                    <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="36" Height="36" Class="mr-2" />
+                    <MudText Typo="Typo.h6" Class="mr-4">ScoreCast</MudText>
+                </a>
+            </Authorized>
+            <NotAuthorized>
+                <a href="/" class="d-none d-md-flex align-center" style="text-decoration:none;color:inherit;">
+                    <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="36" Height="36" Class="mr-2" />
+                    <MudText Typo="Typo.h6" Class="mr-4">ScoreCast</MudText>
+                </a>
+            </NotAuthorized>
+        </AuthorizeView>
 
         <div class="d-none d-md-flex">
             <MudButton Href="/how-to-play" Color="Color.Inherit">How to Play</MudButton>
