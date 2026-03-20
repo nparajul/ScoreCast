@@ -39,6 +39,8 @@
                     }
                 });
             });
+            // Clear reload guard after 10s so future deploys in same session still trigger
+            setTimeout(() => sessionStorage.removeItem('sw-updated'), 10000);
             // Check for updates every 30 minutes
             setInterval(() => reg.update(), 30 * 60 * 1000);
         });
