@@ -8,7 +8,7 @@ public record MatchPageResult(
     int? HomeScore, int? AwayScore,
     string? Venue, string? Referee,
     int? HalfTimeHomeScore, int? HalfTimeAwayScore,
-    string CompetitionName, string? CompetitionLogo,
+    string CompetitionName, string? CompetitionLogo, string CompetitionCode, long SeasonId,
     string? HomeFormation, string? AwayFormation,
     string? HomeCoach, string? AwayCoach,
     List<MatchPageLineupPlayer> HomeLineup, List<MatchPageLineupPlayer> HomeSubs,
