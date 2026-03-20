@@ -4,71 +4,84 @@ namespace ScoreCast.Web.Components.Shared;
 
 public partial class GlobalSearch
 {
-    [CascadingParameter] public IMudDialogInstance Dialog { get; set; } = null!;
     [Inject] private IScoreCastApiClient Api { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
+
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
 
     private string? _query;
     private List<SearchItem> _allItems = [];
     private List<SearchItem> _filtered = [];
-    private bool _loaded;
+    private bool _dataLoaded;
+    private bool _loading;
 
-    protected override async Task OnInitializedAsync()
+    private async Task OnSearchChanged(string? value)
     {
-        var compsTask = Api.GetCompetitionsAsync(CancellationToken.None);
-        var teamsTask = LoadAllTeamsAsync();
-        await Task.WhenAll(compsTask, teamsTask);
+        _query = value;
 
-        var comps = compsTask.Result;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            _filtered = [];
+            return;
+        }
+
+        if (!_dataLoaded)
+        {
+            _loading = true;
+            StateHasChanged();
+            await LoadDataAsync();
+            _loading = false;
+        }
+
+        _filtered = _allItems
+            .Where(i => i.Name.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(i => i.Category)
+            .ThenBy(i => i.Name)
+            .Take(15)
+            .ToList();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        if (_dataLoaded) return;
+
+        var comps = await Api.GetCompetitionsAsync(CancellationToken.None);
         if (comps is { Success: true, Data: not null })
         {
             foreach (var c in comps.Data)
-                _allItems.Add(new("🏆", c.Name, c.LogoUrl, "Competition", $"/scores?comp={c.Code}"));
-        }
+                _allItems.Add(new("🏆", c.Name, c.LogoUrl, "Competition", $"/scores"));
 
-        _allItems.AddRange(teamsTask.Result);
-        _loaded = true;
-    }
-
-    private async Task<List<SearchItem>> LoadAllTeamsAsync()
-    {
-        var items = new List<SearchItem>();
-        var comps = await Api.GetCompetitionsAsync(CancellationToken.None);
-        if (comps is not { Success: true, Data: not null }) return items;
-
-        foreach (var comp in comps.Data)
-        {
-            var teams = await Api.GetTeamsAsync(comp.Name, CancellationToken.None);
-            if (teams is { Success: true, Data: not null })
+            foreach (var comp in comps.Data)
             {
-                foreach (var t in teams.Data)
+                var teams = await Api.GetTeamsAsync(comp.Name, CancellationToken.None);
+                if (teams is { Success: true, Data: not null })
                 {
-                    if (items.All(i => i.Url != $"/teams/{t.Id}"))
-                        items.Add(new("🛡️", t.Name, t.LogoUrl, "Team", $"/teams/{t.Id}"));
+                    foreach (var t in teams.Data)
+                    {
+                        if (_allItems.All(i => i.Url != $"/teams/{t.Id}"))
+                            _allItems.Add(new("🛡️", t.Name, t.LogoUrl, "Team", $"/teams/{t.Id}"));
+                    }
                 }
             }
         }
 
-        return items;
+        _dataLoaded = true;
     }
 
-    private void OnSearchChanged(string? value)
+    private async Task Navigate(SearchItem item)
     {
-        _query = value;
-        _filtered = string.IsNullOrWhiteSpace(value)
-            ? []
-            : _allItems
-                .Where(i => i.Name.Contains(value, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(i => i.Category)
-                .ThenBy(i => i.Name)
-                .Take(20)
-                .ToList();
-    }
-
-    private void Navigate(SearchItem item)
-    {
-        Dialog.Close();
+        _query = null;
+        _filtered = [];
+        await OnClose.InvokeAsync();
         Nav.NavigateTo(item.Url);
+    }
+
+    private async Task Close()
+    {
+        _query = null;
+        _filtered = [];
+        await OnClose.InvokeAsync();
     }
 
     private record SearchItem(string Emoji, string Name, string? ImageUrl, string Category, string Url);

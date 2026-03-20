@@ -1,8 +1,10 @@
-<MudDialog Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, NoHeader = true, FullScreen = true })" Class="global-search-dialog">
-    <DialogContent>
-        <div style="padding:16px 16px 8px;">
-            <div class="d-flex align-center gap-2 mb-3">
-                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="@(() => Dialog.Close())" Size="Size.Small" />
+@if (Visible)
+{
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;background:rgba(0,0,0,0.4);" @onclick="Close"></div>
+    <div style="position:fixed;top:var(--mud-appbar-height);left:0;right:0;z-index:9999;background:var(--mud-palette-surface);box-shadow:0 4px 12px rgba(0,0,0,0.15);max-height:70vh;overflow-y:auto;">
+        <div style="padding:12px 16px 8px;">
+            <div class="d-flex align-center gap-2">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="Close" Size="Size.Small" />
                 <MudTextField @bind-Value="_query"
                               Placeholder="Search competitions, teams..."
                               Variant="Variant.Outlined"
@@ -11,52 +13,52 @@
                               Adornment="Adornment.Start"
                               AdornmentIcon="@Icons.Material.Filled.Search"
                               TextChanged="OnSearchChanged"
+                              Margin="Margin.Dense"
                               Style="flex:1;" />
             </div>
+        </div>
 
-            @if (!_loaded)
-            {
-                <div class="d-flex justify-center pa-4">
-                    <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-                </div>
-            }
-            else if (string.IsNullOrWhiteSpace(_query))
-            {
-                <MudText Typo="Typo.body2" Align="Align.Center" Style="color:var(--mud-palette-text-secondary);padding:32px 0;">
-                    Start typing to search
-                </MudText>
-            }
-            else if (_filtered.Count == 0)
-            {
-                <MudText Typo="Typo.body2" Align="Align.Center" Style="color:var(--mud-palette-text-secondary);padding:32px 0;">
-                    No results for "@_query"
-                </MudText>
-            }
-            else
-            {
-                string? lastCategory = null;
+        @if (_loading)
+        {
+            <div class="d-flex justify-center pa-3">
+                <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                <MudText Typo="Typo.body2" Class="ml-2" Style="color:var(--mud-palette-text-secondary);">Loading...</MudText>
+            </div>
+        }
+        else if (_filtered.Count > 0)
+        {
+            <div style="padding:0 16px 12px;">
+                @{
+                    string? lastCat = null;
+                }
                 @foreach (var item in _filtered)
                 {
-                    @if (item.Category != lastCategory)
+                    if (item.Category != lastCat)
                     {
-                        lastCategory = item.Category;
-                        <MudText Typo="Typo.overline" Class="mt-2 mb-1 px-2" Style="font-weight:700;letter-spacing:0.1em;">@item.Category</MudText>
+                        lastCat = item.Category;
+                        <MudText Typo="Typo.overline" Class="mt-2 mb-1" Style="font-weight:700;letter-spacing:0.1em;">@item.Category</MudText>
                     }
                     <div @onclick="@(() => Navigate(item))"
-                         style="display:flex;align-items:center;gap:12px;padding:10px 8px;cursor:pointer;border-radius:8px;"
-                         class="mud-ripple hover-highlight">
+                         style="display:flex;align-items:center;gap:12px;padding:8px 4px;cursor:pointer;border-radius:8px;"
+                         class="hover-highlight">
                         @if (!string.IsNullOrEmpty(item.ImageUrl))
                         {
-                            <img src="@item.ImageUrl" alt="" style="width:28px;height:28px;object-fit:contain;" />
+                            <img src="@item.ImageUrl" alt="" style="width:24px;height:24px;object-fit:contain;" />
                         }
                         else
                         {
-                            <span style="font-size:20px;width:28px;text-align:center;">@item.Emoji</span>
+                            <span style="font-size:18px;width:24px;text-align:center;">@item.Emoji</span>
                         }
-                        <MudText Typo="Typo.body1" Style="font-weight:500;">@item.Name</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:500;">@item.Name</MudText>
                     </div>
                 }
-            }
-        </div>
-    </DialogContent>
-</MudDialog>
+            </div>
+        }
+        else if (!string.IsNullOrWhiteSpace(_query) && !_loading)
+        {
+            <MudText Typo="Typo.body2" Align="Align.Center" Style="color:var(--mud-palette-text-secondary);padding:16px;">
+                No results for "@_query"
+            </MudText>
+        }
+    </div>
+}
