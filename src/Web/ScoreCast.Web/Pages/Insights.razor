@@ -35,21 +35,21 @@
                     <div style="border-top:1px solid var(--mud-palette-lines-default);padding:@(IsMobile ? "8px 10px" : "12px 16px");">
                         @* Match header *@
                         <div class="d-flex align-center justify-space-between" style="margin-bottom:6px;">
-                            <div class="d-flex align-center gap-1">
+                            <a href="/teams/@m.HomeTeamId" class="d-flex align-center gap-1" style="color:inherit;text-decoration:none;">
                                 @if (m.HomeTeamLogo is not null)
                                 {
                                     <img src="@m.HomeTeamLogo" alt="" style="width:@(IsMobile ? "20" : "24")px;height:@(IsMobile ? "20" : "24")px;object-fit:contain;" />
                                 }
-                                <span style="font-weight:700;font-size:@(IsMobile ? "12" : "14")px;"><a href="/teams/@m.HomeTeamId" style="color:inherit;text-decoration:none;">@(m.HomeTeamShortName ?? m.HomeTeamName)</a></span>
-                            </div>
+                                <span style="font-weight:700;font-size:@(IsMobile ? "12" : "14")px;">@(m.HomeTeamShortName ?? m.HomeTeamName)</span>
+                            </a>
                             <span style="font-size:11px;color:var(--mud-palette-text-secondary);">vs</span>
-                            <div class="d-flex align-center gap-1">
-                                <span style="font-weight:700;font-size:@(IsMobile ? "12" : "14")px;"><a href="/teams/@m.AwayTeamId" style="color:inherit;text-decoration:none;">@(m.AwayTeamShortName ?? m.AwayTeamName)</a></span>
+                            <a href="/teams/@m.AwayTeamId" class="d-flex align-center gap-1" style="color:inherit;text-decoration:none;">
+                                <span style="font-weight:700;font-size:@(IsMobile ? "12" : "14")px;">@(m.AwayTeamShortName ?? m.AwayTeamName)</span>
                                 @if (m.AwayTeamLogo is not null)
                                 {
                                     <img src="@m.AwayTeamLogo" alt="" style="width:@(IsMobile ? "20" : "24")px;height:@(IsMobile ? "20" : "24")px;object-fit:contain;" />
                                 }
-                            </div>
+                            </a>
                         </div>
 
                         @* Probability bar *@

@@ -29,12 +29,17 @@ internal sealed record GetOrCreateMatchInsightsCommandHandler(
         var request = command.Request;
 
         var cached = await DbContext.MatchInsightCaches
-            .AsNoTracking()
             .FirstOrDefaultAsync(c => c.SeasonId == request.SeasonId && c.GameweekNumber == request.GameweekNumber, ct);
 
         if (cached is not null)
-            return ScoreCastResponse<List<MatchInsightResult>>.Ok(
-                JsonSerializer.Deserialize<List<MatchInsightResult>>(cached.ResponseJson) ?? []);
+        {
+            var results = JsonSerializer.Deserialize<List<MatchInsightResult>>(cached.ResponseJson) ?? [];
+            if (results.Count > 0 && results.All(r => r.HomeTeamId > 0))
+                return ScoreCastResponse<List<MatchInsightResult>>.Ok(results);
+            // Stale cache missing team IDs — regenerate
+            DbContext.MatchInsightCaches.Remove(cached);
+            await UnitOfWork.SaveChangesAsync(nameof(GetOrCreateMatchInsightsCommand), ct);
+        }
 
         var season = await DbContext.Seasons
             .AsNoTracking()
