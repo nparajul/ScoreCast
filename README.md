@@ -2,6 +2,8 @@
 
 A football predictions app where users predict match outcomes and scorelines across multiple competitions. Points are awarded based on prediction accuracy with leaderboards across prediction leagues. Currently in beta.
 
+> **⚠️ ScoreCast is NOT a betting or gambling site.** This is a free prediction game played purely for fun and bragging rights. There is no real money involved — no stakes, no wagers, no payouts. We do not facilitate, encourage, support, or endorse gambling or betting in any form. Terms like "risk plays" and "bonus points" refer only to in-game scoring mechanics with zero monetary value.
+
 ## Tech Stack
 
 - **.NET 10** (SDK 10.0.101) with latest C# features
