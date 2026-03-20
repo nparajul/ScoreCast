@@ -11,6 +11,7 @@ namespace ScoreCast.Ws.Endpoints.Preprocessors;
 public sealed class FirebaseUserPreprocessor : IGlobalPreProcessor
 {
     public const string FirebaseUserIdKey = "FirebaseUserId";
+    public const string ScoreCastUserIdKey = "ScoreCastUserId";
 
     public async Task PreProcessAsync(IPreProcessorContext ctx, CancellationToken ct)
     {
@@ -48,6 +49,9 @@ public sealed class FirebaseUserPreprocessor : IGlobalPreProcessor
                 .FirstOrDefaultAsync(ct);
 
             request.UserId = userId;
+
+            if (!string.IsNullOrEmpty(userId))
+                ctx.HttpContext.Items[ScoreCastUserIdKey] = userId;
         }
     }
 }
