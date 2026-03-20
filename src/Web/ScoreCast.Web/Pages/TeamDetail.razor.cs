@@ -191,10 +191,9 @@ public partial class TeamDetail
     private void QueueScrollToFocusGroup()
     {
         var groups = GetMatchesByDate();
-        var today = ClientTime.Today;
-        var todayAnchor = $"team-date-{today:yyyy-MM-dd}";
-        var target = groups.FirstOrDefault(g => g.AnchorId == todayAnchor)
-            ?? groups.LastOrDefault(g => g.Matches.Any(m => m.Status == nameof(MatchStatus.Finished)))
+        // Scroll to last finished group so its score is visible at top,
+        // and next fixture appears below in the viewport
+        var target = groups.LastOrDefault(g => g.Matches.Any(m => m.Status == nameof(MatchStatus.Finished)))
             ?? groups.FirstOrDefault();
         _scrollToAnchor = target?.AnchorId;
     }
@@ -205,8 +204,9 @@ public partial class TeamDetail
         {
             var anchor = _scrollToAnchor;
             _scrollToAnchor = null;
+            // Scroll with offset to account for sticky header
             await Js.InvokeVoidAsync("eval",
-                $"(function(){{var e=document.getElementById('{anchor}');if(e)e.scrollIntoView(true);}})()");
+                $"(function(){{var e=document.getElementById('{anchor}');if(e){{var y=e.getBoundingClientRect().top+window.scrollY-160;window.scrollTo({{top:y,behavior:'smooth'}});}}}})()");
         }
     }
 
