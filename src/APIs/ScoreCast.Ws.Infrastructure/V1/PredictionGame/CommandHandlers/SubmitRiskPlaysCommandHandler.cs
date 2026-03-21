@@ -86,9 +86,9 @@ internal sealed record SubmitRiskPlaysCommandHandler(
             }
         }
 
-        // Remove risk plays not in the new submission for this GW
+        // Remove risk plays not in the new submission for this GW (only for unlocked matches)
         var submittedKeys = validPlays.Select(r => (r.MatchId, r.RiskType)).ToHashSet();
-        foreach (var old in existing.Where(r => !submittedKeys.Contains((r.MatchId, r.RiskType))))
+        foreach (var old in existing.Where(r => !lockedIds.Contains(r.MatchId) && !submittedKeys.Contains((r.MatchId, r.RiskType))))
             old.IsDeleted = true;
 
         await UnitOfWork.SaveChangesAsync(request.AppName ?? nameof(SubmitRiskPlaysCommand), ct);

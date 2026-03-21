@@ -238,7 +238,10 @@
                                 </div>
                                 <div style="font-size:11px;color:var(--mud-palette-text-secondary);margin-bottom:6px;">@rp.Description</div>
 
-                                @if (!AllLocked)
+                                @{
+                                    var rpMatchLocked = rp.MatchId.HasValue && _matches.FirstOrDefault(x => x.MatchId == rp.MatchId)?.IsLocked == true;
+                                }
+                                @if (!rpMatchLocked && !AllLocked)
                                 {
                                     @* Match selector *@
                                     <select @bind="rp.MatchId" style="width:100%;padding:6px 8px;font-size:12px;border:1px solid var(--mud-palette-lines-default);border-radius:6px;background:var(--mud-palette-surface);color:inherit;margin-bottom:4px;">
