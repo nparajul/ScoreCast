@@ -3,13 +3,25 @@
 <style>
     .predict-row { padding: 8px 6px; border-bottom: 1px solid var(--mud-palette-lines-default); }
     .predict-input {
-        width: 36px; height: 28px; text-align: center; font-size: 14px; font-weight: 600;
-        border: 1px solid var(--mud-palette-lines-default); border-radius: 4px;
-        background: transparent; color: inherit; -moz-appearance: textfield;
+        width: 32px; height: 32px; text-align: center; font-size: 16px; font-weight: 700;
+        border: none; border-radius: 8px;
+        background: rgba(255,255,255,0.08); color: inherit;
+        pointer-events: none; -moz-appearance: textfield;
     }
     .predict-input::-webkit-outer-spin-button,
     .predict-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .predict-input:disabled { opacity: 0.5; }
+    .predict-stepper {
+        display: flex; align-items: center; justify-content: center;
+        width: 28px; height: 28px; border: none; border-radius: 50%;
+        background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);
+        font-size: 18px; font-weight: 700; cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
+        user-select: none; line-height: 1;
+    }
+    .predict-stepper:active { transform: scale(0.85); background: rgba(255,255,255,0.2); }
+    .predict-stepper:disabled { opacity: 0.3; pointer-events: none; }
     .predict-incomplete { border-color: #f44336 !important; }
     .predict-exact { background: rgba(46, 125, 50, 0.25); }
     .predict-result-gd { background: rgba(0, 131, 143, 0.25); }
@@ -164,11 +176,15 @@
                                 }
                             </div>
                             <div class="d-flex align-center justify-center gap-1" style="flex-shrink:0;padding:0 4px;">
-                                <input type="number" @bind="match.PredictedHomeScore" disabled="@match.IsLocked"
-                                       class="predict-input @(match.IsIncomplete ? "predict-incomplete" : "")" min="0" />
-                                <span style="font-weight:700;font-size:15px;">-</span>
-                                <input type="number" @bind="match.PredictedAwayScore" disabled="@match.IsLocked"
-                                       class="predict-input @(match.IsIncomplete ? "predict-incomplete" : "")" min="0" />
+                                <button class="predict-stepper" disabled="@match.IsLocked" @onclick="@(() => Decrement(match, true))">−</button>
+                                <input type="number" value="@match.PredictedHomeScore" disabled
+                                       class="predict-input" />
+                                <button class="predict-stepper" disabled="@match.IsLocked" @onclick="@(() => Increment(match, true))">+</button>
+                                <span style="font-weight:700;font-size:13px;padding:0 2px;">-</span>
+                                <button class="predict-stepper" disabled="@match.IsLocked" @onclick="@(() => Decrement(match, false))">−</button>
+                                <input type="number" value="@match.PredictedAwayScore" disabled
+                                       class="predict-input" />
+                                <button class="predict-stepper" disabled="@match.IsLocked" @onclick="@(() => Increment(match, false))">+</button>
                             </div>
                             <div class="d-flex align-center gap-1" style="flex:1;overflow:hidden;">
                                 @if (match.AwayTeamLogo is not null)
@@ -244,13 +260,19 @@
                                 @if (!rpMatchLocked && !AllLocked)
                                 {
                                     @* Match selector *@
-                                    <select @bind="rp.MatchId" style="width:100%;padding:6px 8px;font-size:12px;border:1px solid var(--mud-palette-lines-default);border-radius:6px;background:var(--mud-palette-surface);color:inherit;margin-bottom:4px;">
-                                        <option value="">— Select match —</option>
+                                    <MudSelect T="long?" @bind-Value="rp.MatchId" Dense="true" Margin="Margin.Dense" Variant="Variant.Outlined"
+                                               Placeholder="— Select match —" Style="font-size:12px;" Class="mb-1">
                                         @foreach (var m in UnlockedMatches)
                                         {
-                                            <option value="@m.MatchId">@m.HomeTeamShortName vs @m.AwayTeamShortName</option>
+                                            <MudSelectItem T="long?" Value="@m.MatchId">
+                                                <div class="d-flex align-center gap-1">
+                                                    @if (m.HomeTeamLogo is not null) { <img src="@m.HomeTeamLogo" alt="" style="width:16px;height:16px;" /> }
+                                                    <span>@m.HomeTeamShortName vs @m.AwayTeamShortName</span>
+                                                    @if (m.AwayTeamLogo is not null) { <img src="@m.AwayTeamLogo" alt="" style="width:16px;height:16px;" /> }
+                                                </div>
+                                            </MudSelectItem>
                                         }
-                                    </select>
+                                    </MudSelect>
 
                                     @* Type-specific selection *@
                                     @if (rp.MatchId.HasValue)
@@ -258,27 +280,35 @@
                                         var selMatch = _matches.FirstOrDefault(x => x.MatchId == rp.MatchId);
                                         @if (rp.RiskType == RiskPlayType.CleanSheetBet && selMatch is not null)
                                         {
-                                            <select @bind="rp.Selection" style="width:100%;padding:6px 8px;font-size:12px;border:1px solid var(--mud-palette-lines-default);border-radius:6px;background:var(--mud-palette-surface);color:inherit;">
-                                                <option value="">— Pick team —</option>
-                                                <option value="@selMatch.HomeTeamId">@selMatch.HomeTeamShortName</option>
-                                                <option value="@selMatch.AwayTeamId">@selMatch.AwayTeamShortName</option>
-                                            </select>
+                                            <MudSelect T="string" @bind-Value="rp.Selection" Dense="true" Margin="Margin.Dense" Variant="Variant.Outlined"
+                                                       Placeholder="— Pick team —" Style="font-size:12px;">
+                                                <MudSelectItem T="string" Value="@selMatch.HomeTeamId.ToString()">
+                                                    <div class="d-flex align-center gap-1">@if (selMatch.HomeTeamLogo is not null) { <img src="@selMatch.HomeTeamLogo" alt="" style="width:16px;height:16px;" /> } <span>@selMatch.HomeTeamShortName</span></div>
+                                                </MudSelectItem>
+                                                <MudSelectItem T="string" Value="@selMatch.AwayTeamId.ToString()">
+                                                    <div class="d-flex align-center gap-1">@if (selMatch.AwayTeamLogo is not null) { <img src="@selMatch.AwayTeamLogo" alt="" style="width:16px;height:16px;" /> } <span>@selMatch.AwayTeamShortName</span></div>
+                                                </MudSelectItem>
+                                            </MudSelect>
                                         }
                                         else if (rp.RiskType == RiskPlayType.FirstGoalTeam && selMatch is not null)
                                         {
-                                            <select @bind="rp.Selection" style="width:100%;padding:6px 8px;font-size:12px;border:1px solid var(--mud-palette-lines-default);border-radius:6px;background:var(--mud-palette-surface);color:inherit;">
-                                                <option value="">— Pick team —</option>
-                                                <option value="@selMatch.HomeTeamId">@selMatch.HomeTeamShortName</option>
-                                                <option value="@selMatch.AwayTeamId">@selMatch.AwayTeamShortName</option>
-                                            </select>
+                                            <MudSelect T="string" @bind-Value="rp.Selection" Dense="true" Margin="Margin.Dense" Variant="Variant.Outlined"
+                                                       Placeholder="— Pick team —" Style="font-size:12px;">
+                                                <MudSelectItem T="string" Value="@selMatch.HomeTeamId.ToString()">
+                                                    <div class="d-flex align-center gap-1">@if (selMatch.HomeTeamLogo is not null) { <img src="@selMatch.HomeTeamLogo" alt="" style="width:16px;height:16px;" /> } <span>@selMatch.HomeTeamShortName</span></div>
+                                                </MudSelectItem>
+                                                <MudSelectItem T="string" Value="@selMatch.AwayTeamId.ToString()">
+                                                    <div class="d-flex align-center gap-1">@if (selMatch.AwayTeamLogo is not null) { <img src="@selMatch.AwayTeamLogo" alt="" style="width:16px;height:16px;" /> } <span>@selMatch.AwayTeamShortName</span></div>
+                                                </MudSelectItem>
+                                            </MudSelect>
                                         }
                                         else if (rp.RiskType == RiskPlayType.OverUnderGoals)
                                         {
-                                            <select @bind="rp.Selection" style="width:100%;padding:6px 8px;font-size:12px;border:1px solid var(--mud-palette-lines-default);border-radius:6px;background:var(--mud-palette-surface);color:inherit;">
-                                                <option value="">— Pick —</option>
-                                                <option value="Over">Over 2.5 goals</option>
-                                                <option value="Under">Under 2.5 goals</option>
-                                            </select>
+                                            <MudSelect T="string" @bind-Value="rp.Selection" Dense="true" Margin="Margin.Dense" Variant="Variant.Outlined"
+                                                       Placeholder="— Pick —" Style="font-size:12px;">
+                                                <MudSelectItem T="string" Value="@("Over")">Over 2.5 goals</MudSelectItem>
+                                                <MudSelectItem T="string" Value="@("Under")">Under 2.5 goals</MudSelectItem>
+                                            </MudSelect>
                                         }
                                     }
                                 }

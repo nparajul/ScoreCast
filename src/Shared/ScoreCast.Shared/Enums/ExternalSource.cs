@@ -4,5 +4,6 @@ public enum ExternalSource
 {
     FootballData,
     Fpl,
-    Pulse
+    Pulse,
+    FotMob
 }
