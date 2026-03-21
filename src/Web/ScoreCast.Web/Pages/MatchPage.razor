@@ -197,7 +197,7 @@
                         </MudPaper>
 
                         @* Pitch *@
-                        <MudPaper Elevation="1" Style="border-radius:0;overflow:hidden;background:linear-gradient(180deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);position:relative;padding:16px 0;">
+                        <MudPaper Elevation="1" Style="border-radius:0;overflow:hidden;background:linear-gradient(180deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);position:relative;">
                             <div style="position:absolute;inset:0;pointer-events:none;">
                                 <div style="position:absolute;top:50%;left:8%;right:8%;height:1px;background:rgba(255,255,255,0.15);"></div>
                                 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border:1px solid rgba(255,255,255,0.15);border-radius:50%;"></div>
@@ -206,25 +206,30 @@
                                 <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:55%;height:36px;border:1px solid rgba(255,255,255,0.15);border-bottom:none;"></div>
                                 <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:22%;height:14px;border:1px solid rgba(255,255,255,0.25);border-bottom:none;"></div>
                             </div>
-                            @if (_match.HomeFormation is not null)
-                            {
-                                @foreach (var row in GetFormationRows(_match.HomeLineup, _match.HomeFormation, false))
-                                {
-                                    <div style="display:flex;justify-content:space-evenly;margin-bottom:6px;">
-                                        @foreach (var p in row) { @RenderPlayerCard(p, 36) }
-                                    </div>
-                                }
-                            }
-                            <div style="height:12px;"></div>
-                            @if (_match.AwayFormation is not null)
-                            {
-                                @foreach (var row in GetFormationRows(_match.AwayLineup, _match.AwayFormation, true, mirrorRows: true))
-                                {
-                                    <div style="display:flex;justify-content:space-evenly;margin-bottom:6px;">
-                                        @foreach (var p in row) { @RenderPlayerCard(p, 36) }
-                                    </div>
-                                }
-                            }
+                            <div style="display:flex;flex-direction:column;min-height:480px;">
+                                <div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly;padding:10px 0;">
+                                    @if (_match.HomeFormation is not null)
+                                    {
+                                        @foreach (var row in GetFormationRows(_match.HomeLineup, _match.HomeFormation, false))
+                                        {
+                                            <div style="display:flex;justify-content:space-evenly;">
+                                                @foreach (var p in row) { @RenderPlayerCard(p, 36) }
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                                <div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly;padding:10px 0;">
+                                    @if (_match.AwayFormation is not null)
+                                    {
+                                        @foreach (var row in GetFormationRows(_match.AwayLineup, _match.AwayFormation, true, mirrorRows: true))
+                                        {
+                                            <div style="display:flex;justify-content:space-evenly;">
+                                                @foreach (var p in row) { @RenderPlayerCard(p, 36) }
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
                         </MudPaper>
 
                         @* Away formation header *@
