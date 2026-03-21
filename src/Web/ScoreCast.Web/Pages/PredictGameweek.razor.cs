@@ -39,6 +39,18 @@ public partial class PredictGameweek
     private List<PredictionMatchViewModel> UnlockedMatches => _matches.Where(m => !m.IsLocked).ToList();
     private string MatchLabel(long matchId) => _matches.FirstOrDefault(x => x.MatchId == matchId) is { } m ? $"{m.HomeTeamShortName} vs {m.AwayTeamShortName}" : "";
 
+    private static void Increment(PredictionMatchViewModel m, bool home)
+    {
+        if (home) m.PredictedHomeScore = (m.PredictedHomeScore ?? -1) + 1;
+        else m.PredictedAwayScore = (m.PredictedAwayScore ?? -1) + 1;
+    }
+
+    private static void Decrement(PredictionMatchViewModel m, bool home)
+    {
+        if (home) m.PredictedHomeScore = m.PredictedHomeScore > 0 ? m.PredictedHomeScore - 1 : 0;
+        else m.PredictedAwayScore = m.PredictedAwayScore > 0 ? m.PredictedAwayScore - 1 : 0;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
