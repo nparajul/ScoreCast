@@ -165,7 +165,14 @@
                     <div style="padding:24px;text-align:center;color:var(--mud-palette-text-secondary);font-size:13px;">
                         @if (_match.Status == nameof(MatchStatus.Scheduled))
                         {
-                            <text>Match hasn't started yet</text>
+                            @if (_match.HomeFormation is not null)
+                            {
+                                <text>✅ Lineups confirmed — match hasn't kicked off yet</text>
+                            }
+                            else
+                            {
+                                <text>Match hasn't started yet</text>
+                            }
                         }
                         else
                         {
