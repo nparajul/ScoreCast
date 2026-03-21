@@ -280,6 +280,63 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         builder.CloseElement(); // outer div
     };
 
+    private RenderFragment RenderSubCard(MatchPageLineupPlayer p) => builder =>
+    {
+        var isOn = p.SubMinute is not null;
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "style", "text-align:center;padding:6px 2px;");
+
+        // Avatar
+        builder.OpenElement(2, "div");
+        builder.AddAttribute(3, "style", "position:relative;display:inline-block;");
+        if (p.PhotoUrl is not null)
+        {
+            builder.OpenElement(4, "img");
+            builder.AddAttribute(5, "src", p.PhotoUrl);
+            builder.AddAttribute(6, "style", $"width:36px;height:36px;border-radius:50%;object-fit:cover;background:#333;{(isOn ? "" : "opacity:0.5;")}");
+            builder.CloseElement();
+        }
+        else
+        {
+            builder.OpenElement(4, "div");
+            builder.AddAttribute(5, "style", $"width:36px;height:36px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;{(isOn ? "" : "opacity:0.5;")}");
+            builder.OpenElement(6, "span");
+            builder.AddAttribute(7, "style", "font-size:12px;color:white;font-weight:700;");
+            builder.AddContent(8, p.Name.Length > 0 ? p.Name[0].ToString() : "?");
+            builder.CloseElement();
+            builder.CloseElement();
+        }
+        // Sub-on badge
+        if (isOn)
+        {
+            builder.OpenElement(9, "span");
+            builder.AddAttribute(10, "style", "position:absolute;top:-4px;right:-6px;font-size:8px;background:#4caf50;color:white;border-radius:8px;padding:1px 4px;font-weight:700;line-height:1.2;");
+            builder.AddContent(11, $"{p.SubMinute}'");
+            builder.CloseElement();
+        }
+        builder.CloseElement(); // avatar container
+
+        // Name
+        builder.OpenElement(12, "div");
+        builder.AddAttribute(13, "style", $"font-size:11px;font-weight:{(isOn ? "700" : "600")};margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;");
+        if (p.ShirtNumber is not null)
+            builder.AddContent(14, $"{p.ShirtNumber} ");
+        builder.AddContent(15, LastName(p.Name));
+        builder.CloseElement();
+
+        // Position group
+        var group = PlayerPositions.ToGroupName(p.Position);
+        if (group.Length > 0)
+        {
+            builder.OpenElement(16, "div");
+            builder.AddAttribute(17, "style", "font-size:10px;color:var(--mud-palette-text-secondary);opacity:0.7;");
+            builder.AddContent(18, group);
+            builder.CloseElement();
+        }
+
+        builder.CloseElement(); // outer div
+    };
+
     private async Task LoadExtrasAsync()
     {
         try
