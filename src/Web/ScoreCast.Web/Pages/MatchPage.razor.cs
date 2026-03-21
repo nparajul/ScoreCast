@@ -88,23 +88,9 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
             return;
         }
 
-        // Compute elapsed from real timestamps, not stale Pulse clock.secs
-        var now = DateTimeOffset.UtcNow;
-        if (_match.Phase == PulseApi.Phase.SecondHalf && _match.SecondHalfStartMillis is not null)
-        {
-            // 2nd half: 45:00 + time since 2nd half kickoff
-            var shStart = DateTimeOffset.FromUnixTimeMilliseconds(_match.SecondHalfStartMillis.Value);
-            _elapsedSecs = 2700 + (int)(now - shStart).TotalSeconds;
-        }
-        else if (_match.KickoffTime.HasValue)
-        {
-            // 1st half: time since kickoff
-            _elapsedSecs = (int)(now - new DateTimeOffset(_match.KickoffTime.Value, TimeSpan.Zero)).TotalSeconds;
-        }
-        else
-        {
-            _elapsedSecs = _match.ClockSeconds ?? 0;
-        }
+        // Use Pulse clock.secs as the authoritative game clock — it accounts for
+        // delayed kickoffs, VAR stoppages, etc. We tick locally between polls.
+        _elapsedSecs = _match.ClockSeconds ?? 0;
 
         UpdateClockDisplay();
         _clockTimer = new System.Timers.Timer(1000);
