@@ -282,12 +282,19 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
 
     private async Task LoadExtrasAsync()
     {
-        var resp = await Api.GetMatchExtrasAsync(MatchId, CancellationToken.None);
-        if (resp is { Success: true, Data: not null })
+        try
         {
-            _extras = resp.Data;
-            await InvokeAsync(StateHasChanged);
+            var resp = await Api.GetMatchExtrasAsync(MatchId, CancellationToken.None);
+            if (resp is { Success: true, Data: not null })
+                _extras = resp.Data;
+            else
+                _extras = new MatchExtrasResult([], [], [], null, new CommunityPredictions(0, 0, 0, 0, null, 0), [], []);
         }
+        catch
+        {
+            _extras = new MatchExtrasResult([], [], [], null, new CommunityPredictions(0, 0, 0, 0, null, 0), [], []);
+        }
+        await InvokeAsync(StateHasChanged);
     }
 
     private static string FormColor(string result) => result switch
