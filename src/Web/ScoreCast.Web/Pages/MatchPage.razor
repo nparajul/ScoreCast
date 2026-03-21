@@ -342,67 +342,21 @@
                     <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;">
                         <div class="d-flex" style="gap:0;">
                             <div style="flex:1;padding:10px;">
-                                @foreach (var p in _match.HomeSubs)
-                                {
-                                    <div class="d-flex align-center gap-2" style="margin-bottom:6px;">
-                                        <div style="position:relative;">
-                                            @if (p.PhotoUrl is not null)
-                                            {
-                                                <img src="@p.PhotoUrl" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#333;" />
-                                            }
-                                            else
-                                            {
-                                                <div style="width:28px;height:28px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;">
-                                                    <span style="font-size:9px;color:white;font-weight:700;">@(p.Name.Length > 0 ? p.Name[0].ToString() : "?")</span>
-                                                </div>
-                                            }
-                                            @if (p.SubMinute is not null)
-                                            {
-                                                <span style="position:absolute;top:-4px;left:-4px;font-size:8px;background:#4caf50;color:white;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;">↑</span>
-                                            }
-                                        </div>
-                                        <div>
-                                            <div style="font-size:12px;font-weight:600;">@p.Name</div>
-                                            <div style="font-size:10px;color:var(--mud-palette-text-secondary);">
-                                                @if (p.Position is not null) { <span style="opacity:0.7;">@PlayerPositions.ToShortName(p.Position)</span> }
-                                                @if (p.SubMinute is not null) { <span>@p.SubMinute</span> }
-                                                @string.Join(" ", p.Icons.Select(PlayerIcon))
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 4px;">
+                                    @foreach (var p in _match.HomeSubs.OrderByDescending(x => x.SubMinute is not null))
+                                    {
+                                        @RenderSubCard(p)
+                                    }
+                                </div>
                             </div>
                             <div style="width:1px;background:var(--mud-palette-divider);"></div>
                             <div style="flex:1;padding:10px;">
-                                @foreach (var p in _match.AwaySubs)
-                                {
-                                    <div class="d-flex align-center gap-2" style="margin-bottom:6px;">
-                                        <div style="position:relative;">
-                                            @if (p.PhotoUrl is not null)
-                                            {
-                                                <img src="@p.PhotoUrl" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#333;" />
-                                            }
-                                            else
-                                            {
-                                                <div style="width:28px;height:28px;border-radius:50%;background:#555;display:flex;align-items:center;justify-content:center;">
-                                                    <span style="font-size:9px;color:white;font-weight:700;">@(p.Name.Length > 0 ? p.Name[0].ToString() : "?")</span>
-                                                </div>
-                                            }
-                                            @if (p.SubMinute is not null)
-                                            {
-                                                <span style="position:absolute;top:-4px;left:-4px;font-size:8px;background:#4caf50;color:white;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;">↑</span>
-                                            }
-                                        </div>
-                                        <div>
-                                            <div style="font-size:12px;font-weight:600;">@p.Name</div>
-                                            <div style="font-size:10px;color:var(--mud-palette-text-secondary);">
-                                                @if (p.Position is not null) { <span style="opacity:0.7;">@PlayerPositions.ToShortName(p.Position)</span> }
-                                                @if (p.SubMinute is not null) { <span>@p.SubMinute</span> }
-                                                @string.Join(" ", p.Icons.Select(PlayerIcon))
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 4px;">
+                                    @foreach (var p in _match.AwaySubs.OrderByDescending(x => x.SubMinute is not null))
+                                    {
+                                        @RenderSubCard(p)
+                                    }
+                                </div>
                             </div>
                         </div>
                     </MudPaper>
