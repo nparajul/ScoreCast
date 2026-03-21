@@ -55,7 +55,7 @@
                         <div style="font-size:@(IsMobile ? "28" : "36")px;font-weight:800;font-variant-numeric:tabular-nums;color:@(_match.Status == nameof(MatchStatus.Live) ? "#4caf50" : "inherit");">
                             @(_match.HomeScore ?? 0) - @(_match.AwayScore ?? 0)
                         </div>
-                        @if (_match.HalfTimeHomeScore is not null)
+                        @if (_match.HalfTimeHomeScore is not null && _match.Phase is not (PulseApi.Phase.FirstHalf or PulseApi.Phase.HalfTime))
                         {
                             <div style="font-size:11px;color:var(--mud-palette-text-secondary);">HT: @_match.HalfTimeHomeScore - @_match.HalfTimeAwayScore</div>
                         }

@@ -103,8 +103,8 @@ internal sealed record GetMatchPageQueryHandler(
         var awayLineup = new List<MatchPageLineupPlayer>();
         var awaySubs = new List<MatchPageLineupPlayer>();
         int? htHome = null, htAway = null;
-        int? clockSeconds = null;
         string? phase = null;
+        long? firstHalfStartMillis = null;
         long? secondHalfStartMillis = null;
 
         var pulseMapping = await DbContext.ExternalMappings.AsNoTracking()
@@ -127,11 +127,11 @@ internal sealed record GetMatchPageQueryHandler(
                 {
                     htHome = pulse.HalfTimeScore?.HomeScore;
                     htAway = pulse.HalfTimeScore?.AwayScore;
-                    clockSeconds = pulse.Clock?.Secs is not null ? (int)pulse.Clock.Secs : null;
                     phase = pulse.Phase;
 
-                    // PS event with phase "2" = second half kickoff time
-                    // PE event with phase "1" = half-time whistle (fallback: + 15 min)
+                    var ps1 = pulse.Events?.FirstOrDefault(e => e.Type == "PS" && e.Phase == "1");
+                    firstHalfStartMillis = ps1?.Time?.Millis;
+
                     var ps2 = pulse.Events?.FirstOrDefault(e => e.Type == "PS" && e.Phase == "2");
                     if (ps2?.Time?.Millis is not null)
                         secondHalfStartMillis = ps2.Time.Millis.Value;
@@ -212,7 +212,7 @@ internal sealed record GetMatchPageQueryHandler(
 
         return ScoreCastResponse<MatchPageResult>.Ok(new MatchPageResult(
             match.Id, match.KickoffTime, match.Status.ToString(), match.Minute,
-            clockSeconds, phase, secondHalfStartMillis,
+            firstHalfStartMillis, phase, secondHalfStartMillis,
             match.HomeTeamId, match.HomeTeamName, match.HomeTeamLogo, match.HomeTeamShortName,
             match.AwayTeamId, match.AwayTeamName, match.AwayTeamLogo, match.AwayTeamShortName,
             match.HomeScore, match.AwayScore, match.Venue, match.Referee,
