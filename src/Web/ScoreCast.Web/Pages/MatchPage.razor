@@ -104,29 +104,24 @@
             <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;">
                 @if (OrderedEvents.Count > 0 || _match.Status != nameof(MatchStatus.Scheduled))
                 {
-                    @* Kick Off marker *@
-                    @if (_match.Status is nameof(MatchStatus.Live) or nameof(MatchStatus.Finished))
+                    var isLive = _match.Status == nameof(MatchStatus.Live);
+                    var isFinished = _match.Status == nameof(MatchStatus.Finished);
+
+                    @* Kick Off — top for finished, bottom for live *@
+                    @if (isFinished)
                     {
-                        <div style="display:flex;align-items:center;padding:6px 14px;gap:8px;">
-                            <div style="flex:1;height:1px;background:var(--mud-palette-divider);"></div>
-                            <span style="font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);">⏱️ Kick Off</span>
-                            <div style="flex:1;height:1px;background:var(--mud-palette-divider);"></div>
-                        </div>
+                        @RenderDivider("⏱️ Kick Off")
                     }
 
                     var events = OrderedEvents;
                     var htShown = false;
                     @foreach (var evt in events)
                     {
-                        @* Half Time divider — insert before first 2nd-half event *@
-                        if (!htShown && IsSecondHalf(evt.Minute))
+                        @* HT divider: for chronological, before first 46+ min; for reverse, before first ≤45 min *@
+                        if (!htShown && (isLive ? !IsSecondHalf(evt.Minute) : IsSecondHalf(evt.Minute)))
                         {
                             htShown = true;
-                            <div style="display:flex;align-items:center;padding:6px 14px;gap:8px;">
-                                <div style="flex:1;height:1px;background:var(--mud-palette-divider);"></div>
-                                <span style="font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);">HT @(_match.HalfTimeHomeScore is not null ? $"{_match.HalfTimeHomeScore} - {_match.HalfTimeAwayScore}" : "")</span>
-                                <div style="flex:1;height:1px;background:var(--mud-palette-divider);"></div>
-                            </div>
+                            @RenderDivider($"HT {(_match.HalfTimeHomeScore is not null ? $"{_match.HalfTimeHomeScore} - {_match.HalfTimeAwayScore}" : "")}")
                         }
 
                         var isSub = evt.EventType == EventTypes.SubIn;
@@ -183,14 +178,16 @@
                         </div>
                     }
 
-                    @* Full Time marker *@
-                    @if (_match.Status == nameof(MatchStatus.Finished))
+                    @* Kick Off — bottom for live *@
+                    @if (isLive)
                     {
-                        <div style="display:flex;align-items:center;padding:6px 14px;gap:8px;">
-                            <div style="flex:1;height:1px;background:var(--mud-palette-divider);"></div>
-                            <span style="font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);">FT @_match.HomeScore - @_match.AwayScore</span>
-                            <div style="flex:1;height:1px;background:var(--mud-palette-divider);"></div>
-                        </div>
+                        @RenderDivider("⏱️ Kick Off")
+                    }
+
+                    @* Full Time — bottom for finished *@
+                    @if (isFinished)
+                    {
+                        @RenderDivider($"FT {_match.HomeScore} - {_match.AwayScore}")
                     }
                 }
                 else
