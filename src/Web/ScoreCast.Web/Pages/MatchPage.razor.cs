@@ -15,6 +15,7 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     [Inject] private NavigationManager Nav { get; set; } = null!;
 
     private MatchPageResult? _match;
+    private MatchExtrasResult? _extras;
     private bool _loaded;
     private CancellationTokenSource? _pollCts;
     private System.Timers.Timer? _clockTimer;
@@ -291,6 +292,33 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         builder.CloseElement();
 
         builder.CloseElement(); // outer div
+    };
+
+    private async Task LoadExtrasAsync()
+    {
+        var resp = await Api.GetMatchExtrasAsync(MatchId, CancellationToken.None);
+        if (resp is { Success: true, Data: not null })
+        {
+            _extras = resp.Data;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private static string FormColor(string result) => result switch
+    {
+        "W" => "#4caf50",
+        "D" => "#ff9800",
+        "L" => "#f44336",
+        _ => "#666"
+    };
+
+    private static string PredictionBg(string? outcome) => outcome switch
+    {
+        "ExactScore" => "#4caf50",
+        "CorrectResultAndGoalDifference" => "#2196f3",
+        "CorrectResult" => "#42a5f5",
+        "CorrectGoalDifference" => "#ff9800",
+        _ => "#666"
     };
 
     public void Dispose()
