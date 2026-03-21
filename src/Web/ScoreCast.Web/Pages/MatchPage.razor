@@ -239,6 +239,7 @@
                                            color:@(showHome ? "white" : "inherit");font-family:inherit;font-weight:700;font-size:13px;">
                                 @if (_match.HomeTeamLogo is not null) { <img src="@_match.HomeTeamLogo" alt="" style="width:18px;height:18px;" /> }
                                 @_match.HomeTeamShortName
+                                <span style="font-weight:500;font-size:11px;opacity:0.7;">@_match.HomeFormation</span>
                             </button>
                             <button @onclick='() => { _lineupTab = "away"; }'
                                     style="flex:1;padding:8px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
@@ -246,6 +247,7 @@
                                            color:@(!showHome ? "white" : "inherit");font-family:inherit;font-weight:700;font-size:13px;">
                                 @if (_match.AwayTeamLogo is not null) { <img src="@_match.AwayTeamLogo" alt="" style="width:18px;height:18px;" /> }
                                 @_match.AwayTeamShortName
+                                <span style="font-weight:500;font-size:11px;opacity:0.7;">@_match.AwayFormation</span>
                             </button>
                         </div>
 
@@ -254,9 +256,6 @@
                             <div style="position:absolute;inset:0;pointer-events:none;">
                                 <div style="position:absolute;@(showHome ? "top" : "bottom"):0;left:50%;transform:translateX(-50%);width:55%;height:50px;border:1px solid rgba(255,255,255,0.15);border-@(showHome ? "top" : "bottom"):none;"></div>
                                 <div style="position:absolute;@(showHome ? "top" : "bottom"):0;left:50%;transform:translateX(-50%);width:22%;height:20px;border:1px solid rgba(255,255,255,0.25);border-@(showHome ? "top" : "bottom"):none;"></div>
-                            </div>
-                            <div style="padding:4px 0 0 0;text-align:center;">
-                                <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);">@activeFormation</span>
                             </div>
                             <div style="display:flex;flex-direction:column;justify-content:space-evenly;min-height:380px;padding:4px 0 12px 0;">
                                 @foreach (var row in activeRows)
