@@ -216,23 +216,22 @@
                             }
                             @{
                                 var maxRows = Math.Max(homeRows.Count, awayRows.Count);
-                                var pitchHeight = Math.Max(520, maxRows * 100);
-                                var avatarSize = maxRows > 5 ? 30 : 34;
+                                var pitchHeight = Math.Max(560, maxRows * 110);
                             }
                             <div style="display:flex;flex-direction:column;height:@(pitchHeight)px;">
-                                <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:4px 0;">
+                                <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:8px 0;">
                                     @foreach (var row in homeRows)
                                     {
                                         <div style="display:flex;justify-content:space-evenly;">
-                                            @foreach (var p in row) { @RenderPlayerCard(p, avatarSize) }
+                                            @foreach (var p in row) { @RenderPlayerCard(p, 30) }
                                         </div>
                                     }
                                 </div>
-                                <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:4px 0;">
+                                <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:8px 0;">
                                     @foreach (var row in awayRows)
                                     {
                                         <div style="display:flex;justify-content:space-evenly;">
-                                            @foreach (var p in row) { @RenderPlayerCard(p, avatarSize) }
+                                            @foreach (var p in row) { @RenderPlayerCard(p, 30) }
                                         </div>
                                     }
                                 </div>
