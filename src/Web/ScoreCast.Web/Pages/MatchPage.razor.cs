@@ -182,7 +182,7 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     {
         var s = size;
         builder.OpenElement(0, "div");
-        builder.AddAttribute(1, "style", $"text-align:center;width:{s + 30}px;");
+        builder.AddAttribute(1, "style", $"text-align:center;");
 
         // Avatar container
         builder.OpenElement(5, "div");
