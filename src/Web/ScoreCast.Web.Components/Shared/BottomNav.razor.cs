@@ -14,7 +14,7 @@ public partial class BottomNav : ComponentBase, IDisposable
         (null, "🏆", "Predict", "/dashboard", ""),
         (Icons.Material.Filled.Leaderboard, null, "Tables", "/points-table", "#42A5F5"),
         (null, "🛡️", "Teams", "/teams", ""),
-        (Icons.Material.Filled.Settings, null, "More", "/settings", "#BDBDBD"),
+        (Icons.Material.Filled.MoreHoriz, null, "More", "/settings", "#BDBDBD"),
     ];
 
     private string _currentPath = "";
