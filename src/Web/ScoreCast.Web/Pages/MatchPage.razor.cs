@@ -156,10 +156,26 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     private static bool IsSecondHalf(string? minute)
     {
         if (minute is null) return false;
-        // Parse base minute: "45+3'" → 45, "67'" → 67
         var num = new string(minute.TakeWhile(char.IsDigit).ToArray());
         return int.TryParse(num, out var m) && m >= 46;
     }
+
+    private static RenderFragment RenderDivider(string text) => builder =>
+    {
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "style", "display:flex;align-items:center;padding:6px 14px;gap:8px;");
+        builder.OpenElement(2, "div");
+        builder.AddAttribute(3, "style", "flex:1;height:1px;background:var(--mud-palette-divider);");
+        builder.CloseElement();
+        builder.OpenElement(4, "span");
+        builder.AddAttribute(5, "style", "font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);white-space:nowrap;");
+        builder.AddContent(6, text);
+        builder.CloseElement();
+        builder.OpenElement(7, "div");
+        builder.AddAttribute(8, "style", "flex:1;height:1px;background:var(--mud-palette-divider);");
+        builder.CloseElement();
+        builder.CloseElement();
+    };
 
     private static string FormatRunningScore(string score, bool isHome)
     {
