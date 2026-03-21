@@ -19,7 +19,6 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     private bool _loaded;
     private CancellationTokenSource? _pollCts;
     private System.Timers.Timer? _clockTimer;
-    private int _elapsedSecs;
     private string? _clockDisplay;
     private string _activeTab = "Events";
     private PointsTableResult? _table;
@@ -66,62 +65,30 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
 
         if (_match.Phase == PulseApi.Phase.HalfTime)
         {
-            if (_match.SecondHalfStartMillis is not null)
-            {
-                var secondHalfStart = DateTimeOffset.FromUnixTimeMilliseconds(_match.SecondHalfStartMillis.Value);
-                _htRemainingSeconds = (int)(secondHalfStart - DateTimeOffset.UtcNow).TotalSeconds;
-                if (_htRemainingSeconds < 0) _htRemainingSeconds = 0;
-                UpdateHtDisplay();
-                _clockTimer = new System.Timers.Timer(1000);
-                _clockTimer.Elapsed += (_, _) =>
-                {
-                    _htRemainingSeconds = Math.Max(0, _htRemainingSeconds - 1);
-                    UpdateHtDisplay();
-                    InvokeAsync(StateHasChanged);
-                };
-                _clockTimer.Start();
-            }
-            else
-            {
-                _clockDisplay = "HT";
-            }
+            _clockDisplay = "HT";
             return;
         }
 
-        // Use Pulse clock.secs as the authoritative game clock — it accounts for
-        // delayed kickoffs, VAR stoppages, etc. We tick locally between polls.
-        _elapsedSecs = _match.ClockSeconds ?? 0;
-
         UpdateClockDisplay();
         _clockTimer = new System.Timers.Timer(1000);
-        _clockTimer.Elapsed += (_, _) =>
-        {
-            _elapsedSecs++;
-            UpdateClockDisplay();
-            InvokeAsync(StateHasChanged);
-        };
+        _clockTimer.Elapsed += (_, _) => { UpdateClockDisplay(); InvokeAsync(StateHasChanged); };
         _clockTimer.Start();
-    }
-
-    private int _htRemainingSeconds;
-
-    private void UpdateHtDisplay()
-    {
-        if (_htRemainingSeconds <= 0)
-            _clockDisplay = "HT — 2nd half imminent";
-        else
-        {
-            var m = _htRemainingSeconds / 60;
-            var s = _htRemainingSeconds % 60;
-            _clockDisplay = $"HT — 2nd half in {m}:{s:D2}";
-        }
     }
 
     private void UpdateClockDisplay()
     {
-        var mins = _elapsedSecs / 60;
-        var secs = _elapsedSecs % 60;
-        _clockDisplay = $"{mins}:{secs:D2}";
+        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        int totalSecs;
+
+        if (_match?.Phase == PulseApi.Phase.SecondHalf && _match.SecondHalfStartMillis is not null)
+            totalSecs = (int)((now - _match.SecondHalfStartMillis.Value) / 1000) + 2700; // +45:00
+        else if (_match?.FirstHalfStartMillis is not null)
+            totalSecs = (int)((now - _match.FirstHalfStartMillis.Value) / 1000);
+        else
+            return;
+
+        if (totalSecs < 0) totalSecs = 0;
+        _clockDisplay = $"{totalSecs / 60}:{totalSecs % 60:D2}";
     }
 
     private void StartPolling()
