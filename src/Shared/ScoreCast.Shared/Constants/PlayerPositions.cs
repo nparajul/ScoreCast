@@ -39,4 +39,14 @@ public static class PlayerPositions
 
     public static string ToShortName(string? position) =>
         position is not null && _shortNames.TryGetValue(position, out var s) ? s : "—";
+
+    public static string ToGroupName(string? position) => position switch
+    {
+        Goalkeeper => "Goalkeeper",
+        CentreBack or LeftBack or RightBack or Defence => "Defender",
+        DefensiveMidfield or CentralMidfield or AttackingMidfield
+            or LeftMidfield or RightMidfield or Midfield => "Midfielder",
+        LeftWinger or RightWinger or CentreForward or Offence => "Attacker",
+        _ => ""
+    };
 }
