@@ -19,6 +19,7 @@ internal sealed class CoachEntityConfiguration : BaseEntityConfiguration<Coach>
         builder.Property(c => c.Nationality).HasColumnName("nationality").HasColumnOrder(order++).HasMaxLength(100);
         builder.Property(c => c.PhotoUrl).HasColumnName("photo_url").HasColumnOrder(order++).HasMaxLength(500);
         builder.Property(c => c.ExternalId).HasColumnName("external_id").HasColumnOrder(order++).HasMaxLength(50);
+        builder.Property(c => c.ValidFrom).HasColumnName("valid_from").HasColumnOrder(order++);
 
         builder.HasIndex(c => c.ExternalId).IsUnique();
     }

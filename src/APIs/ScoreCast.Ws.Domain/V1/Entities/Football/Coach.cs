@@ -9,4 +9,5 @@ public sealed record Coach : ScoreCastEntity
     public string? Nationality { get; set; }
     public string? PhotoUrl { get; set; }
     public string? ExternalId { get; set; }
+    public DateOnly? ValidFrom { get; set; }
 }
