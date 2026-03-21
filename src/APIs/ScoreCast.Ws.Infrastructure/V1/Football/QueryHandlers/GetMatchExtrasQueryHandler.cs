@@ -68,6 +68,7 @@ internal sealed record GetMatchExtrasQueryHandler(
                 && (beforeKickoff == null || m.KickoffTime < beforeKickoff))
             .OrderByDescending(m => m.KickoffTime)
             .Take(5)
+            .OrderBy(m => m.KickoffTime)
             .Select(m => new
             {
                 m.KickoffTime, m.Id, m.HomeTeamId,
