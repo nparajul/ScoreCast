@@ -6,9 +6,8 @@
 <div>
     <MudContainer MaxWidth="MaxWidth.Medium" Style="padding-top:12px;padding-bottom:100px;">
 
-        @* Header: competition + back *@
+        @* Header: competition *@
         <div class="d-flex align-center gap-2 mb-2">
-            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small" OnClick="@(() => Nav.NavigateTo("/scores"))" />
             @if (_match.CompetitionLogo is not null)
             {
                 <img src="@_match.CompetitionLogo" alt="" style="width:20px;height:20px;" />
