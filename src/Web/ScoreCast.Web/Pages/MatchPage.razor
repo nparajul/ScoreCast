@@ -214,8 +214,8 @@
                                     ? GetFormationRows(_match.AwayLineup, _match.AwayFormation, true, mirrorRows: true)
                                     : [];
                             }
-                            <div style="display:flex;flex-direction:column;min-height:520px;">
-                                <div style="height:50%;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:6px 0;">
+                            <div style="display:flex;flex-direction:column;height:560px;">
+                                <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:6px 0;">
                                     @foreach (var row in homeRows)
                                     {
                                         <div style="display:flex;justify-content:space-evenly;">
@@ -223,7 +223,7 @@
                                         </div>
                                     }
                                 </div>
-                                <div style="height:50%;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:6px 0;">
+                                <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:space-around;padding:6px 0;">
                                     @foreach (var row in awayRows)
                                     {
                                         <div style="display:flex;justify-content:space-evenly;">
