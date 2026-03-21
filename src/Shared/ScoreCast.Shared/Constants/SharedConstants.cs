@@ -7,5 +7,5 @@ public static class SharedConstants
     public static readonly string DefaultSchema = "scorecast";
     public const int CurrentGameweek = 0;
     public const string Unknown = "Unknown";
-    public const string RefereeRole = "REFEREE";
+    public const string RefereeRole = "MAIN";
 }
