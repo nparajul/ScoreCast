@@ -19,10 +19,14 @@ public sealed record Match : ScoreCastEntity
     public string? Referee { get; set; }
     public string? Minute { get; set; }
     public int? Leg { get; set; }
+    public long? HomeCoachId { get; set; }
+    public long? AwayCoachId { get; set; }
 
     public Gameweek Gameweek { get; init; } = null!;
     public Team HomeTeam { get; init; } = null!;
     public Team AwayTeam { get; init; } = null!;
+    public Coach? HomeCoach { get; init; }
+    public Coach? AwayCoach { get; init; }
     public MatchGroup? MatchGroup { get; init; }
     public Match? FirstLegMatch { get; init; }
     public ICollection<Prediction> Predictions { get; init; } = [];

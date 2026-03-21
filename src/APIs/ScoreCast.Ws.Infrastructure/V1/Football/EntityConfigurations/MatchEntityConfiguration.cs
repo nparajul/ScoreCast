@@ -29,10 +29,14 @@ internal sealed class MatchEntityConfiguration : BaseEntityConfiguration<Match>
         builder.Property(m => m.Referee).HasColumnName("referee").HasColumnOrder(order++).HasMaxLength(200);
         builder.Property(m => m.Minute).HasColumnName("minute").HasColumnOrder(order++).HasMaxLength(20);
         builder.Property(m => m.Leg).HasColumnName("leg").HasColumnOrder(order++);
+        builder.Property(m => m.HomeCoachId).HasColumnName("home_coach_id").HasColumnOrder(order++);
+        builder.Property(m => m.AwayCoachId).HasColumnName("away_coach_id").HasColumnOrder(order++);
 
         builder.HasOne(m => m.Gameweek).WithMany(g => g.Matches).HasForeignKey(m => m.GameweekId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(m => m.HomeTeam).WithMany().HasForeignKey(m => m.HomeTeamId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(m => m.AwayTeam).WithMany().HasForeignKey(m => m.AwayTeamId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(m => m.HomeCoach).WithMany().HasForeignKey(m => m.HomeCoachId).OnDelete(DeleteBehavior.SetNull);
+        builder.HasOne(m => m.AwayCoach).WithMany().HasForeignKey(m => m.AwayCoachId).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne(m => m.MatchGroup).WithMany(g => g.Matches).HasForeignKey(m => m.MatchGroupId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(m => m.FirstLegMatch).WithMany().HasForeignKey(m => m.FirstLegMatchId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(m => m.ExternalId).IsUnique().HasFilter("external_id IS NOT NULL");
