@@ -87,10 +87,10 @@
 
         @* Tabs *@
         <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:3px;margin:12px 0;">
-            @foreach (var tab in new[] { "Events", "Lineups", "Table" })
+            @foreach (var tab in new[] { "Events", "Lineups", "Stats", "Table" })
             {
                 var isActive = _activeTab == tab;
-                <div @onclick="@(() => _activeTab = tab)"
+                <div @onclick="@(() => { _activeTab = tab; if (tab == "Stats" && _extras is null) _ = LoadExtrasAsync(); })"
                      style="flex:1;text-align:center;padding:8px 0;border-radius:24px;font-size:0.8rem;font-weight:700;cursor:pointer;
                             background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
                             color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
@@ -408,6 +408,182 @@
                 <MudPaper Elevation="1" Style="border-radius:12px;padding:24px;text-align:center;">
                     <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">Lineups not available yet</MudText>
                 </MudPaper>
+            }
+        }
+
+        @* Stats Tab *@
+        @if (_activeTab == "Stats")
+        {
+            @if (_extras is null)
+            {
+                <div style="text-align:center;padding:32px;">
+                    <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                </div>
+            }
+            else
+            {
+                @* Your Prediction *@
+                @if (_extras.MyPrediction is not null)
+                {
+                    <MudPaper Elevation="1" Style="border-radius:12px;padding:14px;margin-bottom:10px;">
+                        <MudText Typo="Typo.subtitle2" Style="font-weight:700;margin-bottom:8px;">🎯 Your Prediction</MudText>
+                        <div class="d-flex align-center justify-center gap-4">
+                            <div style="text-align:center;">
+                                <div style="font-size:28px;font-weight:800;">@_extras.MyPrediction.PredictedHome - @_extras.MyPrediction.PredictedAway</div>
+                                @if (_extras.MyPrediction.Outcome is not null)
+                                {
+                                    <div style="margin-top:4px;">
+                                        <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;
+                                            background:@(PredictionBg(_extras.MyPrediction.Outcome));color:white;">
+                                            @_extras.MyPrediction.Outcome?.Replace("CorrectResultAndGoalDifference","Result + GD")
+                                                .Replace("CorrectResult","Result ✓").Replace("ExactScore","Exact! 🎯")
+                                                .Replace("CorrectGoalDifference","GD ✓").Replace("Incorrect","✗")
+                                            — @_extras.MyPrediction.Points pts
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </MudPaper>
+                }
+
+                @* Community Predictions *@
+                @if (_extras.Community.TotalPredictions > 0)
+                {
+                    <MudPaper Elevation="1" Style="border-radius:12px;padding:14px;margin-bottom:10px;">
+                        <MudText Typo="Typo.subtitle2" Style="font-weight:700;margin-bottom:8px;">👥 Community (@_extras.Community.TotalPredictions predictions)</MudText>
+                        <div class="d-flex justify-space-around text-center" style="margin-bottom:8px;">
+                            <div>
+                                <div style="font-size:20px;font-weight:800;">@(_extras.Community.HomeWinPct)%</div>
+                                <div style="font-size:11px;color:var(--mud-palette-text-secondary);">Home</div>
+                            </div>
+                            <div>
+                                <div style="font-size:20px;font-weight:800;">@(_extras.Community.DrawPct)%</div>
+                                <div style="font-size:11px;color:var(--mud-palette-text-secondary);">Draw</div>
+                            </div>
+                            <div>
+                                <div style="font-size:20px;font-weight:800;">@(_extras.Community.AwayWinPct)%</div>
+                                <div style="font-size:11px;color:var(--mud-palette-text-secondary);">Away</div>
+                            </div>
+                        </div>
+                        @if (_extras.Community.MostPopularScore is not null)
+                        {
+                            <div style="text-align:center;font-size:12px;color:var(--mud-palette-text-secondary);">
+                                Most predicted: <span style="font-weight:700;color:var(--mud-palette-text-primary);">@_extras.Community.MostPopularScore</span>
+                                (@_extras.Community.MostPopularScorePct%)
+                            </div>
+                        }
+                    </MudPaper>
+                }
+
+                @* Head to Head *@
+                @if (_extras.HeadToHead.Count > 0)
+                {
+                    <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;margin-bottom:10px;">
+                        <div style="padding:10px 14px;font-weight:700;font-size:13px;">⚔️ Head to Head</div>
+                        @foreach (var h in _extras.HeadToHead)
+                        {
+                            <div style="display:flex;align-items:center;padding:6px 14px;border-top:1px solid var(--mud-palette-divider);font-size:12px;">
+                                <span style="width:70px;color:var(--mud-palette-text-secondary);font-size:11px;">@h.KickoffTime.ToString("MMM yy")</span>
+                                <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:4px;">
+                                    @if (h.HomeLogo is not null) { <img src="@h.HomeLogo" alt="" style="width:16px;height:16px;" /> }
+                                    <span style="font-weight:600;">@h.HomeTeam</span>
+                                </div>
+                                <span style="min-width:50px;text-align:center;font-weight:800;">@h.HomeScore - @h.AwayScore</span>
+                                <div style="flex:1;display:flex;align-items:center;gap:4px;">
+                                    <span style="font-weight:600;">@h.AwayTeam</span>
+                                    @if (h.AwayLogo is not null) { <img src="@h.AwayLogo" alt="" style="width:16px;height:16px;" /> }
+                                </div>
+                            </div>
+                        }
+                    </MudPaper>
+                }
+
+                @* Form *@
+                @if (_extras.HomeForm.Count > 0 || _extras.AwayForm.Count > 0)
+                {
+                    <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;margin-bottom:10px;">
+                        <div style="padding:10px 14px;font-weight:700;font-size:13px;">📊 Form (Last 5)</div>
+                        <div class="d-flex" style="border-top:1px solid var(--mud-palette-divider);">
+                            <div style="flex:1;padding:8px 10px;">
+                                <div style="font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);margin-bottom:6px;">@_match.HomeTeamShortName</div>
+                                <div class="d-flex gap-1">
+                                    @foreach (var f in _extras.HomeForm)
+                                    {
+                                        <span style="width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+                                            font-size:10px;font-weight:800;color:white;background:@FormColor(f.Result);">@f.Result</span>
+                                    }
+                                </div>
+                            </div>
+                            <div style="width:1px;background:var(--mud-palette-divider);"></div>
+                            <div style="flex:1;padding:8px 10px;">
+                                <div style="font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);margin-bottom:6px;">@_match.AwayTeamShortName</div>
+                                <div class="d-flex gap-1">
+                                    @foreach (var f in _extras.AwayForm)
+                                    {
+                                        <span style="width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+                                            font-size:10px;font-weight:800;color:white;background:@FormColor(f.Result);">@f.Result</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </MudPaper>
+                }
+
+                @* Player Season Stats *@
+                @if (_extras.HomePlayerStats.Count > 0 || _extras.AwayPlayerStats.Count > 0)
+                {
+                    <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;margin-bottom:10px;">
+                        <div style="padding:10px 14px;font-weight:700;font-size:13px;">⭐ Season Stats</div>
+                        <div class="d-flex" style="border-top:1px solid var(--mud-palette-divider);">
+                            <div style="flex:1;padding:8px 10px;">
+                                @foreach (var p in _extras.HomePlayerStats.Take(5))
+                                {
+                                    <div class="d-flex align-center gap-2" style="margin-bottom:4px;">
+                                        @if (p.PhotoUrl is not null)
+                                        {
+                                            <img src="@p.PhotoUrl" alt="" style="width:22px;height:22px;border-radius:50%;object-fit:cover;" />
+                                        }
+                                        else
+                                        {
+                                            <div style="width:22px;height:22px;border-radius:50%;background:#555;"></div>
+                                        }
+                                        <div style="flex:1;min-width:0;">
+                                            <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@p.Name</div>
+                                            <div style="font-size:10px;color:var(--mud-palette-text-secondary);">
+                                                @if (p.Goals > 0) { <span>⚽@p.Goals</span> }
+                                                @if (p.Assists > 0) { <span> 👟@p.Assists</span> }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <div style="width:1px;background:var(--mud-palette-divider);"></div>
+                            <div style="flex:1;padding:8px 10px;">
+                                @foreach (var p in _extras.AwayPlayerStats.Take(5))
+                                {
+                                    <div class="d-flex align-center gap-2" style="margin-bottom:4px;">
+                                        @if (p.PhotoUrl is not null)
+                                        {
+                                            <img src="@p.PhotoUrl" alt="" style="width:22px;height:22px;border-radius:50%;object-fit:cover;" />
+                                        }
+                                        else
+                                        {
+                                            <div style="width:22px;height:22px;border-radius:50%;background:#555;"></div>
+                                        }
+                                        <div style="flex:1;min-width:0;">
+                                            <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@p.Name</div>
+                                            <div style="font-size:10px;color:var(--mud-palette-text-secondary);">
+                                                @if (p.Goals > 0) { <span>⚽@p.Goals</span> }
+                                                @if (p.Assists > 0) { <span> 👟@p.Assists</span> }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </MudPaper>
+                }
             }
         }
 
