@@ -445,7 +445,7 @@
                         @foreach (var h in _extras.HeadToHead)
                         {
                             <div style="display:flex;align-items:center;padding:6px 14px;border-top:1px solid var(--mud-palette-divider);font-size:12px;">
-                                <span style="width:70px;color:var(--mud-palette-text-secondary);font-size:11px;">@h.KickoffTime.ToString("MMM yy")</span>
+                                <span style="width:80px;color:var(--mud-palette-text-secondary);font-size:11px;">@h.KickoffTime.ToString("MMM yyyy")</span>
                                 <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:4px;">
                                     @if (h.HomeLogo is not null) { <img src="@h.HomeLogo" alt="" style="width:16px;height:16px;" /> }
                                     <span style="font-weight:600;">@h.HomeTeam</span>
