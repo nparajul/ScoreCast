@@ -23,9 +23,11 @@ internal sealed class TeamEntityConfiguration : BaseEntityConfiguration<Team>
         builder.Property(t => t.Venue).HasColumnName("venue").HasColumnOrder(order++).HasMaxLength(200);
         builder.Property(t => t.ClubColors).HasColumnName("club_colors").HasColumnOrder(order++).HasMaxLength(100);
         builder.Property(t => t.Website).HasColumnName("website").HasColumnOrder(order++).HasMaxLength(500);
+        builder.Property(t => t.CoachId).HasColumnName("coach_id").HasColumnOrder(order++);
         builder.Property(t => t.IsActive).HasColumnName("is_active").HasColumnOrder(order++).HasDefaultValue(true);
 
         builder.HasOne(t => t.Country).WithMany().HasForeignKey(t => t.CountryId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(t => t.Coach).WithMany().HasForeignKey(t => t.CoachId).OnDelete(DeleteBehavior.SetNull);
         builder.HasIndex(t => t.Name).IsUnique();
         builder.HasIndex(t => t.ExternalId).IsUnique().HasFilter("external_id IS NOT NULL");
     }
