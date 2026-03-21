@@ -6,7 +6,7 @@ internal sealed record FootballDataTeam(
     FootballDataCoach? Coach = null,
     List<FootballDataPlayer>? Squad = null);
 
-internal sealed record FootballDataCoach(int? Id, string? Name);
+internal sealed record FootballDataCoach(int? Id, string? Name, string? DateOfBirth, string? Nationality);
 
 internal sealed record FootballDataPlayer(
     int Id, string Name, string? Position, string? DateOfBirth, string? Nationality);

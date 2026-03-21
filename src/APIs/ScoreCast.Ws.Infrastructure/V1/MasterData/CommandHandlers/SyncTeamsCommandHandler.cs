@@ -223,6 +223,8 @@ internal sealed record SyncTeamsCommandHandler(
         var team = await DbContext.Teams
             .FirstOrDefaultAsync(t => t.ExternalId == externalId, ct);
 
+        var coach = await UpsertCoachAsync(api.Coach, ct);
+
         if (team is null)
         {
             team = new Team
@@ -236,7 +238,7 @@ internal sealed record SyncTeamsCommandHandler(
                 Venue = api.Venue,
                 ClubColors = api.ClubColors,
                 Website = api.Website,
-                Coach = api.Coach?.Name
+                Coach = coach
             };
             DbContext.Teams.Add(team);
         }
@@ -249,10 +251,26 @@ internal sealed record SyncTeamsCommandHandler(
             team.Venue = api.Venue;
             team.ClubColors = api.ClubColors;
             team.Website = api.Website;
-            team.Coach = api.Coach?.Name;
+            team.Coach = coach;
         }
 
         return team;
+    }
+
+    private async Task<Coach?> UpsertCoachAsync(FootballDataCoach? api, CancellationToken ct)
+    {
+        if (api?.Id is null || api.Name is null) return null;
+        var extId = api.Id.Value.ToString();
+        var coach = await DbContext.Coaches.FirstOrDefaultAsync(c => c.ExternalId == extId, ct);
+        if (coach is null)
+        {
+            coach = new Coach { Name = api.Name, ExternalId = extId };
+            DbContext.Coaches.Add(coach);
+        }
+        coach.Name = api.Name;
+        coach.Nationality = api.Nationality;
+        coach.DateOfBirth = DateOnly.TryParse(api.DateOfBirth, out var dob) ? dob : null;
+        return coach;
     }
 
     private int UpsertPlayers(
