@@ -18,7 +18,7 @@ public partial class BottomNav : ComponentBase, IDisposable
     ];
 
     private string _currentPath = "";
-    private bool _drawerOpen;
+    private bool _menuOpen;
 
     protected override void OnInitialized()
     {
@@ -35,18 +35,24 @@ public partial class BottomNav : ComponentBase, IDisposable
     {
         if (tab.IsDrawer)
         {
-            _drawerOpen = !_drawerOpen;
+            _menuOpen = !_menuOpen;
         }
         else
         {
-            _drawerOpen = false;
+            _menuOpen = false;
             Nav.NavigateTo(tab.Url);
         }
     }
 
+    private void Navigate(string url)
+    {
+        _menuOpen = false;
+        Nav.NavigateTo(url);
+    }
+
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        _drawerOpen = false;
+        _menuOpen = false;
         UpdatePath();
         StateHasChanged();
     }
