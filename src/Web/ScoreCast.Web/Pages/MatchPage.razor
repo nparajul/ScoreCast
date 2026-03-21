@@ -207,7 +207,7 @@
                                 <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:22%;height:14px;border:1px solid rgba(255,255,255,0.25);border-bottom:none;"></div>
                             </div>
                             <div style="display:flex;flex-direction:column;min-height:480px;">
-                                <div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly;padding:10px 0;">
+                                <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:8px 0 0 0;">
                                     @if (_match.HomeFormation is not null)
                                     {
                                         @foreach (var row in GetFormationRows(_match.HomeLineup, _match.HomeFormation, false))
@@ -218,7 +218,7 @@
                                         }
                                     }
                                 </div>
-                                <div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly;padding:10px 0;">
+                                <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:0 0 8px 0;">
                                     @if (_match.AwayFormation is not null)
                                     {
                                         @foreach (var row in GetFormationRows(_match.AwayLineup, _match.AwayFormation, true, mirrorRows: true))
