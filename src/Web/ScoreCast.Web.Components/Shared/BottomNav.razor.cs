@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace ScoreCast.Web.Components.Shared;
@@ -8,20 +7,14 @@ namespace ScoreCast.Web.Components.Shared;
 public partial class BottomNav : ComponentBase, IDisposable
 {
     [Inject] private NavigationManager Nav { get; set; } = null!;
-    [Inject] private IJSRuntime Js { get; set; } = null!;
-
-    private ElementReference _scrollContainer;
 
     private static readonly (string? Icon, string? Emoji, string Label, string Url, string Color)[] Tabs =
     [
         (Icons.Material.Filled.SportsSoccer, null, "Scores", "/scores", "#4CAF50"),
         (null, "🏆", "Predict", "/dashboard", ""),
-        (Icons.Material.Filled.HelpOutline, null, "How to Play", "/how-to-play", "#FFB74D"),
         (Icons.Material.Filled.Leaderboard, null, "Tables", "/points-table", "#42A5F5"),
-        (Icons.Material.Filled.AutoAwesome, null, "Insights", "/insights", "#CE93D8"),
         (null, "🛡️", "Teams", "/teams", ""),
-        (Icons.Material.Filled.People, null, "Players", "/player-stats", "#26C6DA"),
-        (Icons.Material.Filled.Settings, null, "Settings", "/settings", "#BDBDBD"),
+        (Icons.Material.Filled.Settings, null, "More", "/settings", "#BDBDBD"),
     ];
 
     private string _currentPath = "";
@@ -36,14 +29,6 @@ public partial class BottomNav : ComponentBase, IDisposable
         _currentPath.StartsWith(url, StringComparison.OrdinalIgnoreCase)
             ? "bottom-nav-tab active"
             : "bottom-nav-tab";
-
-    private async Task OnTabClick(string url, int index)
-    {
-        Nav.NavigateTo(url);
-        await Js.InvokeVoidAsync("document.getElementById", $"bnav-{index}");
-        await Js.InvokeVoidAsync("eval",
-            $"document.getElementById('bnav-{index}')?.scrollIntoView({{behavior:'smooth',inline:'center',block:'nearest'}})");
-    }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
