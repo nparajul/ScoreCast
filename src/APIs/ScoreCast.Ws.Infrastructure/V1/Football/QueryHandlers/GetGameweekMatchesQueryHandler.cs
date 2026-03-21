@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Ws.Application.V1.Football.Queries;
+using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
 using ScoreCast.Ws.Application.V1.Interfaces;
 
@@ -79,6 +80,7 @@ internal sealed record GetGameweekMatchesQueryHandler(
             {
                 var playerTeamId = playerTeamMap.GetValueOrDefault(e.PlayerId);
                 var isHome = playerTeamId == m.HomeTeamId;
+                if (e.EventType == EventTypes.OwnGoal) isHome = !isHome;
                 return new MatchEventDetail(e.Name, e.EventType, e.Value, isHome, e.Minute);
             }).ToList()
         )).ToList();
