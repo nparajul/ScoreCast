@@ -21,6 +21,7 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     private System.Timers.Timer? _clockTimer;
     private string? _clockDisplay;
     private string _activeTab = "Events";
+    private string _lineupTab = "home";
     private PointsTableResult? _table;
     private List<CompetitionZoneResult> _zones = [];
 
