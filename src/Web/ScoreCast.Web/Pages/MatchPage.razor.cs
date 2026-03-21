@@ -153,6 +153,14 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         _ => ""
     };
 
+    private static bool IsSecondHalf(string? minute)
+    {
+        if (minute is null) return false;
+        // Parse base minute: "45+3'" → 45, "67'" → 67
+        var num = new string(minute.TakeWhile(char.IsDigit).ToArray());
+        return int.TryParse(num, out var m) && m >= 46;
+    }
+
     private static string FormatRunningScore(string score, bool isHome)
     {
         var parts = score.Split(" - ");
