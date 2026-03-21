@@ -186,27 +186,23 @@
                 {
                     @if (IsMobile)
                     {
-                        @* Formation headers *@
-                        <div class="d-flex" style="margin-bottom:4px;gap:4px;">
-                            <MudPaper Elevation="1" Style="flex:1;border-radius:8px;padding:6px 10px;text-align:center;">
-                                <div style="font-size:12px;font-weight:700;">@_match.HomeTeamShortName</div>
-                                <div style="font-size:11px;color:var(--mud-palette-text-secondary);font-weight:600;">@_match.HomeFormation</div>
-                            </MudPaper>
-                            <MudPaper Elevation="1" Style="flex:1;border-radius:8px;padding:6px 10px;text-align:center;">
-                                <div style="font-size:12px;font-weight:700;">@_match.AwayTeamShortName</div>
-                                <div style="font-size:11px;color:var(--mud-palette-text-secondary);font-weight:600;">@_match.AwayFormation</div>
-                            </MudPaper>
-                        </div>
-                        @* Mobile: stacked vertically *@
-                        <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;background:linear-gradient(180deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);position:relative;padding:16px 0;">
+                        @* Home formation header *@
+                        <MudPaper Elevation="1" Style="border-radius:8px 8px 0 0;padding:8px 10px;text-align:center;">
+                            <div class="d-flex align-center justify-center gap-2">
+                                <MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Small" Style="color:var(--mud-palette-text-secondary);font-size:16px;" />
+                                @if (_match.HomeTeamLogo is not null) { <img src="@_match.HomeTeamLogo" alt="" style="width:18px;height:18px;" /> }
+                                <span style="font-size:13px;font-weight:700;">@_match.HomeTeamShortName</span>
+                                <span style="font-size:12px;color:var(--mud-palette-text-secondary);font-weight:600;">@_match.HomeFormation</span>
+                            </div>
+                        </MudPaper>
+
+                        @* Pitch *@
+                        <MudPaper Elevation="1" Style="border-radius:0;overflow:hidden;background:linear-gradient(180deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);position:relative;padding:16px 0;">
                             <div style="position:absolute;inset:0;pointer-events:none;">
-                                @* Halfway line + centre circle *@
                                 <div style="position:absolute;top:50%;left:8%;right:8%;height:1px;background:rgba(255,255,255,0.15);"></div>
                                 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border:1px solid rgba(255,255,255,0.15);border-radius:50%;"></div>
-                                @* Home penalty area (top) *@
                                 <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:55%;height:36px;border:1px solid rgba(255,255,255,0.15);border-top:none;"></div>
                                 <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:22%;height:14px;border:1px solid rgba(255,255,255,0.25);border-top:none;"></div>
-                                @* Away penalty area (bottom) *@
                                 <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:55%;height:36px;border:1px solid rgba(255,255,255,0.15);border-bottom:none;"></div>
                                 <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:22%;height:14px;border:1px solid rgba(255,255,255,0.25);border-bottom:none;"></div>
                             </div>
@@ -230,18 +226,34 @@
                                 }
                             }
                         </MudPaper>
+
+                        @* Away formation header *@
+                        <MudPaper Elevation="1" Style="border-radius:0 0 8px 8px;padding:8px 10px;text-align:center;">
+                            <div class="d-flex align-center justify-center gap-2">
+                                <MudIcon Icon="@Icons.Material.Filled.Flight" Size="Size.Small" Style="color:var(--mud-palette-text-secondary);font-size:16px;" />
+                                @if (_match.AwayTeamLogo is not null) { <img src="@_match.AwayTeamLogo" alt="" style="width:18px;height:18px;" /> }
+                                <span style="font-size:13px;font-weight:700;">@_match.AwayTeamShortName</span>
+                                <span style="font-size:12px;color:var(--mud-palette-text-secondary);font-weight:600;">@_match.AwayFormation</span>
+                            </div>
+                        </MudPaper>
                     }
                     else
                     {
-                        @* Formation headers *@
+                        @* Desktop: side-by-side headers *@
                         <div class="d-flex" style="margin-bottom:4px;gap:4px;">
                             <MudPaper Elevation="1" Style="flex:1;border-radius:8px;padding:6px 10px;text-align:center;">
-                                <div style="font-size:12px;font-weight:700;">@_match.HomeTeamShortName</div>
-                                <div style="font-size:11px;color:var(--mud-palette-text-secondary);font-weight:600;">@_match.HomeFormation</div>
+                                <div class="d-flex align-center justify-center gap-2">
+                                    @if (_match.HomeTeamLogo is not null) { <img src="@_match.HomeTeamLogo" alt="" style="width:18px;height:18px;" /> }
+                                    <span style="font-size:12px;font-weight:700;">@_match.HomeTeamShortName</span>
+                                    <span style="font-size:11px;color:var(--mud-palette-text-secondary);font-weight:600;">@_match.HomeFormation</span>
+                                </div>
                             </MudPaper>
                             <MudPaper Elevation="1" Style="flex:1;border-radius:8px;padding:6px 10px;text-align:center;">
-                                <div style="font-size:12px;font-weight:700;">@_match.AwayTeamShortName</div>
-                                <div style="font-size:11px;color:var(--mud-palette-text-secondary);font-weight:600;">@_match.AwayFormation</div>
+                                <div class="d-flex align-center justify-center gap-2">
+                                    @if (_match.AwayTeamLogo is not null) { <img src="@_match.AwayTeamLogo" alt="" style="width:18px;height:18px;" /> }
+                                    <span style="font-size:12px;font-weight:700;">@_match.AwayTeamShortName</span>
+                                    <span style="font-size:11px;color:var(--mud-palette-text-secondary);font-weight:600;">@_match.AwayFormation</span>
+                                </div>
                             </MudPaper>
                         </div>
                         @* Desktop: side-by-side, teams facing each other *@
