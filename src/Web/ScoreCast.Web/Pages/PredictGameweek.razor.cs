@@ -1,3 +1,4 @@
+using Microsoft.JSInterop;
 using ScoreCast.Models.V1.Requests.Prediction;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
@@ -19,6 +20,7 @@ public partial class PredictGameweek
     [Inject] private NavigationManager Nav { get; set; } = null!;
     [Inject] private IClientTimeProvider ClientTime { get; set; } = null!;
     [Inject] private IDialogService Dialog { get; set; } = null!;
+    [Inject] private IJSRuntime Js { get; set; } = null!;
 
     [Parameter] public long SeasonId { get; set; }
 
@@ -31,6 +33,7 @@ public partial class PredictGameweek
     private List<RiskPlayViewModel> _riskPlays = [];
     private Dictionary<long, MatchPredictionSummary> _communityData = [];
     private bool _showConfidence;
+    private MyPredictionStatsResult? _stats;
 
     private void ToggleRule(string label)
     {
@@ -72,6 +75,10 @@ public partial class PredictGameweek
                 _scoringRules = rulesResponse.Data;
 
             await LoadGameweek(SharedConstants.CurrentGameweek);
+
+            var statsResp = await Api.GetMyPredictionStatsAsync(CancellationToken.None);
+            if (statsResp is { Success: true, Data: not null })
+                _stats = statsResp.Data;
         });
         StateHasChanged();
     }
@@ -248,5 +255,24 @@ public partial class PredictGameweek
         if (majorityPct >= 60) return $"👍 {majorityPct:0}% agree with your result";
         if (majorityPct <= 20) return $"🔥 Bold call — only {majorityPct:0}% back this result";
         return $"📊 {majorityPct:0}% of predictors agree";
+    }
+
+    private async Task SharePredictions()
+    {
+        if (_gameweek is null) return;
+        var lines = _matches.Where(m => m.HasPrediction)
+            .Select(m => $"{m.HomeTeamShortName} {m.PredictedHomeScore}-{m.PredictedAwayScore} {m.AwayTeamShortName}")
+            .ToList();
+        var text = $"🔮 My GW{_gameweek.GameweekNumber} predictions on ScoreCast:\n\n{string.Join("\n", lines)}\n\nThink you can beat me? 👉 scorecast.uk";
+
+        try
+        {
+            await Js.InvokeVoidAsync("navigator.share", new { text });
+        }
+        catch
+        {
+            await Js.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            Alert.Add("Predictions copied to clipboard!", Severity.Success);
+        }
     }
 }

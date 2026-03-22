@@ -31,6 +31,38 @@
             </div>
         </MudPaper>
 
+        @* ── Gameweek Recap ── *@
+        @if (_data.LastGameweekRecap is not null)
+        {
+            var recap = _data.LastGameweekRecap;
+            <MudPaper Class="mb-3 pa-3" Elevation="1" Style="border-radius:10px;">
+                <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mb-2">📋 GW@(recap.GameweekNumber) Recap</MudText>
+                <div class="d-flex flex-wrap gap-2">
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background:rgba(255,107,53,0.15);color:#FF6B35;font-weight:600;">
+                        👑 @recap.BestPredictor — @recap.BestPredictorPoints pts
+                    </MudChip>
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background:rgba(76,175,80,0.15);color:#4CAF50;font-weight:600;">
+                        🎯 @recap.TotalExactScores exact scores
+                    </MudChip>
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background:rgba(33,150,243,0.15);color:#2196F3;font-weight:600;">
+                        👥 @recap.TotalPredictors predictors
+                    </MudChip>
+                    @if (recap.BiggestUpset is not null)
+                    {
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background:rgba(244,67,54,0.15);color:#f44336;font-weight:600;">
+                            😱 Upset: @recap.BiggestUpset
+                        </MudChip>
+                    }
+                    @if (recap.BoldestCorrectPrediction is not null)
+                    {
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background:rgba(156,39,176,0.15);color:#9C27B0;font-weight:600;">
+                            🔮 Bold call: @recap.BoldestCorrectPrediction
+                        </MudChip>
+                    }
+                </div>
+            </MudPaper>
+        }
+
         @* ── Community Predictions ── *@
         @if (_data.UpcomingPredictions.Count > 0)
         {

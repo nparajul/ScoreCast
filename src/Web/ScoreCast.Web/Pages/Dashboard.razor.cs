@@ -2,6 +2,7 @@ using Microsoft.JSInterop;
 using ScoreCast.Models.V1.Requests.Prediction;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Models.V1.Responses.Prediction;
+using ScoreCast.Shared.Types;
 using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
@@ -20,6 +21,8 @@ public partial class Dashboard
     private List<PredictionLeagueResult> _leagues = [];
     private List<CompetitionResult> _competitions = [];
     private List<UserSeasonResult> _userSeasons = [];
+    private MyPredictionStatsResult? _stats;
+    private GlobalDashboardResult? _globalData;
     private bool _initialized;
     private bool _showCreateDialog;
     private bool _showJoinDialog;
@@ -36,8 +39,9 @@ public partial class Dashboard
             var leaguesTask = Api.GetMyLeaguesAsync(CancellationToken.None);
             var competitionsTask = Api.GetCompetitionsAsync(CancellationToken.None);
             var userSeasonsTask = Api.GetUserSeasonsAsync(CancellationToken.None);
+            var statsTask = Api.GetMyPredictionStatsAsync(CancellationToken.None);
 
-            await Task.WhenAll(leaguesTask, competitionsTask, userSeasonsTask);
+            await Task.WhenAll(leaguesTask, competitionsTask, userSeasonsTask, statsTask);
 
             if (leaguesTask.Result is { Success: true, Data: not null })
                 _leagues = leaguesTask.Result.Data;
@@ -45,6 +49,11 @@ public partial class Dashboard
                 _competitions = competitionsTask.Result.Data;
             if (userSeasonsTask.Result is { Success: true, Data: not null })
                 _userSeasons = userSeasonsTask.Result.Data;
+            if (statsTask.Result is { Success: true, Data: not null })
+                _stats = statsTask.Result.Data;
+
+            // Load global data for deadline urgency (non-blocking)
+            _ = LoadGlobalDataAsync();
 
             _initialized = true;
         });
@@ -150,4 +159,31 @@ public partial class Dashboard
     }
 
     private void NavigateToLeague(long leagueId) => Nav.NavigateTo($"/dashboard/{leagueId}");
+
+    private async Task LoadGlobalDataAsync()
+    {
+        try
+        {
+            var resp = await Api.GetGlobalDashboardAsync(CancellationToken.None);
+            if (resp is { Success: true, Data: not null })
+            {
+                _globalData = resp.Data;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch { /* non-critical */ }
+    }
+
+    private string? DeadlineUrgency
+    {
+        get
+        {
+            if (_globalData?.Countdown is null) return null;
+            var diff = _globalData.Countdown.Deadline.ToUniversalTime() - ScoreCastDateTime.Now.Value;
+            if (diff.TotalHours <= 0) return null;
+            if (diff.TotalHours <= 2) return $"⏰ Predictions lock in {(int)diff.TotalMinutes} minutes! {_globalData.Countdown.TotalUsers} others already in.";
+            if (diff.TotalHours <= 24) return $"⏰ GW{_globalData.Countdown.GameweekNumber} locks in {(int)diff.TotalHours}h — {_globalData.Countdown.TotalPredictions} predictions so far!";
+            return null;
+        }
+    }
 }
