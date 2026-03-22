@@ -24,10 +24,12 @@ internal sealed record GetUserSeasonsQueryHandler(
             .AsNoTracking()
             .Where(us => us.UserId == user.Id)
             .Include(us => us.Season).ThenInclude(s => s.Competition)
+            .OrderBy(us => us.DisplayOrder)
             .Select(us => new UserSeasonResult(
                 us.Id, us.SeasonId, us.Season.Name,
                 us.Season.CompetitionId, us.Season.Competition.Name,
-                us.Season.Competition.Code, us.Season.Competition.LogoUrl))
+                us.Season.Competition.Code, us.Season.Competition.LogoUrl,
+                us.DisplayOrder))
             .ToListAsync(ct);
 
         return ScoreCastResponse<List<UserSeasonResult>>.Ok(results);
