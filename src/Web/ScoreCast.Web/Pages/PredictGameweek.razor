@@ -273,18 +273,15 @@
                                 }
                                 <span style="font-weight:600;font-size:@(IsMobile ? "12" : "15")px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;@(match.IsPostponed ? "text-decoration:line-through;" : "")">@match.AwayTeamShortName</span>
                             </div>
+                            @if (showPoints && match.Status == nameof(MatchStatus.Finished) && match.HasPrediction && match.Outcome is not null)
+                            {
+                                var pts = _scoringRules.FirstOrDefault(r => r.Outcome == match.Outcome)?.Points ?? 0;
+                                <span style="flex-shrink:0;font-size:13px;font-weight:800;color:@(pts > 0 ? "#4CAF50" : "#f44336");min-width:30px;text-align:right;">+@pts</span>
+                            }
                         </div>
                         <div style="text-align:center;font-size:11px;font-weight:600;color:var(--mud-palette-text-secondary);margin-top:2px;">
                             @if (match.IsPostponed) { <span style="color:#f44336;">Postponed</span> }
-                            else if (match.Status == nameof(MatchStatus.Finished))
-                            {
-                                <text>FT @match.HomeScore-@match.AwayScore</text>
-                                @if (showPoints && match.HasPrediction && match.Outcome is not null)
-                                {
-                                    var pts = _scoringRules.FirstOrDefault(r => r.Outcome == match.Outcome)?.Points ?? 0;
-                                    <span style="color:@(pts > 0 ? "#4CAF50" : "var(--mud-palette-text-secondary)");margin-left:4px;font-weight:700;">+@pts</span>
-                                }
-                            }
+                            else if (match.Status == nameof(MatchStatus.Finished)) { <text>FT @match.HomeScore-@match.AwayScore</text> }
                             else if (match.KickoffTime.HasValue) { @ClientTime.ToLocal(match.KickoffTime.Value).ToString("dd MMM HH:mm") }
                         </div>
                         @{ var confidence = GetConfidenceText(match); }
