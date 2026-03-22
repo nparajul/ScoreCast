@@ -37,8 +37,11 @@
         @if (_data.LastGameweekRecap is not null)
         {
             var recap = _data.LastGameweekRecap;
-            <MudPaper Class="mb-3 pa-3" Elevation="1" Style="border-radius:10px;">
-                <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mb-2">📋 GW@(recap.GameweekNumber) Recap</MudText>
+            <MudPaper Class="mb-3 pa-3" Elevation="1" Style="border-radius:10px;cursor:pointer;" @onclick="@(() => Nav.NavigateTo("/global/recap"))">
+                <div class="d-flex align-center justify-space-between mb-2">
+                    <MudText Typo="Typo.subtitle2" Style="font-weight:700;">📋 GW@(recap.GameweekNumber) Recap</MudText>
+                    <MudText Typo="Typo.caption" Style="color:var(--mud-palette-primary);font-weight:600;">Details →</MudText>
+                </div>
                 <div class="d-flex flex-wrap gap-2">
                     <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background:rgba(255,107,53,0.15);color:#FF6B35;font-weight:600;">
                         👑 @recap.BestPredictor — @recap.BestPredictorPoints pts
@@ -68,9 +71,12 @@
         @* ── Community Predictions ── *@
         @if (_data.UpcomingPredictions.Count > 0)
         {
-            <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mb-2">
-                🔮 Community Predictions
-            </MudText>
+            <div class="d-flex align-center justify-space-between mb-2" style="cursor:pointer;" @onclick="@(() => Nav.NavigateTo("/global/predictions"))">
+                <MudText Typo="Typo.subtitle2" Style="font-weight:700;">
+                    🔮 Community Predictions
+                </MudText>
+                <MudText Typo="Typo.caption" Style="color:var(--mud-palette-primary);font-weight:600;">See all →</MudText>
+            </div>
 
             @foreach (var match in _data.UpcomingPredictions)
             {
@@ -140,9 +146,12 @@
         }
 
         @* ── Community Stats ── *@
-        <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mt-4 mb-2">
-            📊 Season Stats
-        </MudText>
+        <div class="d-flex align-center justify-space-between mt-4 mb-2" style="cursor:pointer;" @onclick="@(() => Nav.NavigateTo("/global/stats"))">
+            <MudText Typo="Typo.subtitle2" Style="font-weight:700;">
+                📊 Season Stats
+            </MudText>
+            <MudText Typo="Typo.caption" Style="color:var(--mud-palette-primary);font-weight:600;">Details →</MudText>
+        </div>
 
         <div class="d-flex gap-2 mb-2">
             <MudPaper Class="pa-3 flex-1" Elevation="1" Style="border-radius:10px;text-align:center;">
