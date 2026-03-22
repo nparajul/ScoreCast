@@ -56,6 +56,7 @@ public partial class Insights : ScoreCastComponentBase
                 if (hasRelevant) compsToLoad.Add(comp);
             }
 
+            var now = ScoreCastDateTime.Now.Value;
             var tasks = compsToLoad.Select(async comp =>
             {
                 var seasons = await Api.GetSeasonsAsync(comp.Code, CancellationToken.None);
@@ -65,13 +66,18 @@ public partial class Insights : ScoreCastComponentBase
                 var gw = await Api.GetGameweekMatchesAsync(current.Id, 0, CancellationToken.None);
                 if (gw is not { Success: true, Data: not null }) return null;
 
+                List<MatchInsightResult>? Filter(List<MatchInsightResult>? list) =>
+                    list?.Where(m => m.KickoffTime.HasValue && m.KickoffTime.Value > now).ToList() is { Count: > 0 } f ? f : null;
+
                 var resp = await Api.GetMatchInsightsAsync(current.Id, gw.Data.CurrentGameweek, CancellationToken.None);
-                if (resp is { Success: true, Data: not null } && resp.Data.Count > 0)
-                    return new CompetitionInsights(comp.Name, comp.LogoUrl, comp.CountryFlagUrl, resp.Data);
+                var filtered = resp is { Success: true, Data: not null } ? Filter(resp.Data) : null;
+                if (filtered is not null)
+                    return new CompetitionInsights(comp.Name, comp.LogoUrl, comp.CountryFlagUrl, filtered);
 
                 var next = await Api.GetMatchInsightsAsync(current.Id, gw.Data.CurrentGameweek + 1, CancellationToken.None);
-                return next is { Success: true, Data: not null } && next.Data.Count > 0
-                    ? new CompetitionInsights(comp.Name, comp.LogoUrl, comp.CountryFlagUrl, next.Data)
+                var nextFiltered = next is { Success: true, Data: not null } ? Filter(next.Data) : null;
+                return nextFiltered is not null
+                    ? new CompetitionInsights(comp.Name, comp.LogoUrl, comp.CountryFlagUrl, nextFiltered)
                     : null;
             });
 
