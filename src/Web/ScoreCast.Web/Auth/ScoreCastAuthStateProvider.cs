@@ -62,6 +62,17 @@ public sealed class ScoreCastAuthStateProvider : AuthenticationStateProvider, IA
 
     public async Task LogoutAsync() => await _js.InvokeVoidAsync("firebaseAuth.signOut");
 
+    public bool EmailVerified => _firebaseUser?.EmailVerified ?? false;
+
+    public async Task<AuthResult> ResendVerificationAsync()
+    {
+        var result = await _js.InvokeAsync<FirebaseAuthResult>("firebaseAuth.resendVerification");
+        return result.Success ? new AuthResult(true) : new AuthResult(false, result.Error);
+    }
+
+    public async Task<bool> ReloadUserAsync() =>
+        await _js.InvokeAsync<bool>("firebaseAuth.reloadUser");
+
     public async Task<string?> GetIdTokenAsync() =>
         await _js.InvokeAsync<string?>("firebaseAuth.getIdToken");
 
@@ -70,7 +81,8 @@ public sealed class ScoreCastAuthStateProvider : AuthenticationStateProvider, IA
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Uid),
-            new("sub", user.Uid)
+            new("sub", user.Uid),
+            new("email_verified", user.EmailVerified.ToString().ToLowerInvariant())
         };
 
         if (user.Email is not null)
@@ -88,6 +100,6 @@ public sealed class ScoreCastAuthStateProvider : AuthenticationStateProvider, IA
     }
 }
 
-public sealed record FirebaseUser(string Uid, string? Email, string? DisplayName);
-public sealed record FirebaseAuthResult(bool Success, string? Uid = null, string? Error = null);
+public sealed record FirebaseUser(string Uid, string? Email, string? DisplayName, bool EmailVerified = false);
+public sealed record FirebaseAuthResult(bool Success, string? Uid = null, string? Error = null, bool EmailVerified = false);
 public sealed record AuthResult(bool Success, string? Error = null);

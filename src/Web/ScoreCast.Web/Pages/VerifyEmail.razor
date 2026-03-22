@@ -1,0 +1,40 @@
+@page "/verify-email"
+
+<PageTitle>Verify Email — ScoreCast</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8 mt-md-16">
+    <MudPaper Elevation="3" Class="pa-6 pa-md-8 rounded-lg">
+        <div class="d-flex flex-column align-center mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.MarkEmailRead" Size="Size.Large"
+                     Color="Color.Primary" Class="mb-3" Style="font-size:3.5rem;" />
+            <MudText Typo="Typo.h5" Style="font-weight:700;">Check your email</MudText>
+            <MudText Typo="Typo.body2" Style="opacity:0.6;" Class="mt-2 text-center">
+                We sent a verification link to your email address.<br />
+                Click the link to activate your account.
+            </MudText>
+        </div>
+
+        @if (_message is not null)
+        {
+            <MudAlert Severity="@_severity" Dense="true" Class="mb-4" Variant="Variant.Filled">@_message</MudAlert>
+        }
+
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                   Size="Size.Large" Class="mb-3" OnClick="CheckVerification">
+            I've verified — continue
+        </MudButton>
+
+        <MudButton Variant="Variant.Outlined" Color="Color.Default" FullWidth="true"
+                   Size="Size.Large" Class="mb-4" OnClick="ResendEmail" Disabled="_cooldown > 0">
+            @(_cooldown > 0 ? $"Resend in {_cooldown}s" : "Resend verification email")
+        </MudButton>
+
+        <MudDivider Class="my-4" />
+
+        <div class="d-flex justify-center">
+            <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="SignOut">
+                Sign out
+            </MudButton>
+        </div>
+    </MudPaper>
+</MudContainer>
