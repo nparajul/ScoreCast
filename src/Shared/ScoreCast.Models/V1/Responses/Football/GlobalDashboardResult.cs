@@ -4,7 +4,8 @@ public record GlobalDashboardResult(
     GameweekCountdown Countdown,
     List<MatchPredictionSummary> UpcomingPredictions,
     List<GlobalLeaderboardEntry> TopPredictors,
-    CommunityStats Community);
+    CommunityStats Community,
+    GameweekRecap? LastGameweekRecap = null);
 
 public record GameweekCountdown(
     int GameweekNumber,
@@ -42,3 +43,12 @@ public record CommunityStats(
     double HardestMatchAccuracy,
     string MostPredictableTeam,
     double MostPredictableTeamPct);
+
+public record GameweekRecap(
+    int GameweekNumber,
+    string BestPredictor,
+    int BestPredictorPoints,
+    int TotalExactScores,
+    int TotalPredictors,
+    string? BiggestUpset,
+    string? BoldestCorrectPrediction);

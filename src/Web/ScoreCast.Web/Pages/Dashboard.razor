@@ -11,6 +11,66 @@
         </MudButton>
     </div>
 
+    @if (DeadlineUrgency is not null)
+    {
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Dense="true" Class="mb-3"
+                  Style="border-radius:10px;font-weight:600;">
+            @DeadlineUrgency
+        </MudAlert>
+    }
+
+    @if (_stats is not null && _stats.TotalPredictions > 0)
+    {
+        @* Streak Banner *@
+        @if (_stats.CurrentStreak >= 2)
+        {
+            <MudPaper Class="pa-3 mb-3" Elevation="1" Style="border-radius:10px;background:linear-gradient(135deg,#ff6b35,#ff8f00);color:white;text-align:center;">
+                <MudText Typo="Typo.h6" Style="font-weight:800;color:white;">🔥 @_stats.CurrentStreak-match streak!</MudText>
+                <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.8);">
+                    @(_stats.StreakType == "exact" ? "Including exact scores!" : "Keep it going!")
+                    Best ever: @_stats.BestStreak
+                </MudText>
+            </MudPaper>
+        }
+
+        @* You vs Community *@
+        @if (_stats.LastGameweek is not null)
+        {
+            var gw = _stats.LastGameweek;
+            <MudPaper Class="pa-3 mb-3" Elevation="1" Style="border-radius:10px;">
+                <MudText Typo="Typo.subtitle2" Style="font-weight:700;">📊 GW@(gw.GameweekNumber) Recap</MudText>
+                <div class="d-flex justify-space-around text-center mt-2">
+                    <div>
+                        <MudText Typo="Typo.h5" Style="font-weight:800;color:#FF6B35;">@gw.UserCorrect/@gw.UserTotal</MudText>
+                        <MudText Typo="Typo.caption" Style="opacity:0.6;">Your results</MudText>
+                    </div>
+                    <div>
+                        <MudText Typo="Typo.h5" Style="font-weight:800;">@gw.CommunityAvgCorrect/@gw.CommunityAvgTotal</MudText>
+                        <MudText Typo="Typo.caption" Style="opacity:0.6;">Community avg</MudText>
+                    </div>
+                    <div>
+                        <MudText Typo="Typo.h5" Style="@($"font-weight:800;color:{(gw.BeatPct >= 50 ? "#4CAF50" : "#f44336")}")">@(gw.BeatPct)%</MudText>
+                        <MudText Typo="Typo.caption" Style="opacity:0.6;">Beaten</MudText>
+                    </div>
+                </div>
+            </MudPaper>
+        }
+
+        @* Achievements *@
+        @if (_stats.Achievements.Count > 0)
+        {
+            <div class="d-flex flex-wrap gap-1 mb-3">
+                @foreach (var badge in _stats.Achievements)
+                {
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled"
+                             Style="background:rgba(255,107,53,0.15);color:#FF6B35;font-weight:600;font-size:0.7rem;">
+                        @badge
+                    </MudChip>
+                }
+            </div>
+        }
+    }
+
     @if (_userSeasons.Count > 0)
     {
         <MudText Typo="Typo.h5" Style="font-weight:700;text-align:center;" Class="mb-3">Predictions</MudText>
