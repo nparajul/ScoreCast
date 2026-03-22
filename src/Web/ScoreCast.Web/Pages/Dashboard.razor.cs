@@ -56,8 +56,6 @@ public partial class Dashboard
             _ = LoadGlobalDataAsync();
 
             _initialized = true;
-
-            await ApplySavedOrder();
         });
         StateHasChanged();
     }
@@ -163,7 +161,6 @@ public partial class Dashboard
     private void NavigateToLeague(long leagueId) => Nav.NavigateTo($"/dashboard/{leagueId}");
 
     private int _dragIndex = -1;
-    private const string OrderKey = "scorecast_season_order";
 
     private void OnDragEnter(int targetIndex)
     {
@@ -177,22 +174,9 @@ public partial class Dashboard
     private async Task OnDragEnd()
     {
         _dragIndex = -1;
-        var order = string.Join(",", _userSeasons.Select(s => s.SeasonId));
-        await Js.InvokeVoidAsync("localStorage.setItem", OrderKey, order);
-    }
-
-    private async Task ApplySavedOrder()
-    {
-        try
-        {
-            var saved = await Js.InvokeAsync<string?>("localStorage.getItem", OrderKey);
-            if (string.IsNullOrEmpty(saved)) return;
-            var ids = saved.Split(',').Select(long.Parse).ToList();
-            _userSeasons = _userSeasons
-                .OrderBy(s => { var i = ids.IndexOf(s.SeasonId); return i < 0 ? int.MaxValue : i; })
-                .ToList();
-        }
-        catch { /* ignore parse errors */ }
+        await Api.ReorderUserSeasonsAsync(
+            new ReorderUserSeasonsRequest { SeasonIds = _userSeasons.Select(s => s.SeasonId).ToList() },
+            CancellationToken.None);
     }
 
     private async Task LoadGlobalDataAsync()
