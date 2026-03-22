@@ -7,7 +7,7 @@ using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
 
-public partial class Dashboard
+public partial class Dashboard : IDisposable
 {
     private const string _appName = "DASHBOARD";
     [Inject] private IScoreCastApiClient Api { get; set; } = default!;
@@ -58,6 +58,8 @@ public partial class Dashboard
             _initialized = true;
         });
         StateHasChanged();
+        _dotnetRef = DotNetObjectReference.Create(this);
+        await Js.InvokeVoidAsync("touchDrag.init", "tile-container", _dotnetRef);
     }
 
     private async Task CreateLeagueAsync()
@@ -161,6 +163,18 @@ public partial class Dashboard
     private void NavigateToLeague(long leagueId) => Nav.NavigateTo($"/dashboard/{leagueId}");
 
     private int _dragIndex = -1;
+    private DotNetObjectReference<Dashboard>? _dotnetRef;
+
+    [JSInvokable]
+    public void JsDragEnter(int targetIndex) => OnDragEnter(targetIndex);
+
+    [JSInvokable]
+    public async Task JsDragEnd()
+    {
+        _dragIndex = -1;
+        await SaveOrder();
+        StateHasChanged();
+    }
 
     private async Task MoveItem(int from, int to)
     {
@@ -191,6 +205,8 @@ public partial class Dashboard
             new ReorderUserSeasonsRequest { SeasonIds = _userSeasons.Select(s => s.SeasonId).ToList() },
             CancellationToken.None);
     }
+
+    public void Dispose() => _dotnetRef?.Dispose();
 
     private async Task LoadGlobalDataAsync()
     {
