@@ -29,6 +29,8 @@ public partial class PredictGameweek
     private readonly HashSet<string> _expandedRules = [];
     private bool _showRiskPlays;
     private List<RiskPlayViewModel> _riskPlays = [];
+    private Dictionary<long, MatchPredictionSummary> _communityData = [];
+    private bool _showConfidence;
 
     private void ToggleRule(string label)
     {
@@ -204,9 +206,47 @@ public partial class PredictGameweek
 
                 Alert.Add(response.Message ?? "Predictions saved!",
                     response.Message?.Contains("skipped") == true ? Severity.Warning : Severity.Success);
+
+                // Load community confidence data
+                _ = LoadConfidenceAsync();
             }
             else
                 Alert.Add(response?.Message ?? "Failed to save predictions", Severity.Error);
         });
+    }
+
+    private async Task LoadConfidenceAsync()
+    {
+        var resp = await Api.GetGlobalDashboardAsync(CancellationToken.None);
+        if (resp is { Success: true, Data: not null })
+        {
+            _communityData = resp.Data.UpcomingPredictions.ToDictionary(p => p.MatchId);
+            _showConfidence = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private string? GetConfidenceText(PredictionMatchViewModel match)
+    {
+        if (!_showConfidence || !match.HasPrediction) return null;
+        if (!_communityData.TryGetValue(match.MatchId, out var community) || community.PredictionCount < 2) return null;
+
+        var predictedScore = $"{match.PredictedHomeScore}-{match.PredictedAwayScore}";
+        var isPopular = predictedScore == community.MostPredictedScore;
+
+        // Determine if user's result matches majority
+        var userResult = match.PredictedHomeScore > match.PredictedAwayScore ? "H"
+            : match.PredictedHomeScore < match.PredictedAwayScore ? "A" : "D";
+        var majorityPct = userResult switch
+        {
+            "H" => community.HomePct,
+            "A" => community.AwayPct,
+            _ => community.DrawPct
+        };
+
+        if (isPopular) return $"🤝 {community.MostPredictedPct:0}% picked the same score";
+        if (majorityPct >= 60) return $"👍 {majorityPct:0}% agree with your result";
+        if (majorityPct <= 20) return $"🔥 Bold call — only {majorityPct:0}% back this result";
+        return $"📊 {majorityPct:0}% of predictors agree";
     }
 }
