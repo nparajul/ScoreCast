@@ -307,7 +307,7 @@ internal sealed record SyncPulseEventsCommandHandler(
                     displayName.Contains(p.Name, StringComparison.OrdinalIgnoreCase));
 
                 if (match is not { } m) continue;
-                if (!mappedEntityIds.Add(m.PlayerId)) { pulsePlayerMap[key] = m.PlayerId; break; }
+                if (!mappedEntityIds.Add(m.PlayerId)) { pulsePlayerMap[key] = m.PlayerId; continue; }
 
                 pulsePlayerMap[key] = m.PlayerId;
                 DbContext.ExternalMappings.Add(new ExternalMapping
