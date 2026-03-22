@@ -131,20 +131,20 @@
 
 .bottom-nav {
     position: fixed;
-    bottom: 16px;
-    left: 12px;
-    right: 12px;
+    bottom: 12px;
+    left: 10px;
+    right: 10px;
     z-index: 1100;
     display: flex;
     justify-content: space-around;
-    background: rgba(10, 10, 10, 0.75);
+    background: rgba(15, 15, 15, 0.82);
     backdrop-filter: blur(40px) saturate(200%);
     -webkit-backdrop-filter: blur(40px) saturate(200%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 32px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.04);
-    padding: 6px 4px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 28px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    padding: 4px;
 }
 
 .bottom-nav-tab {
@@ -153,10 +153,10 @@
     align-items: center;
     justify-content: center;
     flex: 1;
-    padding: 10px 4px;
+    padding: 8px 4px 6px;
     border: none;
     background: transparent;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.45);
     font-family: inherit;
     cursor: pointer;
     white-space: nowrap;
@@ -166,6 +166,7 @@
     transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1),
                 color 0.2s ease,
                 background 0.2s ease;
+    position: relative;
 }
 
 .bottom-nav-tab:active {
@@ -175,31 +176,33 @@
 
 .bottom-nav-tab.active {
     color: #fff;
+    background: rgba(255, 255, 255, 0.12);
 }
 
 .bottom-nav-icon-wrap {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 26px;
-    font-size: 1.35rem;
+    height: 24px;
+    font-size: 1.3rem;
 }
 
 .bottom-nav-icon-wrap .mud-icon-root {
-    font-size: 1.4rem !important;
+    font-size: 1.3rem !important;
 }
 
 .bottom-nav-tab .bottom-nav-emoji {
-    font-size: 1.35rem;
+    font-size: 1.25rem;
     line-height: 1;
 }
 
 .bottom-nav-label {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     line-height: 1.2;
-    margin-top: 4px;
-    letter-spacing: 0.03em;
-    font-weight: 700;
+    margin-top: 3px;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+    text-transform: uppercase;
 }
 
 /* ── Side Drawer (Facebook-style) ── */
