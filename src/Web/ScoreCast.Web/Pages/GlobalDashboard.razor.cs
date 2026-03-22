@@ -11,6 +11,7 @@ public partial class GlobalDashboard : IDisposable
     private GlobalDashboardResult? _data;
     private bool _loaded;
     private string _countdownText = "";
+    private bool _allLocked;
     private Timer? _timer;
 
     protected override async Task OnInitializedAsync()
@@ -27,9 +28,16 @@ public partial class GlobalDashboard : IDisposable
     {
         if (_data is null) return;
         var diff = _data.Countdown.Deadline.ToUniversalTime() - ScoreCastDateTime.Now.Value;
-        _countdownText = diff.TotalSeconds <= 0
-            ? "Predictions locked!"
-            : $"{(int)diff.TotalDays}d {diff.Hours}h {diff.Minutes}m {diff.Seconds}s";
+        if (diff.TotalSeconds <= 0)
+        {
+            _countdownText = "Gameweek in progress";
+            _allLocked = true;
+        }
+        else
+        {
+            _countdownText = $"{(int)diff.TotalDays}d {diff.Hours}h {diff.Minutes}m {diff.Seconds}s";
+            _allLocked = false;
+        }
     }
 
     private static string ShortName(string name) =>
