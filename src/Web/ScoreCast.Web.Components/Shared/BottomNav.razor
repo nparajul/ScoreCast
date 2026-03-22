@@ -25,6 +25,10 @@
         {
             <div class="more-menu-overlay" @onclick="@(() => { _menuOpen = false; })"></div>
             <div class="more-menu">
+                <button class="more-menu-item" @onclick='() => Navigate("/teams")'>
+                    <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Small" />
+                    <span>Teams</span>
+                </button>
                 <button class="more-menu-item" @onclick='() => Navigate("/settings")'>
                     <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
                     <span>Profile</span>
