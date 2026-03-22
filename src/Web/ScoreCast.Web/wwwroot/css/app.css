@@ -2,6 +2,35 @@
     flex: 1;
 }
 
+/* Desktop nav links */
+.desktop-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+}
+
+.desktop-nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.desktop-nav-link.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+.desktop-nav-link .mud-icon-root {
+    font-size: 18px;
+}
+
 /* Secondary text: replace opacity hacks with readable color */
 .mud-typography[style*="opacity"] {
     opacity: 1 !important;
