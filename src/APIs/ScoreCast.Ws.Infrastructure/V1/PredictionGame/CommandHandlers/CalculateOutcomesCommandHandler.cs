@@ -52,12 +52,23 @@ internal sealed record CalculateOutcomesCommandHandler(
         var riskPlays = await DbContext.RiskPlays
             .Include(r => r.Match)
             .Where(r => r.SeasonId == command.Request.SeasonId && !r.IsDeleted
-                        && r.Match.Status != MatchStatus.Scheduled
+                        && (r.Match.Status == MatchStatus.Live || r.Match.Status == MatchStatus.Finished)
                         && r.Match.HomeScore != null && r.Match.AwayScore != null)
             .ToListAsync(ct);
 
+        var riskPlayErrors = 0;
         if (riskPlays.Count > 0)
-            await ResolveRiskPlaysAsync(riskPlays, command.Request.SeasonId, scoringRules, ct);
+        {
+            try
+            {
+                await ResolveRiskPlaysAsync(riskPlays, command.Request.SeasonId, scoringRules, ct);
+            }
+            catch
+            {
+                riskPlayErrors = riskPlays.Count;
+                riskPlays.Clear(); // Don't let failed risk plays block prediction scoring
+            }
+        }
 
         // 3. Update user totals
         if (predictions.Count > 0)
@@ -106,7 +117,7 @@ internal sealed record CalculateOutcomesCommandHandler(
 
         await UnitOfWork.SaveChangesAsync(command.Request.AppName ?? nameof(CalculateOutcomesCommand), ct);
 
-        return ScoreCastResponse.Ok($"Updated {predictions.Count} predictions, {riskPlays.Count} risk plays");
+        return ScoreCastResponse.Ok($"Updated {predictions.Count} predictions, {riskPlays.Count} risk plays{(riskPlayErrors > 0 ? $", {riskPlayErrors} risk play errors" : "")}");
     }
 
     private async Task ResolveRiskPlaysAsync(
@@ -119,7 +130,8 @@ internal sealed record CalculateOutcomesCommandHandler(
 
         var predictionLookup = await DbContext.Predictions
             .AsNoTracking()
-            .Where(p => p.SeasonId == seasonId && riskUserIds.Contains(p.UserId)
+            .Where(p => p.SeasonId == seasonId && p.PredictionType == PredictionType.Score
+                        && riskUserIds.Contains(p.UserId)
                         && p.MatchId != null && riskMatchIds.Contains(p.MatchId.Value))
             .ToListAsync(ct);
         var predByUserMatch = predictionLookup.ToDictionary(p => (p.UserId, p.MatchId!.Value));
