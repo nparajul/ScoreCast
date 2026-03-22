@@ -66,8 +66,13 @@ public partial class Insights : ScoreCastComponentBase
                 var gw = await Api.GetGameweekMatchesAsync(current.Id, 0, CancellationToken.None);
                 if (gw is not { Success: true, Data: not null }) return null;
 
+                var excludedIds = gw.Data.Matches
+                    .Where(m => m.Status is nameof(MatchStatus.Postponed) or nameof(MatchStatus.Live) or nameof(MatchStatus.Finished))
+                    .Select(m => m.MatchId).ToHashSet();
+
                 List<MatchInsightResult>? Filter(List<MatchInsightResult>? list) =>
-                    list?.Where(m => m.KickoffTime.HasValue && m.KickoffTime.Value > now).ToList() is { Count: > 0 } f ? f : null;
+                    list?.Where(m => m.KickoffTime.HasValue && m.KickoffTime.Value > now && !excludedIds.Contains(m.MatchId))
+                        .ToList() is { Count: > 0 } f ? f : null;
 
                 var resp = await Api.GetMatchInsightsAsync(current.Id, gw.Data.CurrentGameweek, CancellationToken.None);
                 var filtered = resp is { Success: true, Data: not null } ? Filter(resp.Data) : null;
