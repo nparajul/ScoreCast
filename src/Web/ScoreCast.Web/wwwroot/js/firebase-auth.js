@@ -37,6 +37,13 @@ window.firebaseAuth = {
             const result = await createUserWithEmailAndPassword(auth, email, password);
             if (displayName) await updateProfile(result.user, { displayName });
             await sendEmailVerification(result.user);
+            // Re-notify with updated profile so displayName is available
+            dotNetRef?.invokeMethodAsync("OnAuthStateChanged", {
+                uid: result.user.uid,
+                email: result.user.email,
+                displayName: result.user.displayName,
+                emailVerified: result.user.emailVerified
+            });
             return { success: true, uid: result.user.uid };
         } catch (e) {
             return { success: false, error: mapError(e.code) };

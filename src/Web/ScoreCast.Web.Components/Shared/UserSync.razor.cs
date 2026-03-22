@@ -89,10 +89,20 @@ public partial class UserSync : IDisposable
             }, CancellationToken.None);
 
             if (syncResult is { Success: true, Data.IsNewUser: true })
+            {
+                // Ensure display name is persisted (may be null during sync due to Firebase race)
+                if (!string.IsNullOrWhiteSpace(displayName) && string.IsNullOrWhiteSpace(syncResult.Data.DisplayName))
+                {
+                    await Api.UpdateMyProfileAsync(
+                        new UpdateUserProfileRequest { DisplayName = displayName },
+                        CancellationToken.None);
+                }
+
                 await ShowUsernameDialog();
+                await ShowWelcomeDialog(displayName ?? email);
+            }
 
             await RoleNav.LoadRolesAsync();
-            await ShowWelcomeDialog(user.Identity?.Name ?? "");
         }
         catch (Exception ex)
         {
@@ -102,16 +112,16 @@ public partial class UserSync : IDisposable
 
     private async Task ShowUsernameDialog()
     {
-        var options = new DialogOptions { CloseOnEscapeKey = false, BackdropClick = false, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<UsernameDialog>("Username", options);
+        var options = new DialogOptions { CloseOnEscapeKey = false, BackdropClick = false, NoHeader = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<UsernameDialog>(string.Empty, options);
         await dialog.Result;
     }
 
     private async Task ShowWelcomeDialog(string username)
     {
         var parameters = new DialogParameters<WelcomeDialog> { { x => x.Username, username } };
-        var options = new DialogOptions { CloseOnEscapeKey = false, BackdropClick = false, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<WelcomeDialog>("Welcome", parameters, options);
+        var options = new DialogOptions { CloseOnEscapeKey = false, BackdropClick = false, NoHeader = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<WelcomeDialog>(string.Empty, parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false, Data: WelcomeDialogResult data }
