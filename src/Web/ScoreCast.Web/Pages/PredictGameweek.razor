@@ -6,8 +6,9 @@
         width: 28px; height: 28px; text-align: center; font-size: 15px; font-weight: 700;
         border: 1px solid var(--mud-palette-lines-default); border-radius: 6px;
         background: var(--mud-palette-surface); color: var(--mud-palette-text-primary);
-        pointer-events: none; -moz-appearance: textfield;
+        pointer-events: none; -moz-appearance: textfield; opacity: 0.45;
     }
+    .predict-input.predict-input-active { opacity: 1; }
     .predict-input::-webkit-outer-spin-button,
     .predict-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .predict-input:disabled { opacity: 0.5; }
@@ -229,13 +230,13 @@
                                 <div class="d-flex align-center justify-center" style="flex-shrink:0;padding:0 2px;gap:4px;">
                                     <div class="d-flex flex-column align-center" style="gap:1px;">
                                         <button class="predict-stepper predict-stepper-plus" @onclick="@(() => Increment(match, true))">+</button>
-                                        <input type="number" value="@match.PredictedHomeScore" disabled class="predict-input" />
+                                        <input type="number" value="@match.PredictedHomeScore" disabled class="predict-input predict-input-active" />
                                         <button class="predict-stepper predict-stepper-minus" @onclick="@(() => Decrement(match, true))">−</button>
                                     </div>
                                     <span style="font-weight:700;font-size:11px;padding:0 1px;">-</span>
                                     <div class="d-flex flex-column align-center" style="gap:1px;">
                                         <button class="predict-stepper predict-stepper-plus" @onclick="@(() => Increment(match, false))">+</button>
-                                        <input type="number" value="@match.PredictedAwayScore" disabled class="predict-input" />
+                                        <input type="number" value="@match.PredictedAwayScore" disabled class="predict-input predict-input-active" />
                                         <button class="predict-stepper predict-stepper-minus" @onclick="@(() => Decrement(match, false))">−</button>
                                     </div>
                                 </div>
