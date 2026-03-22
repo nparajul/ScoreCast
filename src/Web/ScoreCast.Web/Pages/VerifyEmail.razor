@@ -14,6 +14,12 @@
             </MudText>
         </div>
 
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true" Class="mb-4"
+                  Icon="@Icons.Material.Filled.Report">
+            <MudText Typo="Typo.body2" Style="font-weight:600;">Can't find the email?</MudText>
+            <MudText Typo="Typo.caption">Check your <strong>Spam</strong> or <strong>Junk</strong> folder — the email comes from <strong>noreply@scorecast-uk.firebaseapp.com</strong></MudText>
+        </MudAlert>
+
         @if (_message is not null)
         {
             <MudAlert Severity="@_severity" Dense="true" Class="mb-4" Variant="Variant.Filled">@_message</MudAlert>
