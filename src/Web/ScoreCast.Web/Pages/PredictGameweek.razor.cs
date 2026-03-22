@@ -167,7 +167,7 @@ public partial class PredictGameweek
             return;
         }
 
-        var missing = _matches.Count(m => !m.IsLocked && !m.HasPrediction);
+        var missing = _matches.Count(m => !m.IsLocked && !m.IsPostponed && !m.HasPrediction);
         if (missing > 0)
         {
             Alert.Add($"Please enter predictions for all matches ({missing} remaining)", Severity.Error);

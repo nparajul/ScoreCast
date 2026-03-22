@@ -72,9 +72,9 @@
                                 </div>
                                 @foreach (var match in comp.NextGwMatches)
                                 {
-                                    <div style="padding:10px 14px;display:flex;align-items:center;gap:8px;">
+                                    <div style="padding:10px 14px;display:flex;align-items:center;gap:8px;@(match.Status == nameof(MatchStatus.Postponed) ? "opacity:0.45;" : "")">
                                         <a href="/teams/@match.HomeTeamId" style="flex:1;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:4px;color:inherit;text-decoration:none;">
-                                            <span style="font-weight:600;font-size:14px;">@match.HomeTeamShortName</span>
+                                            <span style="font-weight:600;font-size:14px;@(match.Status == nameof(MatchStatus.Postponed) ? "text-decoration:line-through;" : "")">@match.HomeTeamShortName</span>
                                             @if (!string.IsNullOrEmpty(match.HomeTeamLogo))
                                             {
                                                 <img src="@match.HomeTeamLogo" alt="" style="width:24px;height:24px;" />
@@ -82,7 +82,11 @@
                                         </a>
                                         <a href="/matches/@match.MatchId" style="min-width:60px;text-align:center;text-decoration:none;color:inherit;">
                                             <div style="font-size:12px;font-weight:600;color:var(--mud-palette-text-secondary);">
-                                                @if (match.KickoffTime.HasValue)
+                                                @if (match.Status == nameof(MatchStatus.Postponed))
+                                                {
+                                                    <span style="font-weight:800;color:#f44336;">PP</span>
+                                                }
+                                                else if (match.KickoffTime.HasValue)
                                                 {
                                                     @FormatDate(match.KickoffTime.Value)
                                                 }
@@ -97,7 +101,7 @@
                                             {
                                                 <img src="@match.AwayTeamLogo" alt="" style="width:24px;height:24px;" />
                                             }
-                                            <span style="font-weight:600;font-size:14px;">@match.AwayTeamShortName</span>
+                                            <span style="font-weight:600;font-size:14px;@(match.Status == nameof(MatchStatus.Postponed) ? "text-decoration:line-through;" : "")">@match.AwayTeamShortName</span>
                                         </a>
                                     </div>
                                     @if (!string.IsNullOrEmpty(match.Venue))
