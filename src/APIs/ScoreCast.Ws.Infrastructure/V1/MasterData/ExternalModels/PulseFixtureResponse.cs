@@ -64,3 +64,10 @@ internal sealed record PulseFormation(
 
 internal sealed record PulseHalfTimeScore(
     int? HomeScore, int? AwayScore);
+
+internal sealed record PulsePlayerResponse(
+    PulsePlayerName? Name,
+    PulsePlayerTeamRef? CurrentTeam);
+
+internal sealed record PulsePlayerTeamRef(
+    double? Id, string? Name);

@@ -103,6 +103,11 @@ internal sealed record SyncPulseEventsCommandHandler(
             .ToDictionary(g => g.Key, g => g.Select(p => (p.PlayerId, p.Name, p.DateOfBirth)).ToList());
         var validPlayerIds = ourPlayersByTeam.Select(p => p.PlayerId).ToHashSet();
 
+        // Pulse teamId → our teamId for resolving event players
+        var pulseTeamMap = await DbContext.ExternalMappings
+            .Where(m => m.Source == ExternalSource.Pulse && m.EntityType == EntityType.Team)
+            .ToDictionaryAsync(m => int.Parse(m.ExternalCode), m => m.EntityId, ct);
+
         var pulseClient = HttpClientFactory.CreateClient(nameof(ScoreCastHttpClient.PulseClient));
         var eventCount = 0;
         var mappedEntityIds = pulsePlayerMap.Values.ToHashSet();
@@ -165,6 +170,11 @@ internal sealed record SyncPulseEventsCommandHandler(
             }
 
             MapPulsePlayers(pulseData, homeTeamId, awayTeamId, playersByTeam, pulsePlayerMap, mappedEntityIds);
+
+            // Resolve unmapped event personIds via Pulse player API
+            await ResolveUnmappedEventPlayers(
+                pulseData, pulseClient, homeTeamId, awayTeamId,
+                pulseTeamMap, playersByTeam, pulsePlayerMap, mappedEntityIds, ct);
 
             // Persist lineups
             SaveLineups(pulseData, matchId, homeTeamId, awayTeamId, pulsePlayerMap, validPlayerIds, existingLineupKeys);
@@ -308,6 +318,64 @@ internal sealed record SyncPulseEventsCommandHandler(
                     ExternalCode = key
                 });
             }
+        }
+    }
+
+    private async Task ResolveUnmappedEventPlayers(
+        PulseFixtureResponse pulse,
+        HttpClient pulseClient,
+        long homeTeamId,
+        long awayTeamId,
+        Dictionary<int, long> pulseTeamMap,
+        Dictionary<long, List<(long PlayerId, string Name, DateOnly? DateOfBirth)>> ourPlayersByTeam,
+        Dictionary<string, long> pulsePlayerMap,
+        HashSet<long> mappedEntityIds,
+        CancellationToken ct)
+    {
+        if (pulse.Events is null) return;
+
+        // Collect all personIds (+ assistIds) from events that are unmapped
+        var unmapped = new HashSet<int>();
+        foreach (var pe in pulse.Events)
+        {
+            if (pe.PersonId is { } pid && !pulsePlayerMap.ContainsKey(pid.ToString()))
+                unmapped.Add(pid);
+            if (pe.AssistId is { } aid && !pulsePlayerMap.ContainsKey(aid.ToString()))
+                unmapped.Add(aid);
+        }
+        if (unmapped.Count == 0) return;
+
+        foreach (var pulsePersonId in unmapped)
+        {
+            try
+            {
+                var resp = await pulseClient.GetFromJsonAsync<PulsePlayerResponse>(
+                    $"football/players/{pulsePersonId}", ct);
+                if (resp?.Name?.Display is null || resp.CurrentTeam?.Id is null) continue;
+
+                var pulseTeamId = (int)resp.CurrentTeam.Id;
+                if (!pulseTeamMap.TryGetValue(pulseTeamId, out var ourTeamId)) continue;
+                if (!ourPlayersByTeam.TryGetValue(ourTeamId, out var teamPlayers)) continue;
+
+                var displayName = resp.Name.Display;
+                var match = teamPlayers.FirstOrDefault(p =>
+                    p.Name.Contains(resp.Name.Last ?? "§", StringComparison.OrdinalIgnoreCase) ||
+                    displayName.Contains(p.Name, StringComparison.OrdinalIgnoreCase));
+
+                if (match.PlayerId == 0) continue;
+                var key = pulsePersonId.ToString();
+                if (!mappedEntityIds.Add(match.PlayerId)) { pulsePlayerMap[key] = match.PlayerId; continue; }
+
+                pulsePlayerMap[key] = match.PlayerId;
+                DbContext.ExternalMappings.Add(new ExternalMapping
+                {
+                    EntityType = EntityType.Player,
+                    EntityId = match.PlayerId,
+                    Source = ExternalSource.Pulse,
+                    ExternalCode = key
+                });
+            }
+            catch { /* skip — player lookup failed */ }
         }
     }
 
