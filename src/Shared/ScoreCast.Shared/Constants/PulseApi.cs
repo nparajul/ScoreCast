@@ -18,6 +18,7 @@ public static class PulseApi
         public const string Live = "L";
         public const string Complete = "C";
         public const string Upcoming = "U";
+        public const string Postponed = "P";
     }
 
     public static class Phase
@@ -25,6 +26,7 @@ public static class PulseApi
         public const string HalfTime = "H";
         public const string FirstHalf = "1";
         public const string SecondHalf = "2";
+        public const string Postponed = "P";
     }
 
     public static class DisplayLabels

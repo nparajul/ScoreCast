@@ -1,7 +1,7 @@
 @using ScoreCast.Shared.Enums
 @using static MatchEventHelpers
 
-<div style="@($"{(Match.Status == nameof(MatchStatus.Live) ? "border-left:3px solid #4caf50;background:linear-gradient(90deg, rgba(76,175,80,0.06) 0%, transparent 30%);" : "")}")">
+<div style="@($"{(Match.Status == nameof(MatchStatus.Live) ? "border-left:3px solid #4caf50;background:linear-gradient(90deg, rgba(76,175,80,0.06) 0%, transparent 30%);" : Match.Status == nameof(MatchStatus.Postponed) ? "opacity:0.45;" : "")}")">
     <div @onclick="OnToggle" style="cursor:pointer;padding:@(IsMobile ? "5px 8px" : "8px 10px");position:relative;">
         @if (Match.Minute is not null)
         {
@@ -39,7 +39,11 @@
                 }
             </div>
             <div style="min-width:60px;text-align:center;flex-shrink:0;">
-                @if (Match.Status == nameof(MatchStatus.Finished))
+                @if (Match.Status == nameof(MatchStatus.Postponed))
+                {
+                    <span style="font-weight:800;font-size:13px;color:#f44336;">PP</span>
+                }
+                else if (Match.Status == nameof(MatchStatus.Finished))
                 {
                     <span style="font-weight:700;font-size:@(IsMobile ? "14" : "17")px;">@Match.HomeScore - @Match.AwayScore</span>
                 }
