@@ -85,13 +85,18 @@
         {
             var breakdown = ScoringBreakdown.Calculate(_matches, _scoringRules);
             var total = breakdown.Sum(b => b.Total);
-            var riskBonus = _riskPlays.Where(r => r.BonusPoints.HasValue).Sum(r => r.BonusPoints!.Value);
+            var riskBonus = _riskPlays.Where(r => r.IsResolved == true && r.BonusPoints.HasValue).Sum(r => r.BonusPoints!.Value);
+            var pendingRiskBonus = _riskPlays.Where(r => r.IsResolved != true && r.BonusPoints.HasValue).Sum(r => r.BonusPoints!.Value);
             var grandTotal = total + riskBonus;
             var totalPossible = _matches.Count(m => m.Status == nameof(MatchStatus.Finished) && m.HasPrediction) * _scoringRules.Max(r => r.Points);
             var maxRiskBonus = _riskPlays.Sum(r => r.MaxBonus(_scoringRules.Max(sr => sr.Points)));
 
             <MudPaper Elevation="1" Class="pa-3 rounded-lg mb-3" Style="text-align:center;">
                 <MudText Typo="Typo.h4" Style="font-weight:800;">@grandTotal</MudText>
+                @if (pendingRiskBonus != 0)
+                {
+                    <MudText Typo="Typo.caption" Style="color:#ff9800;font-weight:600;">@(pendingRiskBonus > 0 ? "+" : "")@pendingRiskBonus pending</MudText>
+                }
                 <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">out of @totalPossible + @maxRiskBonus possible</MudText>
                 <div class="mt-2">
                     <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Primary"
