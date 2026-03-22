@@ -203,7 +203,7 @@ internal sealed record SyncMatchesCommandHandler(
                 ? DateTimeOffset.FromUnixTimeMilliseconds((long)pf.Kickoff.Millis.Value).UtcDateTime
                 : (DateTime?)null;
 
-            var status = MapPulseStatus(pf.Status);
+            var status = MapPulseStatus(pf.Status, pf.Phase);
             var minute = FormatPulseMinute(pf);
             var referee = pf.MatchOfficials?.FirstOrDefault(o => o.Role == SharedConstants.RefereeRole)?.Name?.Display;
 
@@ -411,10 +411,12 @@ internal sealed record SyncMatchesCommandHandler(
         return count;
     }
 
-    private static MatchStatus MapPulseStatus(string status) => status switch
+    private static MatchStatus MapPulseStatus(string status, string? phase = null) => status switch
     {
         PulseApi.Status.Complete => MatchStatus.Finished,
         PulseApi.Status.Live => MatchStatus.Live,
+        PulseApi.Status.Postponed => MatchStatus.Postponed,
+        _ when phase == PulseApi.Phase.Postponed => MatchStatus.Postponed,
         _ => MatchStatus.Scheduled
     };
 
