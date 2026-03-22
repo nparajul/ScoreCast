@@ -162,6 +162,14 @@ public partial class Dashboard
 
     private int _dragIndex = -1;
 
+    private async Task MoveItem(int from, int to)
+    {
+        var item = _userSeasons[from];
+        _userSeasons.RemoveAt(from);
+        _userSeasons.Insert(to, item);
+        await SaveOrder();
+    }
+
     private void OnDragEnter(int targetIndex)
     {
         if (_dragIndex < 0 || _dragIndex == targetIndex) return;
@@ -174,6 +182,11 @@ public partial class Dashboard
     private async Task OnDragEnd()
     {
         _dragIndex = -1;
+        await SaveOrder();
+    }
+
+    private async Task SaveOrder()
+    {
         await Api.ReorderUserSeasonsAsync(
             new ReorderUserSeasonsRequest { SeasonIds = _userSeasons.Select(s => s.SeasonId).ToList() },
             CancellationToken.None);
