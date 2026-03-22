@@ -63,8 +63,8 @@
     @* ── DESKTOP: full bracket ── *@
     else
     {
-        <div id="bracket-container" style="position:relative;padding:16px 0;overflow:hidden;">
-            <div id="bracket-inner" style="width:max-content;margin:0 auto;transform-origin:top center;">
+        <div id="bracket-container" style="position:relative;padding:16px 0;">
+            <div id="bracket-inner" style="width:max-content;transform-origin:top left;transform:scale(var(--bracket-scale, 1));">
                 @* Header row *@
                 <div style="display:flex;gap:24px;justify-content:center;padding-bottom:6px;">
                     <div style="min-width:150px;text-align:center;font-weight:700;font-size:0.75rem;">Round of 32</div>
@@ -117,6 +117,24 @@
                 </div>
             </div>
         </div>
+
+        <script suppress-error="BL9992">
+            (function() {
+                var c = document.getElementById('bracket-container');
+                var inner = document.getElementById('bracket-inner');
+                if (!c || !inner) return;
+                function fit() {
+                    inner.style.transform = 'scale(1)';
+                    var cw = c.offsetWidth;
+                    var iw = inner.scrollWidth;
+                    var s = iw > cw ? cw / iw : 1;
+                    inner.style.transform = 'scale(' + s + ')';
+                    c.style.height = (inner.offsetHeight * s) + 'px';
+                }
+                fit();
+                window.addEventListener('resize', fit);
+            })();
+        </script>
     }
 }
 else
