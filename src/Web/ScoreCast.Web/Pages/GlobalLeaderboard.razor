@@ -1,0 +1,47 @@
+@page "/global/leaderboard"
+@attribute [Authorize]
+
+<PageGuard>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-4" Style="padding-bottom:100px;">
+    <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack"
+               OnClick="@(() => Nav.NavigateTo("/global"))" Class="mb-2">Back</MudButton>
+
+    <MudText Typo="Typo.h5" Style="font-weight:800;" Class="mb-3">🏆 Top Predictors</MudText>
+
+    @if (!_loaded)
+    {
+        <div class="d-flex justify-center pa-8"><MudProgressCircular Indeterminate="true" /></div>
+    }
+    else if (_entries.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">No predictions yet.</MudAlert>
+    }
+    else
+    {
+        <MudPaper Elevation="1" Style="border-radius:10px;overflow:hidden;">
+            @foreach (var entry in _entries)
+            {
+                var medal = entry.Rank switch { 1 => "🥇", 2 => "🥈", 3 => "🥉", _ => $"#{entry.Rank}" };
+                var bg = entry.Rank switch
+                {
+                    1 => "background:linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,215,0,0.04));",
+                    2 => "background:linear-gradient(135deg,rgba(192,192,192,0.1),transparent);",
+                    3 => "background:linear-gradient(135deg,rgba(205,127,50,0.1),transparent);",
+                    _ => ""
+                };
+                <div class="d-flex align-center pa-3" style="border-bottom:1px solid var(--mud-palette-lines-default);@bg">
+                    <MudText Typo="Typo.body2" Style="width:40px;font-weight:700;font-size:16px;">@medal</MudText>
+                    <div style="flex:1;">
+                        <MudText Typo="Typo.body2" Style="font-weight:600;">@entry.Username</MudText>
+                        <MudText Typo="Typo.caption" Style="opacity:0.5;">@entry.ExactScores exact · @entry.TotalPredictions predictions</MudText>
+                    </div>
+                    <div style="text-align:right;">
+                        <MudText Typo="Typo.body1" Style="font-weight:800;color:#FF6B35;">@entry.TotalPoints</MudText>
+                        <MudText Typo="Typo.caption" Style="opacity:0.5;">pts</MudText>
+                    </div>
+                </div>
+            }
+        </MudPaper>
+    }
+</MudContainer>
+</PageGuard>

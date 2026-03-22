@@ -115,11 +115,14 @@
         @* ── Global Leaderboard ── *@
         @if (_data.TopPredictors.Count > 0)
         {
-            <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mt-4 mb-2">
-                🏆 Top Predictors
-            </MudText>
+            <div class="d-flex align-center justify-space-between mt-4 mb-2" style="cursor:pointer;" @onclick="@(() => Nav.NavigateTo("/global/leaderboard"))">
+                <MudText Typo="Typo.subtitle2" Style="font-weight:700;">
+                    🏆 Top Predictors
+                </MudText>
+                <MudText Typo="Typo.caption" Style="color:var(--mud-palette-primary);font-weight:600;">See all →</MudText>
+            </div>
 
-            <MudPaper Elevation="1" Style="border-radius:10px;overflow:hidden;">
+            <MudPaper Elevation="1" Style="border-radius:10px;overflow:hidden;cursor:pointer;" @onclick="@(() => Nav.NavigateTo("/global/leaderboard"))">
                 @foreach (var entry in _data.TopPredictors)
                 {
                     var medal = entry.Rank switch { 1 => "🥇", 2 => "🥈", 3 => "🥉", _ => $"#{entry.Rank}" };
