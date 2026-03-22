@@ -53,4 +53,7 @@ public partial interface IScoreCastApiClient
 
     [Get("/api/v1/football/matches/{matchId}/extras")]
     Task<ScoreCastResponse<MatchExtrasResult>> GetMatchExtrasAsync(long matchId, CancellationToken ct);
+
+    [Get("/api/v1/football/global-dashboard")]
+    Task<ScoreCastResponse<GlobalDashboardResult>> GetGlobalDashboardAsync(CancellationToken ct);
 }
