@@ -80,22 +80,27 @@
                                                 <img src="@match.HomeTeamLogo" alt="" style="width:24px;height:24px;" />
                                             }
                                         </a>
-                                        <a href="/matches/@match.MatchId" style="min-width:60px;text-align:center;text-decoration:none;color:inherit;">
-                                            <div style="font-size:12px;font-weight:600;color:var(--mud-palette-text-secondary);">
-                                                @if (match.Status == nameof(MatchStatus.Postponed))
-                                                {
-                                                    <span style="font-weight:800;color:#f44336;">PP</span>
-                                                }
-                                                else if (match.KickoffTime.HasValue)
-                                                {
-                                                    @FormatDate(match.KickoffTime.Value)
-                                                }
-                                                else
-                                                {
-                                                    <text>TBD</text>
-                                                }
+                                        @if (match.Status == nameof(MatchStatus.Postponed))
+                                        {
+                                            <div style="min-width:60px;text-align:center;">
+                                                <span style="font-size:12px;font-weight:800;color:#f44336;">PP</span>
                                             </div>
-                                        </a>
+                                        }
+                                        else
+                                        {
+                                            <a href="/matches/@match.MatchId" style="min-width:60px;text-align:center;text-decoration:none;color:inherit;">
+                                                <div style="font-size:12px;font-weight:600;color:var(--mud-palette-text-secondary);">
+                                                    @if (match.KickoffTime.HasValue)
+                                                    {
+                                                        @FormatDate(match.KickoffTime.Value)
+                                                    }
+                                                    else
+                                                    {
+                                                        <text>TBD</text>
+                                                    }
+                                                </div>
+                                            </a>
+                                        }
                                         <a href="/teams/@match.AwayTeamId" style="flex:1;display:flex;align-items:center;gap:4px;color:inherit;text-decoration:none;">
                                             @if (!string.IsNullOrEmpty(match.AwayTeamLogo))
                                             {
