@@ -1,8 +1,11 @@
+using System.Security.Claims;
+
 namespace ScoreCast.Web.Components.Shared;
 
 public partial class PageGuard : ComponentBase, IDisposable
 {
     [Parameter] public required RenderFragment ChildContent { get; set; }
+    [Inject] private AuthenticationStateProvider AuthState { get; set; } = null!;
 
     private bool _authorized;
     private bool _checked;
@@ -13,15 +16,23 @@ public partial class PageGuard : ComponentBase, IDisposable
         CheckAccess();
     }
 
-    private void CheckAccess()
+    private async void CheckAccess()
     {
         if (RoleNav.SelectedRole is null) return;
+
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var verified = state.User.FindFirst("email_verified")?.Value == "true";
+        if (!verified)
+        {
+            Navigation.NavigateTo("/verify-email", replace: true);
+            return;
+        }
 
         var uri = new Uri(Navigation.Uri);
         var path = uri.AbsolutePath.TrimEnd('/');
         _authorized = RoleNav.Pages.Any(p => MatchesRoute(p.PageUrl, path));
         _checked = true;
-        InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
     }
 
     private static bool MatchesRoute(string? pattern, string path)

@@ -35,7 +35,7 @@ public partial class Register
             result = await Auth.RegisterAsync(_model.Email, _model.Password, _model.Username));
 
         if (result.Success)
-            Nav.NavigateTo("/dashboard", replace: true);
+            Nav.NavigateTo("/verify-email", replace: true);
         else
             _error = result.Error;
     }

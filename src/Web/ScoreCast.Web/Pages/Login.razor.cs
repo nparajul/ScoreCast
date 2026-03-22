@@ -35,7 +35,7 @@ public partial class Login
             result = await Auth.LoginAsync(_model.Email, _model.Password));
 
         if (result.Success)
-            Nav.NavigateTo("/dashboard", replace: true);
+            Nav.NavigateTo(Auth.EmailVerified ? "/dashboard" : "/verify-email", replace: true);
         else
             _error = result.Error;
     }
