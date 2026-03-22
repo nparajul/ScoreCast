@@ -35,7 +35,12 @@ public partial class GlobalDashboard : IDisposable
         }
         else
         {
-            _countdownText = $"{(int)diff.TotalDays}d {diff.Hours}h {diff.Minutes}m {diff.Seconds}s";
+            var parts = new List<string>();
+            if ((int)diff.TotalDays > 0) parts.Add($"{(int)diff.TotalDays}d");
+            if (diff.Hours > 0 || parts.Count > 0) parts.Add($"{diff.Hours}h");
+            if (diff.Minutes > 0 || parts.Count > 0) parts.Add($"{diff.Minutes}m");
+            parts.Add($"{diff.Seconds}s");
+            _countdownText = string.Join(" ", parts);
             _allLocked = false;
         }
     }
