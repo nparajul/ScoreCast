@@ -109,41 +109,60 @@ public partial class GlobalSearch
         var gw = await Api.GetGameweekMatchesAsync(current.Id, SharedConstants.CurrentGameweek, CancellationToken.None);
         if (gw is not { Success: true, Data: not null }) return;
 
-        // Live matches first
-        var live = gw.Data.Matches.Where(m => m.Status == nameof(MatchStatus.Live)).ToList();
-        if (live.Count > 0)
+        var allMatches = gw.Data.Matches;
+
+        // Also fetch next GW if current has no upcoming
+        var hasUpcoming = allMatches.Any(m => m.Status == nameof(MatchStatus.Scheduled));
+        if (!hasUpcoming && gw.Data.GameweekNumber < gw.Data.TotalGameweeks)
         {
-            foreach (var m in live)
-            {
-                _trending.Add(new("🔴", $"{m.HomeTeamShortName} vs {m.AwayTeamShortName} ({m.HomeScore}-{m.AwayScore})",
-                    null, "🔴 Live Now", $"/matches/{m.MatchId}"));
-            }
+            var nextGw = await Api.GetGameweekMatchesAsync(current.Id, gw.Data.GameweekNumber + 1, CancellationToken.None);
+            if (nextGw is { Success: true, Data: not null })
+                allMatches = allMatches.Concat(nextGw.Data.Matches).ToList();
+        }
+
+        // Live matches
+        var live = allMatches.Where(m => m.Status == nameof(MatchStatus.Live)).ToList();
+        foreach (var m in live)
+        {
+            _trending.Add(new("🔴", $"{m.HomeTeamShortName} vs {m.AwayTeamShortName} ({m.HomeScore}-{m.AwayScore})",
+                null, "🔴 Live Now", $"/matches/{m.MatchId}"));
         }
 
         // Today's upcoming
-        var upcoming = gw.Data.Matches
+        var today = ScoreCastDateTime.Now.Value.Date;
+        var upcoming = allMatches
             .Where(m => m.Status == nameof(MatchStatus.Scheduled) && m.KickoffTime.HasValue
-                        && m.KickoffTime.Value.Date == ScoreCastDateTime.Now.Value.Date)
-            .OrderBy(m => m.KickoffTime)
-            .ToList();
-        foreach (var m in upcoming.Take(4))
+                        && m.KickoffTime.Value.Date == today)
+            .OrderBy(m => m.KickoffTime).Take(4).ToList();
+        foreach (var m in upcoming)
         {
             _trending.Add(new("⚽", $"{m.HomeTeamShortName} vs {m.AwayTeamShortName}",
                 null, "⚽ Today's Matches", $"/matches/{m.MatchId}"));
         }
 
-        // If nothing today, show next upcoming
+        // Next upcoming if nothing live or today
         if (live.Count == 0 && upcoming.Count == 0)
         {
-            var next = gw.Data.Matches
+            var next = allMatches
                 .Where(m => m.Status == nameof(MatchStatus.Scheduled) && m.KickoffTime.HasValue)
-                .OrderBy(m => m.KickoffTime)
-                .Take(4).ToList();
+                .OrderBy(m => m.KickoffTime).Take(4).ToList();
             foreach (var m in next)
             {
-                var day = m.KickoffTime!.Value.ToString("ddd HH:mm");
-                _trending.Add(new("📅", $"{m.HomeTeamShortName} vs {m.AwayTeamShortName} — {day}",
+                _trending.Add(new("📅", $"{m.HomeTeamShortName} vs {m.AwayTeamShortName} — {m.KickoffTime!.Value:ddd HH:mm}",
                     null, "📅 Coming Up", $"/matches/{m.MatchId}"));
+            }
+        }
+
+        // Latest results if no live/upcoming
+        if (live.Count == 0 && upcoming.Count == 0)
+        {
+            var results = allMatches
+                .Where(m => m.Status == nameof(MatchStatus.Finished))
+                .OrderByDescending(m => m.KickoffTime).Take(3).ToList();
+            foreach (var m in results)
+            {
+                _trending.Add(new("✅", $"{m.HomeTeamShortName} {m.HomeScore}-{m.AwayScore} {m.AwayTeamShortName}",
+                    null, "✅ Latest Results", $"/matches/{m.MatchId}"));
             }
         }
 
