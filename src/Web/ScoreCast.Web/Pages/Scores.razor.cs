@@ -14,6 +14,7 @@ public partial class Scores : ScoreCastComponentBase, IDisposable
     [Inject] private ILoadingService Loading { get; set; } = null!;
     [Inject] private IAlertService Alert { get; set; } = null!;
     [Inject] private IClientTimeProvider ClientTime { get; set; } = null!;
+    [Inject] private NavigationManager Nav { get; set; } = null!;
 
     private List<CompetitionSection> _sections = [];
     private readonly HashSet<long> _expandedMatches = [];
