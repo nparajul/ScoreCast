@@ -1,0 +1,145 @@
+@page "/global"
+@attribute [Authorize]
+
+<PageGuard>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-4" Style="padding-bottom:100px;">
+
+    @if (!_loaded)
+    {
+        <div class="d-flex justify-center pa-8"><MudProgressCircular Indeterminate="true" /></div>
+    }
+    else if (_data is null)
+    {
+        <MudAlert Severity="Severity.Warning">Could not load dashboard data.</MudAlert>
+    }
+    else
+    {
+        @* ── Gameweek Countdown ── *@
+        <MudPaper Class="mb-3 pa-4" Elevation="1" Style="border-radius:12px;background:linear-gradient(135deg,#0A1929 0%,#1a2d45 100%);color:white;text-align:center;">
+            <MudText Typo="Typo.overline" Style="letter-spacing:0.15em;opacity:0.7;">GAMEWEEK @_data.Countdown.GameweekNumber</MudText>
+            <MudText Typo="Typo.h5" Style="font-weight:800;" Class="my-1">@_countdownText</MudText>
+            <MudText Typo="Typo.caption" Style="opacity:0.6;">until predictions lock</MudText>
+            <div class="d-flex justify-center gap-4 mt-3">
+                <div>
+                    <MudText Typo="Typo.h6" Style="font-weight:700;color:#FF6B35;">@_data.Countdown.TotalPredictions</MudText>
+                    <MudText Typo="Typo.caption" Style="opacity:0.6;">predictions</MudText>
+                </div>
+                <div>
+                    <MudText Typo="Typo.h6" Style="font-weight:700;color:#FF6B35;">@_data.Countdown.TotalUsers</MudText>
+                    <MudText Typo="Typo.caption" Style="opacity:0.6;">predictors</MudText>
+                </div>
+            </div>
+        </MudPaper>
+
+        @* ── Community Predictions ── *@
+        @if (_data.UpcomingPredictions.Count > 0)
+        {
+            <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mb-2">
+                🔮 Community Predictions
+            </MudText>
+
+            @foreach (var match in _data.UpcomingPredictions)
+            {
+                <MudPaper Class="mb-2 pa-3" Elevation="1" Style="border-radius:10px;cursor:pointer;" @onclick="@(() => Nav.NavigateTo($"/matches/{match.MatchId}"))">
+                    <div class="d-flex align-center justify-space-between mb-2">
+                        <div class="d-flex align-center gap-2" style="flex:1;">
+                            @if (match.HomeTeamCrest is not null) { <img src="@match.HomeTeamCrest" alt="" style="width:20px;height:20px;object-fit:contain;" /> }
+                            <MudText Typo="Typo.body2" Style="font-weight:600;">@ShortName(match.HomeTeam)</MudText>
+                        </div>
+                        <MudText Typo="Typo.caption" Style="opacity:0.5;">vs</MudText>
+                        <div class="d-flex align-center gap-2 justify-end" style="flex:1;">
+                            <MudText Typo="Typo.body2" Style="font-weight:600;">@ShortName(match.AwayTeam)</MudText>
+                            @if (match.AwayTeamCrest is not null) { <img src="@match.AwayTeamCrest" alt="" style="width:20px;height:20px;object-fit:contain;" /> }
+                        </div>
+                    </div>
+
+                    @if (match.PredictionCount > 0)
+                    {
+                        <div class="d-flex align-center gap-1 mb-1" style="height:6px;border-radius:3px;overflow:hidden;">
+                            <div style="flex:@match.HomePct;background:#4CAF50;border-radius:3px;height:100%;"></div>
+                            <div style="flex:@match.DrawPct;background:#9E9E9E;border-radius:3px;height:100%;"></div>
+                            <div style="flex:@match.AwayPct;background:#2196F3;border-radius:3px;height:100%;"></div>
+                        </div>
+                        <div class="d-flex justify-space-between">
+                            <MudText Typo="Typo.caption" Style="color:#4CAF50;font-weight:600;">@match.HomePct%</MudText>
+                            <MudText Typo="Typo.caption" Style="opacity:0.5;">@match.DrawPct% draw</MudText>
+                            <MudText Typo="Typo.caption" Style="color:#2196F3;font-weight:600;">@match.AwayPct%</MudText>
+                        </div>
+                        <MudText Typo="Typo.caption" Style="opacity:0.5;text-align:center;" Class="mt-1">
+                            Most predicted: <strong style="color:var(--mud-palette-text-primary);">@match.MostPredictedScore</strong>
+                            (@match.MostPredictedPct%) · @match.PredictionCount predictions
+                        </MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.caption" Style="opacity:0.4;text-align:center;">No predictions yet — be the first!</MudText>
+                    }
+                </MudPaper>
+            }
+        }
+
+        @* ── Global Leaderboard ── *@
+        @if (_data.TopPredictors.Count > 0)
+        {
+            <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mt-4 mb-2">
+                🏆 Top Predictors
+            </MudText>
+
+            <MudPaper Elevation="1" Style="border-radius:10px;overflow:hidden;">
+                @foreach (var entry in _data.TopPredictors)
+                {
+                    var medal = entry.Rank switch { 1 => "🥇", 2 => "🥈", 3 => "🥉", _ => $"#{entry.Rank}" };
+                    <div class="d-flex align-center pa-3" style="border-bottom:1px solid var(--mud-palette-lines-default);">
+                        <MudText Typo="Typo.body2" Style="width:32px;font-weight:700;">@medal</MudText>
+                        <div style="flex:1;">
+                            <MudText Typo="Typo.body2" Style="font-weight:600;">@entry.Username</MudText>
+                            <MudText Typo="Typo.caption" Style="opacity:0.5;">@entry.ExactScores exact · @entry.TotalPredictions predictions</MudText>
+                        </div>
+                        <MudText Typo="Typo.body1" Style="font-weight:800;color:#FF6B35;">@entry.TotalPoints</MudText>
+                        <MudText Typo="Typo.caption" Style="opacity:0.5;margin-left:2px;">pts</MudText>
+                    </div>
+                }
+            </MudPaper>
+        }
+
+        @* ── Community Stats ── *@
+        <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mt-4 mb-2">
+            📊 Season Stats
+        </MudText>
+
+        <div class="d-flex gap-2 mb-2">
+            <MudPaper Class="pa-3 flex-1" Elevation="1" Style="border-radius:10px;text-align:center;">
+                <MudText Typo="Typo.h5" Style="font-weight:800;">@_data.Community.TotalPredictors</MudText>
+                <MudText Typo="Typo.caption" Style="opacity:0.5;">Predictors</MudText>
+            </MudPaper>
+            <MudPaper Class="pa-3 flex-1" Elevation="1" Style="border-radius:10px;text-align:center;">
+                <MudText Typo="Typo.h5" Style="font-weight:800;">@_data.Community.TotalPredictions</MudText>
+                <MudText Typo="Typo.caption" Style="opacity:0.5;">Predictions</MudText>
+            </MudPaper>
+            <MudPaper Class="pa-3 flex-1" Elevation="1" Style="border-radius:10px;text-align:center;">
+                <MudText Typo="Typo.h5" Style="font-weight:800;color:#FF6B35;">@_data.Community.ExactScorePct%</MudText>
+                <MudText Typo="Typo.caption" Style="opacity:0.5;">Exact Score Rate</MudText>
+            </MudPaper>
+        </div>
+
+        @if (_data.Community.HardestMatch != "N/A")
+        {
+            <MudPaper Class="pa-3 mb-2" Elevation="1" Style="border-radius:10px;">
+                <MudText Typo="Typo.caption" Style="opacity:0.5;">Hardest to predict</MudText>
+                <MudText Typo="Typo.body2" Style="font-weight:600;">@_data.Community.HardestMatch</MudText>
+                <MudText Typo="Typo.caption" Style="color:#f44336;">Only @_data.Community.HardestMatchAccuracy% got it right</MudText>
+            </MudPaper>
+        }
+
+        @if (_data.Community.MostPredictableTeam != "N/A")
+        {
+            <MudPaper Class="pa-3 mb-2" Elevation="1" Style="border-radius:10px;">
+                <MudText Typo="Typo.caption" Style="opacity:0.5;">Most predictable team</MudText>
+                <MudText Typo="Typo.body2" Style="font-weight:600;">@_data.Community.MostPredictableTeam</MudText>
+                <MudText Typo="Typo.caption" Style="color:#4CAF50;">@_data.Community.MostPredictableTeamPct% correct result rate</MudText>
+            </MudPaper>
+        }
+    }
+
+</MudContainer>
+</PageGuard>
