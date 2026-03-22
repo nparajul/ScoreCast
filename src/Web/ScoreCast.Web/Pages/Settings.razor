@@ -12,6 +12,7 @@
                 @(_profile.DisplayName?[0].ToString().ToUpper() ?? "?")
             </MudAvatar>
             <MudText Typo="Typo.h6" Style="font-weight:700;">@(_profile.DisplayName ?? _profile.UserId)</MudText>
+            <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">@@@_profile.UserId</MudText>
             <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">@_profile.Email</MudText>
             <MudText Typo="Typo.caption" Style="color:var(--mud-palette-text-secondary);">Member since @_profile.MemberSince.ToString("MMM yyyy")</MudText>
         </div>
@@ -44,6 +45,19 @@
                               Immediate="true"
                               MaxLength="30"
                               For="@(() => _model.DisplayName)"
+                              Class="mb-3" />
+
+                <MudTextField @bind-Value="_model.Username"
+                              Label="Username"
+                              Variant="Variant.Outlined"
+                              Immediate="true"
+                              MaxLength="20"
+                              For="@(() => _model.Username)"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.AlternateEmail"
+                              HelperText="@_usernameHelper"
+                              Error="@(!string.IsNullOrEmpty(_usernameError))"
+                              ErrorText="@_usernameError"
                               Class="mb-3" />
 
                 <div class="d-flex align-center gap-3 mb-3">

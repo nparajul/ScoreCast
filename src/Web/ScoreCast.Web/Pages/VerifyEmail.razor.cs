@@ -19,6 +19,13 @@ public partial class VerifyEmail : IDisposable
             Nav.NavigateTo("/login", replace: true);
         else if (Auth.EmailVerified)
             Nav.NavigateTo("/dashboard", replace: true);
+        else
+        {
+            // Auto-check in case user arrived from verification email link
+            var verified = await Auth.ReloadUserAsync();
+            if (verified)
+                Nav.NavigateTo("/dashboard", replace: true);
+        }
     }
 
     private async Task CheckVerification()

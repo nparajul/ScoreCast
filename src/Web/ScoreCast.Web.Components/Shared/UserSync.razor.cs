@@ -98,7 +98,6 @@ public partial class UserSync : IDisposable
                         CancellationToken.None);
                 }
 
-                await ShowUsernameDialog();
                 await ShowWelcomeDialog(displayName ?? email);
             }
 
@@ -108,13 +107,6 @@ public partial class UserSync : IDisposable
         {
             await Alert.ShowDialogForException(ex, Severity.Error);
         }
-    }
-
-    private async Task ShowUsernameDialog()
-    {
-        var options = new DialogOptions { CloseOnEscapeKey = false, BackdropClick = false, NoHeader = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<UsernameDialog>(string.Empty, options);
-        await dialog.Result;
     }
 
     private async Task ShowWelcomeDialog(string username)
