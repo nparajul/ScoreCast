@@ -13,11 +13,10 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     [Inject] private ILoadingService Loading { get; set; } = null!;
     [Inject] private IClientTimeProvider ClientTime { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
-    [Inject] private IScoreBatService ScoreBat { get; set; } = null!;
 
     private MatchPageResult? _match;
     private MatchExtrasResult? _extras;
-    private List<ScoreBatVideo>? _highlights;
+    private MatchHighlightsResult? _highlights;
     private bool _highlightsLoading;
     private bool _loaded;
     private CancellationTokenSource? _pollCts;
@@ -366,9 +365,8 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         if (_highlights is not null || _match is null) return;
         _highlightsLoading = true;
         StateHasChanged();
-        _highlights = await ScoreBat.GetHighlightsAsync(
-            _match.HomeTeamName, _match.AwayTeamName,
-            _match.HomeTeamShortName, _match.AwayTeamShortName);
+        var resp = await Api.GetMatchHighlightsAsync(MatchId, CancellationToken.None);
+        _highlights = resp is { Success: true, Data: not null } ? resp.Data : new MatchHighlightsResult([]);
         _highlightsLoading = false;
         await InvokeAsync(StateHasChanged);
     }
