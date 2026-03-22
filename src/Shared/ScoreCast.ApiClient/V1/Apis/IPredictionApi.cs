@@ -48,4 +48,7 @@ public partial interface IScoreCastApiClient
 
     [Get("/api/v1/prediction/profile/{targetUserId}/{predictionLeagueId}/{seasonId}/{gameweekId}")]
     Task<ScoreCastResponse<PlayerGameweekResult>> GetPlayerGameweekAsync(long targetUserId, long predictionLeagueId, long seasonId, long gameweekId, CancellationToken ct);
+
+    [Get("/api/v1/prediction/my-stats")]
+    Task<ScoreCastResponse<MyPredictionStatsResult>> GetMyPredictionStatsAsync(CancellationToken ct);
 }

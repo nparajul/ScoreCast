@@ -67,6 +67,16 @@
                            OnClick="NextGameweek" />
         </div>
 
+        @if (_stats is not null && _stats.CurrentStreak >= 2 && _matches.Any(m => !m.IsLocked))
+        {
+            <div style="text-align:center;margin-bottom:12px;">
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Filled"
+                         Style="background:linear-gradient(135deg,#ff6b35,#ff8f00);color:white;font-weight:700;">
+                    🔥 @_stats.CurrentStreak-match streak — keep it going!
+                </MudChip>
+            </div>
+        }
+
         var showPoints = _matches.All(m => m.IsLocked) && _matches.Any(m => m.HasPrediction);
 
         @if (showPoints)
@@ -161,6 +171,29 @@
                     </div>
                 </MudPaper>
             }
+        }
+
+        @* You vs Community for finished gameweeks *@
+        @if (showPoints && _stats?.LastGameweek is not null && _stats.LastGameweek.GameweekNumber == _gameweek.GameweekNumber)
+        {
+            var gw = _stats.LastGameweek;
+            <MudPaper Elevation="1" Class="pa-3 rounded-lg mb-3" Style="text-align:center;">
+                <MudText Typo="Typo.subtitle2" Style="font-weight:700;">You vs Community</MudText>
+                <div class="d-flex justify-space-around mt-2">
+                    <div>
+                        <MudText Typo="Typo.h6" Style="font-weight:800;color:#FF6B35;">@gw.UserCorrect/@gw.UserTotal</MudText>
+                        <MudText Typo="Typo.caption" Style="opacity:0.6;">You</MudText>
+                    </div>
+                    <div>
+                        <MudText Typo="Typo.h6" Style="font-weight:800;">@gw.CommunityAvgCorrect/@gw.CommunityAvgTotal</MudText>
+                        <MudText Typo="Typo.caption" Style="opacity:0.6;">Avg</MudText>
+                    </div>
+                    <div>
+                        <MudText Typo="Typo.h6" Style="@($"font-weight:800;color:{(gw.BeatPct >= 50 ? "#4CAF50" : "#f44336")}")">Beat @(gw.BeatPct)%</MudText>
+                        <MudText Typo="Typo.caption" Style="opacity:0.6;">of predictors</MudText>
+                    </div>
+                </div>
+            </MudPaper>
         }
 
         <div style="width:100%;max-width:600px;margin:0 auto;border:1px solid var(--mud-palette-lines-default);border-radius:8px;overflow:hidden;">
@@ -341,12 +374,20 @@
 
         @if (_matches.Any(m => !m.IsLocked))
         {
-            <div class="d-flex justify-center mt-4">
+            <div class="d-flex justify-center mt-4 gap-2">
                 <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Size="Size.Small"
                            StartIcon="@Icons.Material.Filled.Save"
                            OnClick="SubmitPredictionsAsync">
                     Save Predictions
                 </MudButton>
+                @if (_showConfidence)
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Share"
+                               OnClick="SharePredictions">
+                        Share
+                    </MudButton>
+                }
             </div>
         }
     }
