@@ -35,7 +35,9 @@ public partial class GlobalDashboard : IDisposable
         }
         else
         {
-            _countdownText = $"{(int)diff.TotalDays}d {diff.Hours}h {diff.Minutes}m {diff.Seconds}s";
+            _countdownText = (int)diff.TotalDays > 0
+                ? $"{(int)diff.TotalDays}d {diff.Hours}h {diff.Minutes}m {diff.Seconds}s"
+                : $"{diff.Hours}h {diff.Minutes}m {diff.Seconds}s";
             _allLocked = false;
         }
     }
