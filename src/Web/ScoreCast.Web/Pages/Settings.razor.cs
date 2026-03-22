@@ -23,8 +23,11 @@ public partial class Settings
     private MudForm _form = null!;
     private List<TeamResult> _allTeams = [];
     private TeamResult? _selectedTeam;
+    private string? _usernameHelper;
+    private string? _usernameError;
 
     private bool HasChanges => _model.DisplayName != _profile?.DisplayName
+                            || _model.Username != _profile?.UserId
                             || _selectedTeam?.Name != (_profile?.FavoriteTeam ?? "");
 
     protected override async Task OnInitializedAsync()
@@ -52,6 +55,8 @@ public partial class Settings
             {
                 _profile = response.Data;
                 _model.DisplayName = _profile.DisplayName ?? "";
+                _model.Username = _profile.UserId;
+                _usernameHelper = $"Current: @{_profile.UserId}";
                 _selectedTeam = _allTeams.FirstOrDefault(t =>
                     t.Name.Equals(_profile.FavoriteTeam, StringComparison.OrdinalIgnoreCase));
             }
@@ -71,8 +76,25 @@ public partial class Settings
         await _form.ValidateAsync();
         if (!_form.IsValid) return;
 
+        _usernameError = null;
+
         await Loading.While(async () =>
         {
+            // Update username if changed
+            var usernameChanged = _model.Username.Trim().ToLowerInvariant() != _profile!.UserId;
+            if (usernameChanged)
+            {
+                var usernameResult = await Api.SetUsernameAsync(
+                    new SetUsernameRequest { Username = _model.Username.Trim() },
+                    CancellationToken.None);
+
+                if (!usernameResult.Success)
+                {
+                    _usernameError = usernameResult.Message ?? "Username not available";
+                    return;
+                }
+            }
+
             var response = await Api.UpdateMyProfileAsync(
                 new UpdateUserProfileRequest { DisplayName = _model.DisplayName.Trim(), FavoriteTeam = _selectedTeam?.Name },
                 CancellationToken.None);
@@ -81,6 +103,8 @@ public partial class Settings
             {
                 _profile = response.Data;
                 _model.DisplayName = _profile.DisplayName ?? "";
+                _model.Username = _profile.UserId;
+                _usernameHelper = $"Current: @{_profile.UserId}";
                 _selectedTeam = _allTeams.FirstOrDefault(t =>
                     t.Name.Equals(_profile.FavoriteTeam, StringComparison.OrdinalIgnoreCase));
                 Alert.Add("Profile updated", Severity.Success);

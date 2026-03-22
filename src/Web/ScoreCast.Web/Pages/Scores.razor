@@ -14,16 +14,17 @@
             @foreach (var comp in _sections)
             {
                 <MudPaper Class="mb-3" Elevation="1" Style="border-radius:10px;overflow:hidden;">
-                    <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;">
-                        <a href="/competitions/@comp.Competition.Id" style="display:flex;align-items:center;gap:10px;flex:1;text-decoration:none;color:inherit;">
+                    <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;" @onclick="@(() => ToggleSection(comp))">
+                        <a href="/competitions/@comp.Competition.Id" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;" @onclick:stopPropagation>
                             @if (!string.IsNullOrEmpty(comp.Competition.LogoUrl))
                             {
                                 <img src="@comp.Competition.LogoUrl" alt="" style="width:24px;height:24px;object-fit:contain;" />
                             }
                             <MudText Typo="Typo.subtitle1" Style="font-weight:700;">@comp.Competition.Name</MudText>
                         </a>
-                        <MudIconButton Icon="@(comp.Expanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
-                                       Size="Size.Small" OnClick="@(() => ToggleSection(comp))" />
+                        <div style="flex:1;"></div>
+                        <MudIcon Icon="@(comp.Expanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                                 Size="Size.Small" Style="opacity:0.5;" />
                     </div>
 
                     @if (comp.Expanded)

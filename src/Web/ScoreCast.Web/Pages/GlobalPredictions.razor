@@ -1,0 +1,61 @@
+@page "/global/predictions"
+@attribute [Authorize]
+
+<PageGuard>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-4" Style="padding-bottom:100px;">
+    <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack"
+               OnClick="@(() => Nav.NavigateTo("/global"))" Class="mb-2">Back</MudButton>
+
+    <MudText Typo="Typo.h5" Style="font-weight:800;" Class="mb-3">🔮 Community Predictions</MudText>
+
+    @if (!_loaded)
+    {
+        <div class="d-flex justify-center pa-8"><MudProgressCircular Indeterminate="true" /></div>
+    }
+    else if (_predictions.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">No upcoming predictions.</MudAlert>
+    }
+    else
+    {
+        @foreach (var match in _predictions)
+        {
+            <MudPaper Class="mb-2 pa-3" Elevation="1" Style="border-radius:10px;cursor:pointer;" @onclick="@(() => Nav.NavigateTo($"/matches/{match.MatchId}"))">
+                <div class="d-flex align-center justify-space-between mb-2">
+                    <div class="d-flex align-center gap-2" style="flex:1;">
+                        @if (match.HomeTeamCrest is not null) { <img src="@match.HomeTeamCrest" alt="" style="width:24px;height:24px;object-fit:contain;" /> }
+                        <MudText Typo="Typo.body2" Style="font-weight:600;">@match.HomeTeam</MudText>
+                    </div>
+                    <MudText Typo="Typo.caption" Style="opacity:0.5;">vs</MudText>
+                    <div class="d-flex align-center gap-2 justify-end" style="flex:1;">
+                        <MudText Typo="Typo.body2" Style="font-weight:600;">@match.AwayTeam</MudText>
+                        @if (match.AwayTeamCrest is not null) { <img src="@match.AwayTeamCrest" alt="" style="width:24px;height:24px;object-fit:contain;" /> }
+                    </div>
+                </div>
+
+                @if (match.PredictionCount > 0)
+                {
+                    <div class="d-flex align-center gap-1 mb-1" style="height:8px;border-radius:4px;overflow:hidden;">
+                        <div style="flex:@match.HomePct;background:#4CAF50;border-radius:4px;height:100%;"></div>
+                        <div style="flex:@match.DrawPct;background:#9E9E9E;border-radius:4px;height:100%;"></div>
+                        <div style="flex:@match.AwayPct;background:#2196F3;border-radius:4px;height:100%;"></div>
+                    </div>
+                    <div class="d-flex justify-space-between">
+                        <MudText Typo="Typo.caption" Style="color:#4CAF50;font-weight:600;">@match.HomePct%</MudText>
+                        <MudText Typo="Typo.caption" Style="opacity:0.5;">@match.DrawPct% draw</MudText>
+                        <MudText Typo="Typo.caption" Style="color:#2196F3;font-weight:600;">@match.AwayPct%</MudText>
+                    </div>
+                    <MudText Typo="Typo.caption" Style="opacity:0.5;text-align:center;" Class="mt-1">
+                        Most predicted: <strong style="color:var(--mud-palette-text-primary);">@match.MostPredictedScore</strong>
+                        (@match.MostPredictedPct%) · @match.PredictionCount predictions
+                    </MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption" Style="opacity:0.4;text-align:center;">No predictions yet — be the first!</MudText>
+                }
+            </MudPaper>
+        }
+    }
+</MudContainer>
+</PageGuard>

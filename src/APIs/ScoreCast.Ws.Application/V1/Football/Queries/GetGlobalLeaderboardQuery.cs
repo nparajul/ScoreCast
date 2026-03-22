@@ -4,4 +4,4 @@ using ScoreCast.Ws.Application.V1.Interfaces;
 
 namespace ScoreCast.Ws.Application.V1.Football.Queries;
 
-public record GetGlobalDashboardQuery(string? CompetitionCode = null) : IQuery<ScoreCastResponse<GlobalDashboardResult>>;
+public record GetGlobalLeaderboardQuery(string? CompetitionCode = null) : IQuery<ScoreCastResponse<GlobalLeaderboardResult>>;

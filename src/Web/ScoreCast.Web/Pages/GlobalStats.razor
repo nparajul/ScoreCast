@@ -1,0 +1,67 @@
+@page "/global/stats"
+@attribute [Authorize]
+
+<PageGuard>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-4" Style="padding-bottom:100px;">
+    <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack"
+               OnClick="@(() => Nav.NavigateTo("/global"))" Class="mb-2">Back</MudButton>
+
+    <MudText Typo="Typo.h5" Style="font-weight:800;" Class="mb-3">📊 Season Stats</MudText>
+
+    @if (!_loaded)
+    {
+        <div class="d-flex justify-center pa-8"><MudProgressCircular Indeterminate="true" /></div>
+    }
+    else if (_stats is null)
+    {
+        <MudAlert Severity="Severity.Warning">Could not load stats.</MudAlert>
+    }
+    else
+    {
+        <div class="d-flex gap-2 mb-3">
+            <MudPaper Elevation="1" Class="pa-4 flex-1 rounded-lg" Style="text-align:center;">
+                <MudText Typo="Typo.h4" Style="font-weight:800;">@_stats.TotalPredictors</MudText>
+                <MudText Typo="Typo.caption" Style="opacity:0.5;">Predictors</MudText>
+            </MudPaper>
+            <MudPaper Elevation="1" Class="pa-4 flex-1 rounded-lg" Style="text-align:center;">
+                <MudText Typo="Typo.h4" Style="font-weight:800;">@_stats.TotalPredictions</MudText>
+                <MudText Typo="Typo.caption" Style="opacity:0.5;">Predictions</MudText>
+            </MudPaper>
+        </div>
+
+        <div class="d-flex gap-2 mb-3">
+            <MudPaper Elevation="1" Class="pa-4 flex-1 rounded-lg" Style="text-align:center;">
+                <MudText Typo="Typo.h4" Style="font-weight:800;color:#4CAF50;">@_stats.ExactScores</MudText>
+                <MudText Typo="Typo.caption" Style="opacity:0.5;">Exact Scores</MudText>
+            </MudPaper>
+            <MudPaper Elevation="1" Class="pa-4 flex-1 rounded-lg" Style="text-align:center;">
+                <MudText Typo="Typo.h4" Style="font-weight:800;color:#FF6B35;">@_stats.ExactScorePct%</MudText>
+                <MudText Typo="Typo.caption" Style="opacity:0.5;">Exact Score Rate</MudText>
+            </MudPaper>
+        </div>
+
+        @if (_stats.HardestMatch != "N/A")
+        {
+            <MudPaper Elevation="1" Class="pa-4 rounded-lg mb-3">
+                <MudText Typo="Typo.overline" Style="opacity:0.5;">HARDEST TO PREDICT</MudText>
+                <MudText Typo="Typo.h6" Style="font-weight:700;" Class="mt-1">@_stats.HardestMatch</MudText>
+                <MudText Typo="Typo.body2" Style="color:#f44336;font-weight:600;">
+                    @if (_stats.HardestMatchAccuracy == 0)
+                    { <text>Nobody got it right!</text> }
+                    else
+                    { <text>Only @_stats.HardestMatchAccuracy% got it right</text> }
+                </MudText>
+            </MudPaper>
+        }
+
+        @if (_stats.MostPredictableTeam != "N/A")
+        {
+            <MudPaper Elevation="1" Class="pa-4 rounded-lg mb-3">
+                <MudText Typo="Typo.overline" Style="opacity:0.5;">MOST PREDICTABLE TEAM</MudText>
+                <MudText Typo="Typo.h6" Style="font-weight:700;" Class="mt-1">@_stats.MostPredictableTeam</MudText>
+                <MudText Typo="Typo.body2" Style="color:#4CAF50;font-weight:600;">@_stats.MostPredictableTeamPct% correct result rate</MudText>
+            </MudPaper>
+        }
+    }
+</MudContainer>
+</PageGuard>

@@ -1,0 +1,59 @@
+@page "/global/recap"
+@attribute [Authorize]
+
+<PageGuard>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-4" Style="padding-bottom:100px;">
+    <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack"
+               OnClick="@(() => Nav.NavigateTo("/global"))" Class="mb-2">Back</MudButton>
+
+    @if (!_loaded)
+    {
+        <div class="d-flex justify-center pa-8"><MudProgressCircular Indeterminate="true" /></div>
+    }
+    else if (_recap is null)
+    {
+        <MudAlert Severity="Severity.Info">No completed gameweek yet.</MudAlert>
+    }
+    else
+    {
+        <MudText Typo="Typo.h5" Style="font-weight:800;" Class="mb-3">📋 Gameweek @_recap.GameweekNumber Recap</MudText>
+
+        <MudPaper Elevation="1" Class="pa-4 rounded-lg mb-3" Style="background:linear-gradient(135deg,rgba(255,107,53,0.08),transparent);">
+            <MudText Typo="Typo.overline" Style="opacity:0.5;">BEST PREDICTOR</MudText>
+            <div class="d-flex align-center gap-2 mt-1">
+                <MudText Typo="Typo.h6" Style="font-weight:700;">👑 @_recap.BestPredictor</MudText>
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background:#FF6B35;color:white;font-weight:700;">
+                    @_recap.BestPredictorPoints pts
+                </MudChip>
+            </div>
+        </MudPaper>
+
+        <div class="d-flex gap-2 mb-3">
+            <MudPaper Elevation="1" Class="pa-3 flex-1 rounded-lg" Style="text-align:center;">
+                <MudText Typo="Typo.h5" Style="font-weight:800;color:#4CAF50;">@_recap.TotalExactScores</MudText>
+                <MudText Typo="Typo.caption" Style="opacity:0.5;">Exact Scores</MudText>
+            </MudPaper>
+            <MudPaper Elevation="1" Class="pa-3 flex-1 rounded-lg" Style="text-align:center;">
+                <MudText Typo="Typo.h5" Style="font-weight:800;color:#2196F3;">@_recap.TotalPredictors</MudText>
+                <MudText Typo="Typo.caption" Style="opacity:0.5;">Predictors</MudText>
+            </MudPaper>
+        </div>
+
+        @if (_recap.BiggestUpset is not null)
+        {
+            <MudPaper Elevation="1" Class="pa-3 rounded-lg mb-3">
+                <MudText Typo="Typo.overline" Style="opacity:0.5;">BIGGEST UPSET</MudText>
+                <MudText Typo="Typo.body1" Style="font-weight:700;" Class="mt-1">😱 @_recap.BiggestUpset</MudText>
+            </MudPaper>
+        }
+
+        @if (_recap.BoldestCorrectPrediction is not null)
+        {
+            <MudPaper Elevation="1" Class="pa-3 rounded-lg mb-3">
+                <MudText Typo="Typo.overline" Style="opacity:0.5;">BOLDEST CORRECT CALL</MudText>
+                <MudText Typo="Typo.body1" Style="font-weight:700;" Class="mt-1">🔮 @_recap.BoldestCorrectPrediction</MudText>
+            </MudPaper>
+        }
+    }
+</MudContainer>
+</PageGuard>

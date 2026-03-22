@@ -14,6 +14,26 @@
     }
     else
     {
+        @if (_competitions.Count > 1)
+        {
+            <div class="d-flex gap-2 mb-3" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+                @foreach (var comp in _competitions)
+                {
+                    var active = comp.Code == _selectedCompetition?.Code;
+                    <MudChip T="string" Size="Size.Small"
+                             Variant="@(active ? Variant.Filled : Variant.Outlined)"
+                             Color="@(active ? Color.Tertiary : Color.Default)"
+                             Style="@(active ? "font-weight:700;" : "opacity:0.7;")"
+                             OnClick="@(() => OnCompetitionChanged(comp))">
+                        @if (!string.IsNullOrEmpty(comp.LogoUrl))
+                        {
+                            <img src="@comp.LogoUrl" alt="" style="width:16px;height:16px;margin-right:4px;object-fit:contain;" />
+                        }
+                        @comp.Name
+                    </MudChip>
+                }
+            </div>
+        }
         @* ── Gameweek Countdown ── *@
         <MudPaper Class="mb-3 pa-4" Elevation="1" Style="border-radius:12px;background:linear-gradient(135deg,#0A1929 0%,#1a2d45 100%);text-align:center;">
             <MudText Typo="Typo.overline" Style="letter-spacing:0.15em;color:rgba(255,255,255,0.7);">GAMEWEEK @_data.Countdown.GameweekNumber</MudText>
@@ -37,8 +57,11 @@
         @if (_data.LastGameweekRecap is not null)
         {
             var recap = _data.LastGameweekRecap;
-            <MudPaper Class="mb-3 pa-3" Elevation="1" Style="border-radius:10px;">
-                <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mb-2">📋 GW@(recap.GameweekNumber) Recap</MudText>
+            <MudPaper Class="mb-3 pa-3" Elevation="1" Style="border-radius:10px;cursor:pointer;" @onclick="@(() => Nav.NavigateTo("/global/recap"))">
+                <div class="d-flex align-center justify-space-between mb-2">
+                    <MudText Typo="Typo.subtitle2" Style="font-weight:700;">📋 GW@(recap.GameweekNumber) Recap</MudText>
+                    <MudText Typo="Typo.caption" Style="color:var(--mud-palette-primary);font-weight:600;">Details →</MudText>
+                </div>
                 <div class="d-flex flex-wrap gap-2">
                     <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Style="background:rgba(255,107,53,0.15);color:#FF6B35;font-weight:600;">
                         👑 @recap.BestPredictor — @recap.BestPredictorPoints pts
@@ -68,9 +91,12 @@
         @* ── Community Predictions ── *@
         @if (_data.UpcomingPredictions.Count > 0)
         {
-            <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mb-2">
-                🔮 Community Predictions
-            </MudText>
+            <div class="d-flex align-center justify-space-between mb-2" style="cursor:pointer;" @onclick="@(() => Nav.NavigateTo("/global/predictions"))">
+                <MudText Typo="Typo.subtitle2" Style="font-weight:700;">
+                    🔮 Community Predictions
+                </MudText>
+                <MudText Typo="Typo.caption" Style="color:var(--mud-palette-primary);font-weight:600;">See all →</MudText>
+            </div>
 
             @foreach (var match in _data.UpcomingPredictions)
             {
@@ -115,11 +141,14 @@
         @* ── Global Leaderboard ── *@
         @if (_data.TopPredictors.Count > 0)
         {
-            <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mt-4 mb-2">
-                🏆 Top Predictors
-            </MudText>
+            <div class="d-flex align-center justify-space-between mt-4 mb-2" style="cursor:pointer;" @onclick="@(() => Nav.NavigateTo("/global/leaderboard"))">
+                <MudText Typo="Typo.subtitle2" Style="font-weight:700;">
+                    🏆 Top Predictors
+                </MudText>
+                <MudText Typo="Typo.caption" Style="color:var(--mud-palette-primary);font-weight:600;">See all →</MudText>
+            </div>
 
-            <MudPaper Elevation="1" Style="border-radius:10px;overflow:hidden;">
+            <MudPaper Elevation="1" Style="border-radius:10px;overflow:hidden;cursor:pointer;" @onclick="@(() => Nav.NavigateTo("/global/leaderboard"))">
                 @foreach (var entry in _data.TopPredictors)
                 {
                     var medal = entry.Rank switch { 1 => "🥇", 2 => "🥈", 3 => "🥉", _ => $"#{entry.Rank}" };
@@ -137,9 +166,12 @@
         }
 
         @* ── Community Stats ── *@
-        <MudText Typo="Typo.subtitle2" Style="font-weight:700;" Class="mt-4 mb-2">
-            📊 Season Stats
-        </MudText>
+        <div class="d-flex align-center justify-space-between mt-4 mb-2" style="cursor:pointer;" @onclick="@(() => Nav.NavigateTo("/global/stats"))">
+            <MudText Typo="Typo.subtitle2" Style="font-weight:700;">
+                📊 Season Stats
+            </MudText>
+            <MudText Typo="Typo.caption" Style="color:var(--mud-palette-primary);font-weight:600;">Details →</MudText>
+        </div>
 
         <div class="d-flex gap-2 mb-2">
             <MudPaper Class="pa-3 flex-1" Elevation="1" Style="border-radius:10px;text-align:center;">
@@ -161,7 +193,12 @@
             <MudPaper Class="pa-3 mb-2" Elevation="1" Style="border-radius:10px;">
                 <MudText Typo="Typo.caption" Style="opacity:0.5;">Hardest to predict</MudText>
                 <MudText Typo="Typo.body2" Style="font-weight:600;">@_data.Community.HardestMatch</MudText>
-                <MudText Typo="Typo.caption" Style="color:#f44336;">Only @_data.Community.HardestMatchAccuracy% got it right</MudText>
+                <MudText Typo="Typo.caption" Style="color:#f44336;">
+                    @if (_data.Community.HardestMatchAccuracy == 0)
+                    { <text>Nobody got it right!</text> }
+                    else
+                    { <text>Only @_data.Community.HardestMatchAccuracy% got it right</text> }
+                </MudText>
             </MudPaper>
         }
 
