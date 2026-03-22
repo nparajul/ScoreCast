@@ -15,7 +15,7 @@
         @if (HasResults)
         {
             <div @onclick:stopPropagation="true"
-                 style="position:absolute;top:100%;right:0;width:320px;z-index:9999;background:var(--mud-palette-surface);box-shadow:0 4px 12px rgba(0,0,0,0.2);border-radius:0 0 8px 8px;max-height:50vh;overflow-y:auto;">
+                 style="position:absolute;top:100%;right:0;width:320px;z-index:9999;background:var(--mud-palette-surface);color:var(--mud-palette-text-primary);box-shadow:0 4px 12px rgba(0,0,0,0.2);border-radius:0 0 8px 8px;max-height:50vh;overflow-y:auto;">
                 <SearchResults Loading="_loading" Filtered="_filtered" Suggestions="_suggestions" Query="@_query" OnNavigate="Navigate" />
             </div>
         }
