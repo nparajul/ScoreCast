@@ -18,7 +18,9 @@
         <MudPaper Class="mb-3 pa-4" Elevation="1" Style="border-radius:12px;background:linear-gradient(135deg,#0A1929 0%,#1a2d45 100%);text-align:center;">
             <MudText Typo="Typo.overline" Style="letter-spacing:0.15em;color:rgba(255,255,255,0.7);">GAMEWEEK @_data.Countdown.GameweekNumber</MudText>
             <MudText Typo="Typo.h5" Style="font-weight:800;color:white;" Class="my-1">@_countdownText</MudText>
-            <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.6);">until predictions lock</MudText>
+            <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.6);">
+                @(_allLocked ? "Matches have kicked off — predictions locked per match at kickoff" : "until next kickoff — each match locks at its kickoff time")
+            </MudText>
             <div class="d-flex justify-center gap-4 mt-3">
                 <div>
                     <MudText Typo="Typo.h6" Style="font-weight:700;color:#FF6B35;">@_data.Countdown.TotalPredictions</MudText>
