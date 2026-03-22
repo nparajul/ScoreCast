@@ -6,7 +6,8 @@ namespace ScoreCast.Web.Components.Helpers;
 
 public interface IScoreBatService
 {
-    Task<List<ScoreBatVideo>> GetHighlightsAsync(string homeTeam, string awayTeam, CancellationToken ct = default);
+    Task<List<ScoreBatVideo>> GetHighlightsAsync(string homeTeam, string awayTeam,
+        string? homeShort = null, string? awayShort = null, CancellationToken ct = default);
 }
 
 public class ScoreBatService(HttpClient http) : IScoreBatService
@@ -14,7 +15,8 @@ public class ScoreBatService(HttpClient http) : IScoreBatService
     private List<ScoreBatMatch>? _cache;
     private DateTime _cacheTime;
 
-    public async Task<List<ScoreBatVideo>> GetHighlightsAsync(string homeTeam, string awayTeam, CancellationToken ct = default)
+    public async Task<List<ScoreBatVideo>> GetHighlightsAsync(string homeTeam, string awayTeam,
+        string? homeShort = null, string? awayShort = null, CancellationToken ct = default)
     {
         // Cache feed for 5 minutes
         if (_cache is null || ScoreCastDateTime.Now.Value - _cacheTime > TimeSpan.FromMinutes(5))
@@ -32,24 +34,33 @@ public class ScoreBatService(HttpClient http) : IScoreBatService
         }
 
         var match = _cache.FirstOrDefault(m =>
-            FuzzyMatch(m.Side1?.Name, homeTeam, awayTeam) && FuzzyMatch(m.Side2?.Name, awayTeam, homeTeam));
+            NameMatch(m.Side1?.Name, homeTeam, homeShort) && NameMatch(m.Side2?.Name, awayTeam, awayShort));
 
         // Try reversed (Scorebat doesn't always match home/away order)
         match ??= _cache.FirstOrDefault(m =>
-            FuzzyMatch(m.Side1?.Name, awayTeam, homeTeam) && FuzzyMatch(m.Side2?.Name, homeTeam, awayTeam));
+            NameMatch(m.Side1?.Name, awayTeam, awayShort) && NameMatch(m.Side2?.Name, homeTeam, homeShort));
 
         return match?.Videos ?? [];
     }
 
-    private static bool FuzzyMatch(string? scorebatName, string primary, string secondary)
+    private static bool NameMatch(string? scorebatName, string dbName, string? shortName)
     {
         if (string.IsNullOrEmpty(scorebatName)) return false;
-        var sb = scorebatName.ToLowerInvariant();
-        var p = primary.ToLowerInvariant();
-        var s = secondary.ToLowerInvariant();
-        return sb.Contains(p) || p.Contains(sb)
-            || sb.Contains(s) || s.Contains(sb);
+        var sb = Normalize(scorebatName);
+        var db = Normalize(dbName);
+        if (sb.Contains(db) || db.Contains(sb)) return true;
+        if (shortName is not null)
+        {
+            var sn = Normalize(shortName);
+            if (sb.Contains(sn) || sn.Contains(sb)) return true;
+        }
+        return false;
     }
+
+    private static string Normalize(string name) =>
+        name.ToLowerInvariant()
+            .Replace(" fc", "").Replace(" afc", "")
+            .Trim();
 }
 
 public class ScoreBatMatch

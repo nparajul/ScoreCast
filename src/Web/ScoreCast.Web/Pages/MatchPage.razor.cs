@@ -366,7 +366,9 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         if (_highlights is not null || _match is null) return;
         _highlightsLoading = true;
         StateHasChanged();
-        _highlights = await ScoreBat.GetHighlightsAsync(_match.HomeTeamName, _match.AwayTeamName);
+        _highlights = await ScoreBat.GetHighlightsAsync(
+            _match.HomeTeamName, _match.AwayTeamName,
+            _match.HomeTeamShortName, _match.AwayTeamShortName);
         _highlightsLoading = false;
         await InvokeAsync(StateHasChanged);
     }
