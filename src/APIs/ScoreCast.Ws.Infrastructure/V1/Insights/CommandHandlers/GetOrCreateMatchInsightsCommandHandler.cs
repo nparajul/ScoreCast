@@ -143,22 +143,25 @@ internal sealed record GetOrCreateMatchInsightsCommandHandler(
 
     private static async Task EnrichWithPoisson(List<MatchData> matches, List<MatchInsightResult> insights, CancellationToken ct)
     {
-        var tasks = matches.Select(m => new GetMatchPredictionQuery(m.Id).ExecuteAsync(ct)).ToList();
-        var results = await Task.WhenAll(tasks);
-        for (var i = 0; i < results.Length && i < insights.Count; i++)
+        for (var i = 0; i < matches.Count && i < insights.Count; i++)
         {
-            if (results[i] is not { Success: true, Data: { } p }) continue;
-            var top = p.TopScorelines.FirstOrDefault();
-            insights[i] = insights[i] with
+            try
             {
-                HomeWinPct = p.HomeWinPct,
-                DrawPct = p.DrawPct,
-                AwayWinPct = p.AwayWinPct,
-                HomeXg = p.HomeExpectedGoals,
-                AwayXg = p.AwayExpectedGoals,
-                TopScoreline = top is not null ? $"{top.Home}-{top.Away}" : null,
-                TopScorelinePct = top?.Pct
-            };
+                var result = await new GetMatchPredictionQuery(matches[i].Id).ExecuteAsync(ct);
+                if (result is not { Success: true, Data: { } p }) continue;
+                var top = p.TopScorelines.FirstOrDefault();
+                insights[i] = insights[i] with
+                {
+                    HomeWinPct = p.HomeWinPct,
+                    DrawPct = p.DrawPct,
+                    AwayWinPct = p.AwayWinPct,
+                    HomeXg = p.HomeExpectedGoals,
+                    AwayXg = p.AwayExpectedGoals,
+                    TopScoreline = top is not null ? $"{top.Home}-{top.Away}" : null,
+                    TopScorelinePct = top?.Pct
+                };
+            }
+            catch { /* prediction failed for this match, keep form-based values */ }
         }
     }
 
