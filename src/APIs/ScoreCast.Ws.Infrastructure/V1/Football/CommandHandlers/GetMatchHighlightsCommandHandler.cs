@@ -8,6 +8,7 @@ using ScoreCast.Ws.Application;
 using ScoreCast.Ws.Application.V1.Football.Commands;
 using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
+using ScoreCast.Shared.Enums;
 
 namespace ScoreCast.Ws.Infrastructure.V1.Football.CommandHandlers;
 
@@ -21,16 +22,6 @@ internal sealed record GetMatchHighlightsCommandHandler(
     public async Task<ScoreCastResponse<MatchHighlightsResult>> ExecuteAsync(
         GetMatchHighlightsCommand query, CancellationToken ct)
     {
-        // Check DB cache first
-        var cached = await DbContext.MatchHighlights
-            .AsNoTracking()
-            .Where(h => h.MatchId == query.MatchId)
-            .Select(h => new HighlightVideo(h.Title, h.EmbedHtml))
-            .ToListAsync(ct);
-
-        if (cached.Count > 0)
-            return ScoreCastResponse<MatchHighlightsResult>.Ok(new MatchHighlightsResult(cached));
-
         // Fetch match info for name matching
         var match = await DbContext.Matches
             .AsNoTracking()
@@ -40,12 +31,28 @@ internal sealed record GetMatchHighlightsCommandHandler(
                 HomeName = m.HomeTeam.Name,
                 AwayName = m.AwayTeam.Name,
                 HomeShort = m.HomeTeam.ShortName,
-                AwayShort = m.AwayTeam.ShortName
+                AwayShort = m.AwayTeam.ShortName,
+                m.Status
             })
             .FirstOrDefaultAsync(ct);
 
         if (match is null)
             return ScoreCastResponse<MatchHighlightsResult>.Ok(Empty);
+
+        var isLive = match.Status == MatchStatus.Live;
+
+        // Check DB cache first (skip for live — goals still coming in)
+        if (!isLive)
+        {
+            var cached = await DbContext.MatchHighlights
+                .AsNoTracking()
+                .Where(h => h.MatchId == query.MatchId)
+                .Select(h => new HighlightVideo(h.Title, h.EmbedHtml))
+                .ToListAsync(ct);
+
+            if (cached.Count > 0)
+                return ScoreCastResponse<MatchHighlightsResult>.Ok(new MatchHighlightsResult(cached));
+        }
 
         // Fetch Scorebat feed
         List<ScoreBatMatch> feed;
@@ -68,26 +75,39 @@ internal sealed record GetMatchHighlightsCommandHandler(
                 NameMatch(m.Side1?.Name, match.AwayName, match.AwayShort)
                 && NameMatch(m.Side2?.Name, match.HomeName, match.HomeShort));
 
-        if (found is null || found.Videos.Count == 0)
+        if (found is null || (found.Videos.Count == 0 && found.Embed is null))
             return ScoreCastResponse<MatchHighlightsResult>.Ok(Empty);
 
-        // Cache in DB
-        foreach (var v in found.Videos.Where(v => v.Embed is not null))
+        // Cache in DB — match embed (goals page) + individual video clips
+        // Skip caching for live matches — goals still coming in
+        var videos = new List<HighlightVideo>();
+
+        if (found.Embed is not null)
         {
-            DbContext.MatchHighlights.Add(new MatchHighlight
-            {
-                MatchId = query.MatchId,
-                Title = v.Title ?? "Highlights",
-                EmbedHtml = v.Embed!
-            });
+            videos.Add(new HighlightVideo("Goals", found.Embed));
+            if (!isLive)
+                DbContext.MatchHighlights.Add(new MatchHighlight
+                {
+                    MatchId = query.MatchId,
+                    Title = "Goals",
+                    EmbedHtml = found.Embed
+                });
         }
 
-        await UnitOfWork.SaveChangesAsync(nameof(GetMatchHighlightsCommand), ct);
+        foreach (var v in found.Videos.Where(v => v.Embed is not null))
+        {
+            videos.Add(new HighlightVideo(v.Title ?? "Highlights", v.Embed!));
+            if (!isLive)
+                DbContext.MatchHighlights.Add(new MatchHighlight
+                {
+                    MatchId = query.MatchId,
+                    Title = v.Title ?? "Highlights",
+                    EmbedHtml = v.Embed!
+                });
+        }
 
-        var videos = found.Videos
-            .Where(v => v.Embed is not null)
-            .Select(v => new HighlightVideo(v.Title ?? "Highlights", v.Embed!))
-            .ToList();
+        if (!isLive)
+            await UnitOfWork.SaveChangesAsync(nameof(GetMatchHighlightsCommand), ct);
 
         return ScoreCastResponse<MatchHighlightsResult>.Ok(new MatchHighlightsResult(videos));
     }
@@ -112,6 +132,7 @@ internal sealed record GetMatchHighlightsCommandHandler(
 
 file class ScoreBatMatch
 {
+    [JsonPropertyName("embed")] public string? Embed { get; set; }
     [JsonPropertyName("side1")] public ScoreBatSide? Side1 { get; set; }
     [JsonPropertyName("side2")] public ScoreBatSide? Side2 { get; set; }
     [JsonPropertyName("videos")] public List<ScoreBatVideo> Videos { get; set; } = [];

@@ -85,7 +85,7 @@
 
         @* Tabs *@
         @{
-            var tabs = _match.Status == nameof(MatchStatus.Finished)
+            var tabs = _match.Status is nameof(MatchStatus.Finished) or nameof(MatchStatus.Live)
                 ? new[] { "Events", "Lineups", "Stats", "Highlights", "Table" }
                 : new[] { "Events", "Lineups", "Stats", "Table" };
         }
@@ -653,10 +653,9 @@
                 @foreach (var video in _highlights.Videos)
                 {
                     <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;margin-bottom:10px;">
-                        @if (video.Title is not null)
-                        {
-                            <div style="padding:10px 14px;font-weight:700;font-size:13px;">🎬 @video.Title</div>
-                        }
+                        <div style="padding:10px 14px;font-weight:700;font-size:13px;">
+                            @(video.Title == "Goals" ? "⚽ Goals" : "🎬 " + video.Title)
+                        </div>
                         <div style="border-top:1px solid var(--mud-palette-divider);">
                             @((MarkupString)(video.EmbedHtml ?? ""))
                         </div>

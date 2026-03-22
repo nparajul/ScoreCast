@@ -362,7 +362,9 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
 
     private async Task LoadHighlightsAsync()
     {
-        if (_highlights is not null || _match is null) return;
+        // For live matches, always refetch (new goals may appear)
+        if (_highlights is not null && _match?.Status != nameof(MatchStatus.Live)) return;
+        if (_match is null) return;
         _highlightsLoading = true;
         StateHasChanged();
         var resp = await Api.GetMatchHighlightsAsync(MatchId, CancellationToken.None);
