@@ -11,6 +11,8 @@ public static class ComponentServiceExtensions
         services.AddScoped<IAlertService, AlertService>();
         services.AddScoped<IRoleNavigationService, RoleNavigationService>();
         services.AddScoped<IClientTimeProvider, ClientTimeProvider>();
+        services.AddScoped(sp => new HttpClient());
+        services.AddScoped<IScoreBatService, ScoreBatService>();
         return services;
     }
 }

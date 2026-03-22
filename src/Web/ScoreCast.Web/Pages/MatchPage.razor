@@ -84,11 +84,16 @@
         </MudPaper>
 
         @* Tabs *@
+        @{
+            var tabs = _match.Status == nameof(MatchStatus.Finished)
+                ? new[] { "Events", "Lineups", "Stats", "Highlights", "Table" }
+                : new[] { "Events", "Lineups", "Stats", "Table" };
+        }
         <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:3px;margin:12px 0;">
-            @foreach (var tab in new[] { "Events", "Lineups", "Stats", "Table" })
+            @foreach (var tab in tabs)
             {
                 var isActive = _activeTab == tab;
-                <div @onclick="@(() => { _activeTab = tab; if (tab == "Stats" && _extras is null) _ = LoadExtrasAsync(); })"
+                <div @onclick="@(() => { _activeTab = tab; if (tab == "Stats" && _extras is null) _ = LoadExtrasAsync(); if (tab == "Highlights") _ = LoadHighlightsAsync(); })"
                      style="flex:1;text-align:center;padding:8px 0;border-radius:24px;font-size:0.8rem;font-weight:700;cursor:pointer;
                             background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
                             color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
@@ -631,6 +636,41 @@
                         </div>
                     </MudPaper>
                 }
+            }
+        }
+
+        @* Highlights Tab *@
+        @if (_activeTab == "Highlights")
+        {
+            @if (_highlightsLoading)
+            {
+                <div style="text-align:center;padding:32px;">
+                    <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                </div>
+            }
+            else if (_highlights is { Count: > 0 })
+            {
+                @foreach (var video in _highlights)
+                {
+                    <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;margin-bottom:10px;">
+                        @if (video.Title is not null)
+                        {
+                            <div style="padding:10px 14px;font-weight:700;font-size:13px;">🎬 @video.Title</div>
+                        }
+                        <div style="border-top:1px solid var(--mud-palette-divider);">
+                            @((MarkupString)(video.Embed ?? ""))
+                        </div>
+                    </MudPaper>
+                }
+                <div style="text-align:center;font-size:10px;color:var(--mud-palette-text-secondary);padding:4px 0 8px;">
+                    Powered by ScoreBat
+                </div>
+            }
+            else
+            {
+                <MudPaper Elevation="1" Style="border-radius:12px;padding:24px;text-align:center;">
+                    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">No highlights available yet</MudText>
+                </MudPaper>
             }
         }
 

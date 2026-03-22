@@ -13,9 +13,12 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     [Inject] private ILoadingService Loading { get; set; } = null!;
     [Inject] private IClientTimeProvider ClientTime { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
+    [Inject] private IScoreBatService ScoreBat { get; set; } = null!;
 
     private MatchPageResult? _match;
     private MatchExtrasResult? _extras;
+    private List<ScoreBatVideo>? _highlights;
+    private bool _highlightsLoading;
     private bool _loaded;
     private CancellationTokenSource? _pollCts;
     private System.Timers.Timer? _clockTimer;
@@ -355,6 +358,16 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         {
             _extras = new MatchExtrasResult([], [], [], null, new CommunityPredictions(0, 0, 0, 0, null, 0), [], []);
         }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadHighlightsAsync()
+    {
+        if (_highlights is not null || _match is null) return;
+        _highlightsLoading = true;
+        StateHasChanged();
+        _highlights = await ScoreBat.GetHighlightsAsync(_match.HomeTeamName, _match.AwayTeamName);
+        _highlightsLoading = false;
         await InvokeAsync(StateHasChanged);
     }
 
