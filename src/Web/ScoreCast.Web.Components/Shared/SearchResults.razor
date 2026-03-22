@@ -8,7 +8,7 @@
 else
 {
     var items = Filtered.Count > 0 ? Filtered
-        : (string.IsNullOrWhiteSpace(Query) && Suggestions.Count > 0) ? Suggestions
+        : (string.IsNullOrWhiteSpace(Query) && Trending.Count > 0) ? Trending
         : null;
 
     @if (items is not null)
