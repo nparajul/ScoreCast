@@ -79,6 +79,13 @@ public partial class MainLayout : IDisposable
 
     private async Task GoBack() => await Js.InvokeVoidAsync("history.back");
 
+    private bool IsActive(string? url)
+    {
+        if (url is null) return false;
+        var path = "/" + Nav.ToBaseRelativePath(Nav.Uri).TrimEnd('/');
+        return path.StartsWith(url, StringComparison.OrdinalIgnoreCase);
+    }
+
     private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
         UpdateBackButton();
