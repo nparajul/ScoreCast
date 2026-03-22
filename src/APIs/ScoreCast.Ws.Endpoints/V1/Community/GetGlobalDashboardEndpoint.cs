@@ -14,7 +14,8 @@ public sealed class GetGlobalDashboardEndpoint : EndpointWithoutRequest<ScoreCas
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var result = await new GetGlobalDashboardQuery().ExecuteAsync(ct);
+        var code = Query<string>("competition", isRequired: false);
+        var result = await new GetGlobalDashboardQuery(code).ExecuteAsync(ct);
         await Send.OkAsync(result, ct);
     }
 }

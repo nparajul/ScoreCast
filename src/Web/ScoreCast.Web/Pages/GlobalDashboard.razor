@@ -14,6 +14,26 @@
     }
     else
     {
+        @if (_competitions.Count > 1)
+        {
+            <div class="d-flex gap-2 mb-3" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+                @foreach (var comp in _competitions)
+                {
+                    var active = comp.Code == _selectedCompetition?.Code;
+                    <MudChip T="string" Size="Size.Small"
+                             Variant="@(active ? Variant.Filled : Variant.Outlined)"
+                             Color="@(active ? Color.Tertiary : Color.Default)"
+                             Style="@(active ? "font-weight:700;" : "opacity:0.7;")"
+                             OnClick="@(() => OnCompetitionChanged(comp))">
+                        @if (!string.IsNullOrEmpty(comp.LogoUrl))
+                        {
+                            <img src="@comp.LogoUrl" alt="" style="width:16px;height:16px;margin-right:4px;object-fit:contain;" />
+                        }
+                        @comp.Name
+                    </MudChip>
+                }
+            </div>
+        }
         @* ── Gameweek Countdown ── *@
         <MudPaper Class="mb-3 pa-4" Elevation="1" Style="border-radius:12px;background:linear-gradient(135deg,#0A1929 0%,#1a2d45 100%);text-align:center;">
             <MudText Typo="Typo.overline" Style="letter-spacing:0.15em;color:rgba(255,255,255,0.7);">GAMEWEEK @_data.Countdown.GameweekNumber</MudText>

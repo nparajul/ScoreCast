@@ -12,7 +12,7 @@ public partial class GlobalStats
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await Api.GetGlobalDashboardAsync(default);
+        var result = await Api.GetGlobalDashboardAsync(null, default);
         if (result is { Success: true, Data: not null })
             _stats = result.Data.Community;
         _loaded = true;

@@ -14,7 +14,9 @@ internal sealed record GetGlobalLeaderboardQueryHandler(
 {
     public async Task<ScoreCastResponse<GlobalLeaderboardResult>> ExecuteAsync(GetGlobalLeaderboardQuery query, CancellationToken ct)
     {
-        var competitionCode = await ResolveCompetitionCode(ct);
+        var competitionCode = !string.IsNullOrEmpty(query.CompetitionCode)
+            ? query.CompetitionCode
+            : await ResolveCompetitionCode(ct);
 
         var season = await DbContext.Seasons
             .FirstOrDefaultAsync(s => s.Competition.Code == competitionCode && s.IsCurrent, ct);

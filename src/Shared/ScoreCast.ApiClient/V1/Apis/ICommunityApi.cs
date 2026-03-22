@@ -7,8 +7,8 @@ namespace ScoreCast.ApiClient.V1.Apis;
 public partial interface IScoreCastApiClient
 {
     [Get("/api/v1/community/dashboard")]
-    Task<ScoreCastResponse<GlobalDashboardResult>> GetGlobalDashboardAsync(CancellationToken ct);
+    Task<ScoreCastResponse<GlobalDashboardResult>> GetGlobalDashboardAsync([Query] string? competition, CancellationToken ct);
 
     [Get("/api/v1/community/leaderboard")]
-    Task<ScoreCastResponse<GlobalLeaderboardResult>> GetGlobalLeaderboardAsync(CancellationToken ct);
+    Task<ScoreCastResponse<GlobalLeaderboardResult>> GetGlobalLeaderboardAsync([Query] string? competition, CancellationToken ct);
 }

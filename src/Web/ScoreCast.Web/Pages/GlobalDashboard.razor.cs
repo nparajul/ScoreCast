@@ -13,15 +13,41 @@ public partial class GlobalDashboard : IDisposable
     private string _countdownText = "";
     private bool _allLocked;
     private Timer? _timer;
+    private List<CompetitionResult> _competitions = [];
+    private CompetitionResult? _selectedCompetition;
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await Api.GetGlobalDashboardAsync(default);
+        var compsTask = Api.GetCompetitionsAsync(default);
+        var defaultTask = Api.GetDefaultCompetitionAsync(default);
+        await Task.WhenAll(compsTask, defaultTask);
+
+        if (compsTask.Result is { Success: true, Data: not null })
+            _competitions = compsTask.Result.Data;
+
+        var defaultCode = defaultTask.Result is { Success: true, Data: not null }
+            ? defaultTask.Result.Data.Code : null;
+        _selectedCompetition = _competitions.FirstOrDefault(c => c.Code == defaultCode) ?? _competitions.FirstOrDefault();
+
+        await LoadData();
+        _timer = new Timer(_ => { UpdateCountdown(); InvokeAsync(StateHasChanged); }, null, 0, 1000);
+    }
+
+    private async Task OnCompetitionChanged(CompetitionResult comp)
+    {
+        _selectedCompetition = comp;
+        _loaded = false;
+        StateHasChanged();
+        await LoadData();
+        StateHasChanged();
+    }
+
+    private async Task LoadData()
+    {
+        var result = await Api.GetGlobalDashboardAsync(_selectedCompetition?.Code, default);
         if (result is { Success: true, Data: not null })
             _data = result.Data;
         _loaded = true;
-
-        _timer = new Timer(_ => { UpdateCountdown(); InvokeAsync(StateHasChanged); }, null, 0, 1000);
     }
 
     private void UpdateCountdown()

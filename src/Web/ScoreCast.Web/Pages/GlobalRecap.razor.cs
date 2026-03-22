@@ -12,7 +12,7 @@ public partial class GlobalRecap
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await Api.GetGlobalDashboardAsync(default);
+        var result = await Api.GetGlobalDashboardAsync(null, default);
         if (result is { Success: true, Data.LastGameweekRecap: not null })
             _recap = result.Data.LastGameweekRecap;
         _loaded = true;

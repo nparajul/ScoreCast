@@ -12,7 +12,7 @@ public partial class GlobalLeaderboard
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await Api.GetGlobalLeaderboardAsync(default);
+        var result = await Api.GetGlobalLeaderboardAsync(null, default);
         if (result is { Success: true, Data: not null })
             _entries = result.Data.Entries;
         _loaded = true;
