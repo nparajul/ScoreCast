@@ -1,9 +1,9 @@
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
+using ScoreCast.Ws.Application.V1.Config.Queries;
 using ScoreCast.Ws.Application.V1.Football.Queries;
 using ScoreCast.Ws.Application.V1.Interfaces;
 
@@ -14,16 +14,7 @@ internal sealed record GetGlobalLeaderboardQueryHandler(
 {
     public async Task<ScoreCastResponse<GlobalLeaderboardResult>> ExecuteAsync(GetGlobalLeaderboardQuery query, CancellationToken ct)
     {
-        var competitionCode = query.CompetitionCode;
-        if (competitionCode == "PL")
-        {
-            var configJson = await DbContext.AppConfigs
-                .Where(c => c.Key == AppConfigKeys.DefaultCompetition)
-                .Select(c => c.Value)
-                .FirstOrDefaultAsync(ct);
-            if (configJson is not null)
-                competitionCode = configJson.RootElement.GetProperty("competitionCode").GetString() ?? "PL";
-        }
+        var competitionCode = await ResolveCompetitionCode(ct);
 
         var season = await DbContext.Seasons
             .FirstOrDefaultAsync(s => s.Competition.Code == competitionCode && s.IsCurrent, ct);
@@ -59,5 +50,11 @@ internal sealed record GetGlobalLeaderboardQueryHandler(
             i + 1, userNames.GetValueOrDefault(u.UserId, "Anonymous"), u.Points, u.Exact, u.Total)).ToList();
 
         return ScoreCastResponse<GlobalLeaderboardResult>.Ok(new GlobalLeaderboardResult(entries));
+    }
+
+    private static async Task<string> ResolveCompetitionCode(CancellationToken ct)
+    {
+        var config = await new GetAppConfigQuery(AppConfigKeys.DefaultCompetition).ExecuteAsync(ct);
+        return config?.RootElement.GetProperty("competitionCode").GetString() ?? CompetitionCodes.PremierLeague;
     }
 }

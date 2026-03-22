@@ -5,6 +5,7 @@ using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
 using ScoreCast.Shared.Types;
+using ScoreCast.Ws.Application.V1.Config.Queries;
 using ScoreCast.Ws.Application.V1.Football.Queries;
 using ScoreCast.Ws.Application.V1.Interfaces;
 
@@ -15,16 +16,7 @@ internal sealed record GetGlobalDashboardQueryHandler(
 {
     public async Task<ScoreCastResponse<GlobalDashboardResult>> ExecuteAsync(GetGlobalDashboardQuery query, CancellationToken ct)
     {
-        var competitionCode = query.CompetitionCode;
-        if (competitionCode == "PL")
-        {
-            var configJson = await DbContext.AppConfigs
-                .Where(c => c.Key == AppConfigKeys.DefaultCompetition)
-                .Select(c => c.Value)
-                .FirstOrDefaultAsync(ct);
-            if (configJson is not null)
-                competitionCode = configJson.RootElement.GetProperty("competitionCode").GetString() ?? "PL";
-        }
+        var competitionCode = await ResolveCompetitionCode(ct);
 
         var season = await DbContext.Seasons
             .FirstOrDefaultAsync(s => s.Competition.Code == competitionCode && s.IsCurrent, ct);
@@ -212,5 +204,11 @@ internal sealed record GetGlobalDashboardQueryHandler(
 
         return ScoreCastResponse<GlobalDashboardResult>.Ok(
             new GlobalDashboardResult(countdown, upcomingPredictions, topPredictors, community, recap));
+    }
+
+    private static async Task<string> ResolveCompetitionCode(CancellationToken ct)
+    {
+        var config = await new GetAppConfigQuery(AppConfigKeys.DefaultCompetition).ExecuteAsync(ct);
+        return config?.RootElement.GetProperty("competitionCode").GetString() ?? CompetitionCodes.PremierLeague;
     }
 }
