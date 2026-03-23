@@ -656,13 +656,15 @@
                         <div style="padding:10px 14px;font-weight:700;font-size:13px;">
                             @(video.Title == "Goals" ? "⚽ Goals" : "🎬 " + video.Title)
                         </div>
-                        <div style="border-top:1px solid var(--mud-palette-divider);">
-                            @((MarkupString)(video.EmbedHtml ?? ""))
+                        <div style="border-top:1px solid var(--mud-palette-divider);position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
+                            <div style="position:absolute;top:0;left:0;width:100%;height:100%;">
+                                @((MarkupString)(video.EmbedHtml ?? ""))
+                            </div>
                         </div>
                     </MudPaper>
                 }
                 <div style="text-align:center;font-size:10px;color:var(--mud-palette-text-secondary);padding:4px 0 8px;">
-                    Powered by ScoreBat
+                    Powered by YouTube
                 </div>
             }
             else

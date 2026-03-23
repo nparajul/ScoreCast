@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
@@ -10,141 +11,151 @@ using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
 using ScoreCast.Shared.Enums;
 
+using ScoreCast.Shared.Types;
+
 namespace ScoreCast.Ws.Infrastructure.V1.Football.CommandHandlers;
 
-internal sealed record GetMatchHighlightsCommandHandler(
+internal sealed partial record GetMatchHighlightsCommandHandler(
     IScoreCastDbContext DbContext,
     IUnitOfWork UnitOfWork,
     IHttpClientFactory HttpClientFactory) : ICommandHandler<GetMatchHighlightsCommand, ScoreCastResponse<MatchHighlightsResult>>
 {
     private static readonly MatchHighlightsResult Empty = new([]);
+    private static readonly Dictionary<long, DateTime> _missCache = new();
 
     public async Task<ScoreCastResponse<MatchHighlightsResult>> ExecuteAsync(
         GetMatchHighlightsCommand query, CancellationToken ct)
     {
-        // Fetch match info for name matching
         var match = await DbContext.Matches
             .AsNoTracking()
             .Where(m => m.Id == query.MatchId)
-            .Select(m => new
-            {
-                HomeName = m.HomeTeam.Name,
-                AwayName = m.AwayTeam.Name,
-                HomeShort = m.HomeTeam.ShortName,
-                AwayShort = m.AwayTeam.ShortName,
-                m.Status
-            })
+            .Select(m => new { HomeName = m.HomeTeam.Name, AwayName = m.AwayTeam.Name, HomeShort = m.HomeTeam.ShortName, AwayShort = m.AwayTeam.ShortName, m.Status })
             .FirstOrDefaultAsync(ct);
 
         if (match is null)
             return ScoreCastResponse<MatchHighlightsResult>.Ok(Empty);
 
-        var isLive = match.Status == MatchStatus.Live;
+        // Live matches: fetch from Scorebat
+        if (match.Status == MatchStatus.Live)
+            return await FetchScorebatLiveAsync(match.HomeName, match.HomeShort, match.AwayName, match.AwayShort, ct);
 
-        // Check DB cache first (skip for live — goals still coming in)
-        if (!isLive)
+        if (match.Status != MatchStatus.Finished)
+            return ScoreCastResponse<MatchHighlightsResult>.Ok(Empty);
+
+        var cached = await DbContext.MatchHighlights
+            .AsNoTracking()
+            .Where(h => h.MatchId == query.MatchId)
+            .OrderByDescending(h => h.Type) // Highlight > Short
+            .Select(h => new HighlightVideo(h.Title, h.EmbedHtml))
+            .ToListAsync(ct);
+
+        // Prefer full highlights, fall back to shorts
+        var highlight = cached.FirstOrDefault();
+        if (highlight is not null)
+            return ScoreCastResponse<MatchHighlightsResult>.Ok(new MatchHighlightsResult([highlight]));
+
+        // Skip if we already searched recently and found nothing
+        lock (_missCache)
         {
-            var cached = await DbContext.MatchHighlights
-                .AsNoTracking()
-                .Where(h => h.MatchId == query.MatchId)
-                .Select(h => new HighlightVideo(h.Title, h.EmbedHtml))
-                .ToListAsync(ct);
-
-            if (cached.Count > 0)
-                return ScoreCastResponse<MatchHighlightsResult>.Ok(new MatchHighlightsResult(cached));
+            if (_missCache.TryGetValue(query.MatchId, out var lastMiss) &&
+                (ScoreCastDateTime.Now.Value - lastMiss).TotalMinutes < 60)
+                return ScoreCastResponse<MatchHighlightsResult>.Ok(Empty);
         }
 
-        // Fetch Scorebat feed
-        List<ScoreBatMatch> feed;
+        // Scrape YouTube search
         try
         {
+            var home = Normalize(match.HomeName);
+            var away = Normalize(match.AwayName);
             var http = HttpClientFactory.CreateClient();
-            feed = await http.GetFromJsonAsync<List<ScoreBatMatch>>(
-                "https://www.scorebat.com/video-api/v1/", ct) ?? [];
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0");
+            var html = await http.GetStringAsync(
+                $"https://www.youtube.com/results?search_query={Uri.EscapeDataString($"{home} vs {away} highlights Premier League")}", ct);
+
+            string? vid = null;
+            foreach (var m in VideoIdRegex().Matches(html).Cast<System.Text.RegularExpressions.Match>())
+            {
+                var candidate = m.Groups[1].Value;
+                var resp = await http.GetAsync(
+                    $"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={candidate}&format=json", ct);
+                if (resp.IsSuccessStatusCode) { vid = candidate; break; }
+            }
+
+            if (vid is null)
+            {
+                lock (_missCache) { _missCache[query.MatchId] = ScoreCastDateTime.Now.Value; }
+                return ScoreCastResponse<MatchHighlightsResult>.Ok(Empty);
+            }
+
+            var title = "Highlights";
+            var embedHtml = $"<iframe src='https://www.youtube-nocookie.com/embed/{vid}?autoplay=1&amp;modestbranding=1&amp;rel=0&amp;iv_load_policy=3&amp;playsinline=1&amp;controls=1' frameborder='0' allowfullscreen allow='autoplay; fullscreen; encrypted-media' style='width:100%;height:100%;'></iframe>";
+
+            DbContext.MatchHighlights.Add(new MatchHighlight { MatchId = query.MatchId, Title = title, EmbedHtml = embedHtml, Type = ScoreCast.Shared.Enums.HighlightType.Highlight });
+            await UnitOfWork.SaveChangesAsync(nameof(GetMatchHighlightsCommand), ct);
+
+            return ScoreCastResponse<MatchHighlightsResult>.Ok(
+                new MatchHighlightsResult([new HighlightVideo(title, embedHtml)]));
         }
         catch
         {
             return ScoreCastResponse<MatchHighlightsResult>.Ok(Empty);
         }
-
-        // Find matching entry
-        var found = feed.FirstOrDefault(m =>
-                NameMatch(m.Side1?.Name, match.HomeName, match.HomeShort)
-                && NameMatch(m.Side2?.Name, match.AwayName, match.AwayShort))
-            ?? feed.FirstOrDefault(m =>
-                NameMatch(m.Side1?.Name, match.AwayName, match.AwayShort)
-                && NameMatch(m.Side2?.Name, match.HomeName, match.HomeShort));
-
-        if (found is null || (found.Videos.Count == 0 && found.Embed is null))
-            return ScoreCastResponse<MatchHighlightsResult>.Ok(Empty);
-
-        // Cache in DB — match embed (goals page) + individual video clips
-        // Skip caching for live matches — goals still coming in
-        var videos = new List<HighlightVideo>();
-
-        if (found.Embed is not null)
-        {
-            videos.Add(new HighlightVideo("Goals", found.Embed));
-            if (!isLive)
-                DbContext.MatchHighlights.Add(new MatchHighlight
-                {
-                    MatchId = query.MatchId,
-                    Title = "Goals",
-                    EmbedHtml = found.Embed
-                });
-        }
-
-        foreach (var v in found.Videos.Where(v => v.Embed is not null))
-        {
-            videos.Add(new HighlightVideo(v.Title ?? "Highlights", v.Embed!));
-            if (!isLive)
-                DbContext.MatchHighlights.Add(new MatchHighlight
-                {
-                    MatchId = query.MatchId,
-                    Title = v.Title ?? "Highlights",
-                    EmbedHtml = v.Embed!
-                });
-        }
-
-        if (!isLive)
-            await UnitOfWork.SaveChangesAsync(nameof(GetMatchHighlightsCommand), ct);
-
-        return ScoreCastResponse<MatchHighlightsResult>.Ok(new MatchHighlightsResult(videos));
     }
 
-    private static bool NameMatch(string? scorebatName, string dbName, string? shortName)
+    private static string Normalize(string name) =>
+        name.Replace(" FC", "").Replace(" AFC", "").Trim();
+
+    private static string NormalizeLower(string name) =>
+        name.ToLowerInvariant().Replace(" fc", "").Replace(" afc", "").Trim();
+
+    private async Task<ScoreCastResponse<MatchHighlightsResult>> FetchScorebatLiveAsync(
+        string homeName, string? homeShort, string awayName, string? awayShort, CancellationToken ct)
     {
-        if (string.IsNullOrEmpty(scorebatName)) return false;
-        var sb = Normalize(scorebatName);
-        var db = Normalize(dbName);
+        try
+        {
+            var http = HttpClientFactory.CreateClient();
+            var feed = await http.GetFromJsonAsync<List<SbMatch>>(
+                "https://www.scorebat.com/video-api/v1/", ct) ?? [];
+
+            var found = feed.FirstOrDefault(m =>
+                SbNameMatch(m.Side1?.Name, homeName, homeShort) &&
+                SbNameMatch(m.Side2?.Name, awayName, awayShort));
+
+            if (found?.Embed is null)
+                return ScoreCastResponse<MatchHighlightsResult>.Ok(Empty);
+
+            return ScoreCastResponse<MatchHighlightsResult>.Ok(
+                new MatchHighlightsResult([new HighlightVideo("🔴 LIVE Goals", found.Embed)]));
+        }
+        catch { return ScoreCastResponse<MatchHighlightsResult>.Ok(Empty); }
+    }
+
+    private static bool SbNameMatch(string? sbName, string dbName, string? shortName)
+    {
+        if (string.IsNullOrEmpty(sbName)) return false;
+        var sb = NormalizeLower(sbName);
+        var db = NormalizeLower(dbName);
         if (sb.Contains(db) || db.Contains(sb)) return true;
         if (shortName is not null)
         {
-            var sn = Normalize(shortName);
+            var sn = NormalizeLower(shortName);
             if (sb.Contains(sn) || sn.Contains(sb)) return true;
         }
         return false;
     }
 
-    private static string Normalize(string name) =>
-        name.ToLowerInvariant().Replace(" fc", "").Replace(" afc", "").Trim();
+    [GeneratedRegex("\"videoId\":\"([^\"]+)\"")]
+    private static partial Regex VideoIdRegex();
 }
 
-file class ScoreBatMatch
+file class SbMatch
 {
     [JsonPropertyName("embed")] public string? Embed { get; set; }
-    [JsonPropertyName("side1")] public ScoreBatSide? Side1 { get; set; }
-    [JsonPropertyName("side2")] public ScoreBatSide? Side2 { get; set; }
-    [JsonPropertyName("videos")] public List<ScoreBatVideo> Videos { get; set; } = [];
+    [JsonPropertyName("side1")] public SbSide? Side1 { get; set; }
+    [JsonPropertyName("side2")] public SbSide? Side2 { get; set; }
 }
 
-file class ScoreBatSide
+file class SbSide
 {
     [JsonPropertyName("name")] public string? Name { get; set; }
-}
-
-file class ScoreBatVideo
-{
-    [JsonPropertyName("title")] public string? Title { get; set; }
-    [JsonPropertyName("embed")] public string? Embed { get; set; }
 }

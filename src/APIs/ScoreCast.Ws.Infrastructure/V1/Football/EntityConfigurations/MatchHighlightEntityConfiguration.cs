@@ -16,9 +16,10 @@ internal sealed class MatchHighlightEntityConfiguration : BaseEntityConfiguratio
 
         builder.Property(m => m.MatchId).HasColumnName("match_id").HasColumnOrder(order++).IsRequired();
         builder.Property(m => m.Title).HasColumnName("title").HasColumnOrder(order++).IsRequired();
-        builder.Property(m => m.EmbedHtml).HasColumnName("embed_html").HasColumnOrder(order).IsRequired();
+        builder.Property(m => m.EmbedHtml).HasColumnName("embed_html").HasColumnOrder(order++).IsRequired();
+        builder.Property(m => m.Type).HasColumnName("type").HasColumnOrder(order).HasConversion<string>().HasDefaultValue(ScoreCast.Shared.Enums.HighlightType.Highlight).IsRequired();
 
-        builder.HasIndex(m => new { m.MatchId, m.Title }).IsUnique();
+        builder.HasIndex(m => new { m.MatchId, m.Type }).IsUnique();
         builder.HasOne(m => m.Match).WithMany().HasForeignKey(m => m.MatchId);
     }
 }
