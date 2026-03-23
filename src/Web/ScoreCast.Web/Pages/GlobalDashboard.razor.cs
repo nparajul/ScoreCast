@@ -56,7 +56,7 @@ public partial class GlobalDashboard : IDisposable
         var diff = _data.Countdown.Deadline.ToUniversalTime() - ScoreCastDateTime.Now.Value;
         if (diff.TotalSeconds <= 0)
         {
-            _countdownText = "Gameweek in progress";
+            _countdownText = _data.Countdown.IsComplete ? "Gameweek complete ✅" : "Gameweek in progress";
             _allLocked = true;
         }
         else
