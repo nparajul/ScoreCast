@@ -19,6 +19,7 @@ internal sealed record GetAllHighlightsQueryHandler(
             .Take(query.Take + 1)
             .Select(h => new HighlightItem(
                 h.MatchId, h.Match.HomeTeam.Name, h.Match.AwayTeam.Name,
+                h.Match.HomeTeam.ShortName, h.Match.AwayTeam.ShortName,
                 h.Match.HomeTeam.LogoUrl, h.Match.AwayTeam.LogoUrl,
                 h.Match.HomeScore, h.Match.AwayScore, h.Match.KickoffTime,
                 h.Match.Gameweek.Season.Competition.Name,
