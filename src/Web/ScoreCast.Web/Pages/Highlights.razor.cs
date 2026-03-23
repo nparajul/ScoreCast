@@ -13,6 +13,7 @@ public partial class Highlights : ScoreCastComponentBase, IAsyncDisposable
     [Inject] private ILoadingService Loading { get; set; } = null!;
     [Inject] private IClientTimeProvider ClientTime { get; set; } = null!;
     [Inject] private IJSRuntime Js { get; set; } = null!;
+    [Inject] private NavigationManager Nav { get; set; } = null!;
 
     private readonly List<HighlightItem> _items = [];
     private bool _hasMore = true;
@@ -72,8 +73,7 @@ public partial class Highlights : ScoreCastComponentBase, IAsyncDisposable
     private string FormatLocal(DateTime utc, string format) =>
         ClientTime.ToLocal(utc).ToString(format);
 
-    private static string ShortName(string name) =>
-        name.Replace(" FC", "").Replace(" AFC", "").Trim();
+    private void OnClose() => Nav.NavigateTo("/scores");
 
     public async ValueTask DisposeAsync()
     {
