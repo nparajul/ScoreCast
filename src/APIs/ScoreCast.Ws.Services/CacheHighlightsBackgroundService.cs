@@ -211,7 +211,7 @@ public sealed partial class CacheHighlightsBackgroundService(
     private static partial Regex EmbedVideoIdRegex();
 
     private static string BuildEmbed(string vid) =>
-        $"<iframe src='https://www.youtube-nocookie.com/embed/{vid}?autoplay=1&amp;mute=1&amp;modestbranding=1&amp;rel=0&amp;iv_load_policy=3&amp;playsinline=1&amp;controls=1' frameborder='0' allowfullscreen allow='autoplay; fullscreen; encrypted-media' style='width:100%;height:100%;'></iframe>";
+        $"<iframe src='https://www.youtube-nocookie.com/embed/{vid}?autoplay=1&amp;mute=0&amp;modestbranding=1&amp;rel=0&amp;iv_load_policy=3&amp;playsinline=1&amp;controls=1' frameborder='0' allowfullscreen allow='autoplay; fullscreen; encrypted-media' style='width:100%;height:100%;'></iframe>";
 
     private static string Normalize(string name) =>
         name.Replace(" FC", "").Replace(" AFC", "").Trim();
