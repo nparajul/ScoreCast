@@ -14,7 +14,8 @@ internal sealed record GetAllHighlightsQueryHandler(
     {
         var items = await DbContext.MatchHighlights.AsNoTracking()
             .Where(h => h.Type == HighlightType.Short)
-            .OrderByDescending(h => h.Match.KickoffTime)
+            .OrderByDescending(h => h.Match.Gameweek.Number)
+            .ThenBy(_ => Guid.NewGuid())
             .Skip(query.Skip)
             .Take(query.Take + 1)
             .Select(h => new HighlightItem(

@@ -24,9 +24,6 @@ public sealed partial class CacheHighlightsBackgroundService(
     {
         await Task.Delay(TimeSpan.FromMinutes(1), ct);
 
-        // One-time cleanup of private/unavailable videos
-        await PurgeUnavailableAsync(ct);
-
         while (!ct.IsCancellationRequested)
         {
             try
@@ -147,64 +144,6 @@ public sealed partial class CacheHighlightsBackgroundService(
             return null;
         }
         catch { return null; }
-    }
-
-    private async Task PurgeUnavailableAsync(CancellationToken ct)
-    {
-        try
-        {
-            using var scope = scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<IScoreCastDbContext>();
-            var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-            var http = httpClientFactory.CreateClient();
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0");
-
-            var all = await db.MatchHighlights.ToListAsync(ct);
-            var removed = 0;
-
-            foreach (var h in all)
-            {
-                var vidMatch = EmbedVideoIdRegex().Match(h.EmbedHtml);
-                if (!vidMatch.Success) continue;
-                var vid = vidMatch.Groups[1].Value;
-
-                try
-                {
-                    var resp = await http.GetAsync(
-                        $"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={vid}&format=json", ct);
-                    if (!resp.IsSuccessStatusCode)
-                    {
-                        db.MatchHighlights.Remove(h);
-                        removed++;
-                        continue;
-                    }
-
-                    var page = await http.GetStringAsync($"https://www.youtube.com/watch?v={vid}", ct);
-                    if (page.Contains("\"isPrivate\":true") || page.Contains("\"status\":\"ERROR\""))
-                    {
-                        db.MatchHighlights.Remove(h);
-                        removed++;
-                    }
-                }
-                catch
-                {
-                    db.MatchHighlights.Remove(h);
-                    removed++;
-                }
-
-                await Task.Delay(300, ct);
-            }
-
-            if (removed > 0)
-            {
-                await uow.SaveChangesAsync(nameof(CacheHighlightsBackgroundService), ct);
-                logger.LogInformation("Purged {Count} unavailable/private highlights", removed);
-            }
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            logger.LogError(ex, "Purge unavailable highlights failed");
-        }
     }
 
     [GeneratedRegex("embed/([^?'\"]+)")]
