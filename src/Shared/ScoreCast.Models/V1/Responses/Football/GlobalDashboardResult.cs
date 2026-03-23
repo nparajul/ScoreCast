@@ -11,7 +11,8 @@ public record GameweekCountdown(
     int GameweekNumber,
     DateTime Deadline,
     int TotalPredictions,
-    int TotalUsers);
+    int TotalUsers,
+    bool IsComplete = false);
 
 public record MatchPredictionSummary(
     long MatchId,

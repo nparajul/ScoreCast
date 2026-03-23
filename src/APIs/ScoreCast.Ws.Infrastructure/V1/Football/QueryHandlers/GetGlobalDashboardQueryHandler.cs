@@ -49,7 +49,10 @@ internal sealed record GetGlobalDashboardQueryHandler(
             .Where(p => p.Match!.GameweekId == gw.Id && p.SeasonId == seasonId && p.PredictionType == PredictionType.Score)
             .Select(p => p.UserId).Distinct().CountAsync(ct);
 
-        var countdown = new GameweekCountdown(gw?.Number ?? 0, deadline, gwPredictions, gwUsers);
+        var gwComplete = gw is not null && !await DbContext.Matches
+            .AnyAsync(m => m.GameweekId == gw.Id && m.Status != MatchStatus.Finished && m.Status != MatchStatus.Postponed && !m.IsDeleted, ct);
+
+        var countdown = new GameweekCountdown(gw?.Number ?? 0, deadline, gwPredictions, gwUsers, gwComplete);
 
         // 2. Upcoming match prediction summaries
         var upcomingMatchIds = gw is null ? new List<long>() : await DbContext.Matches
