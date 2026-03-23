@@ -1,0 +1,129 @@
+@page "/install"
+
+<PageTitle>Install ScoreCast</PageTitle>
+
+<style>
+    .install-page {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 24px 16px 120px;
+        color: var(--mud-palette-text-primary);
+    }
+    .install-header {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+    .install-note {
+        background: #FFF3E0;
+        border-left: 4px solid #FF6B35;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 24px;
+        font-size: 13px;
+        line-height: 1.5;
+        color: #333;
+    }
+    .install-note strong { color: #FF6B35; }
+    .install-step {
+        margin-bottom: 28px;
+    }
+    .install-step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #FF6B35;
+        color: #fff;
+        font-weight: 800;
+        font-size: 16px;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+    .install-step-title {
+        font-weight: 700;
+        font-size: 16px;
+        vertical-align: middle;
+    }
+    .install-step-desc {
+        margin-top: 8px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--mud-palette-text-secondary);
+    }
+    .install-step img {
+        width: 100%;
+        border-radius: 12px;
+        margin-top: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    }
+    .install-chrome {
+        background: linear-gradient(135deg, #0A1929 0%, #1a2d45 100%);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 24px;
+        text-align: center;
+        color: #fff;
+    }
+    .install-chrome-title {
+        font-weight: 700;
+        font-size: 15px;
+        margin-bottom: 4px;
+    }
+    .install-chrome-sub {
+        font-size: 12px;
+        opacity: 0.7;
+    }
+</style>
+
+<div class="install-page">
+    <div class="install-header">
+        <MudImage Src="scorecast-logo.svg" Alt="ScoreCast" Width="200" Class="mb-2" />
+        <MudText Typo="Typo.h5" Style="font-weight:800;">Install ScoreCast</MudText>
+        <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">
+            Add ScoreCast to your home screen for the best experience
+        </MudText>
+    </div>
+
+    <div class="install-note">
+        <strong>📱 Why not a regular app?</strong><br />
+        Native iOS and Android apps are in development and will be available in a future release.
+        During the beta phase, you can install ScoreCast as a web app — it works just like a native app
+        with its own icon, full-screen mode, and instant access from your home screen.
+    </div>
+
+    <div class="install-chrome">
+        <div class="install-chrome-title">⚡ Use Google Chrome for best results</div>
+        <div class="install-chrome-sub">Chrome provides a smoother install experience and better performance than Safari</div>
+    </div>
+
+    <div class="install-step">
+        <span class="install-step-number">1</span>
+        <span class="install-step-title">Open scorecast.uk in Chrome</span>
+        <div class="install-step-desc">
+            Go to <strong>scorecast.uk</strong> in Google Chrome on your phone.
+            Tap the <strong>Share</strong> button (top right of the URL bar).
+        </div>
+        <img src="images/install-step1.jpeg" alt="Step 1: Tap the share button" />
+    </div>
+
+    <div class="install-step">
+        <span class="install-step-number">2</span>
+        <span class="install-step-title">Add to Home Screen</span>
+        <div class="install-step-desc">
+            Scroll down in the share menu and tap <strong>"Add to Home Screen"</strong>.
+            Then tap <strong>Add</strong> to confirm.
+        </div>
+        <img src="images/install-step2.jpeg" alt="Step 2: Tap Add to Home Screen" />
+    </div>
+
+    <div class="install-step">
+        <span class="install-step-number">3</span>
+        <span class="install-step-title">You're all set! 🎉</span>
+        <div class="install-step-desc">
+            ScoreCast will appear on your home screen as a regular app.
+            Tap it anytime to jump straight in — no browser needed.
+        </div>
+    </div>
+</div>

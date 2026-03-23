@@ -44,15 +44,12 @@ internal sealed partial record GetMatchHighlightsCommandHandler(
 
         var cached = await DbContext.MatchHighlights
             .AsNoTracking()
-            .Where(h => h.MatchId == query.MatchId)
-            .OrderByDescending(h => h.Type) // Highlight > Short
+            .Where(h => h.MatchId == query.MatchId && h.Type == HighlightType.Highlight)
             .Select(h => new HighlightVideo(h.Title, h.EmbedHtml))
             .ToListAsync(ct);
 
-        // Prefer full highlights, fall back to shorts
-        var highlight = cached.FirstOrDefault();
-        if (highlight is not null)
-            return ScoreCastResponse<MatchHighlightsResult>.Ok(new MatchHighlightsResult([highlight]));
+        if (cached.Count > 0)
+            return ScoreCastResponse<MatchHighlightsResult>.Ok(new MatchHighlightsResult(cached));
 
         // Skip if we already searched recently and found nothing
         lock (_missCache)

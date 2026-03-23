@@ -6,7 +6,7 @@ using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
 
-public partial class PointsTable : IDisposable
+public partial class PointsTable : ScoreCastComponentBase, IDisposable
 {
     [Inject] private IScoreCastApiClient Api { get; set; } = null!;
     [Inject] private ILoadingService Loading { get; set; } = null!;
