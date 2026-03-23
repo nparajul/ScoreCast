@@ -88,11 +88,15 @@ internal sealed record CalculateOutcomesCommandHandler(
             // Recalculate best gameweek (including resolved risk play bonus)
             foreach (var user in users)
             {
-                var gwPredPoints = await DbContext.Predictions
+                var gwPreds = await DbContext.Predictions
                     .Where(p => p.UserId == user.Id && p.Outcome != null)
-                    .GroupBy(p => new { p.SeasonId, p.Match!.GameweekId })
-                    .Select(g => new { g.Key.GameweekId, Points = g.Sum(p => scoringRules.GetValueOrDefault(p.Outcome!.Value)) })
+                    .Select(p => new { p.Match!.GameweekId, Outcome = p.Outcome!.Value })
                     .ToListAsync(ct);
+
+                var gwPredPoints = gwPreds
+                    .GroupBy(p => p.GameweekId)
+                    .Select(g => new { GameweekId = g.Key, Points = g.Sum(p => scoringRules.GetValueOrDefault(p.Outcome)) })
+                    .ToList();
 
                 var gwRiskPoints = await DbContext.RiskPlays
                     .Where(r => r.UserId == user.Id && r.IsResolved == true && !r.IsDeleted)
