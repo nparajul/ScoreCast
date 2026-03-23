@@ -20,12 +20,16 @@ internal sealed record GetGameweekMatchesQueryHandler(
         if (totalGameweeks == 0)
             return ScoreCastResponse<GameweekMatchesResult>.Error("No gameweeks found for this season.");
 
-        var currentGameweek = await DbContext.Gameweeks
+        var currentGameweek = await DbContext.Seasons
+            .Where(s => s.Id == query.SeasonId && s.CurrentMatchday != null)
+            .Select(s => (int?)s.CurrentMatchday)
+            .FirstOrDefaultAsync(ct)
+          ?? await DbContext.Gameweeks
             .Where(g => g.SeasonId == query.SeasonId && g.Matches.Any(m => m.Status == MatchStatus.Live))
             .Select(g => (int?)g.Number)
             .FirstOrDefaultAsync(ct)
           ?? await DbContext.Gameweeks
-            .Where(g => g.SeasonId == query.SeasonId && g.Matches.Any(m => m.Status != MatchStatus.Finished))
+            .Where(g => g.SeasonId == query.SeasonId && g.Matches.Any(m => m.Status != MatchStatus.Finished && m.Status != MatchStatus.Postponed))
             .OrderBy(g => g.Number)
             .Select(g => (int?)g.Number)
             .FirstOrDefaultAsync(ct)
