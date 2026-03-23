@@ -13,7 +13,7 @@ public partial class BottomNav : ComponentBase, IDisposable
         (null, "🏆", "Predict", "/dashboard", "", false),
         (Icons.Material.Filled.Public, null, "Global", "/global", "#FF6B35", false),
         (Icons.Material.Filled.SportsSoccer, null, "Scores", "/scores", "#4CAF50", false),
-        (Icons.Material.Filled.Leaderboard, null, "Tables", "/points-table", "#42A5F5", false),
+        (Icons.Material.Filled.VideoLibrary, null, "Reels", "/highlights", "#E040FB", false),
         (Icons.Material.Filled.Menu, null, "More", "", "#BDBDBD", true),
     ];
 

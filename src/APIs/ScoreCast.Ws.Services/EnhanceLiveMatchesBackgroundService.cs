@@ -1,4 +1,5 @@
 using FastEndpoints;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ScoreCast.Models.V1.Requests.MasterData;
@@ -6,7 +7,9 @@ using ScoreCast.Ws.Application.V1.MasterData.Commands;
 
 namespace ScoreCast.Ws.Services;
 
-public sealed class EnhanceLiveMatchesBackgroundService(ILogger<EnhanceLiveMatchesBackgroundService> logger) : BackgroundService
+public sealed class EnhanceLiveMatchesBackgroundService(
+    IServiceScopeFactory scopeFactory,
+    ILogger<EnhanceLiveMatchesBackgroundService> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -16,15 +19,16 @@ public sealed class EnhanceLiveMatchesBackgroundService(ILogger<EnhanceLiveMatch
         {
             try
             {
-                var result = await new EnhanceLiveMatchesCommand(new EnhanceLiveMatchesRequest()
+                using var scope = scopeFactory.CreateScope();
+                var result = await new EnhanceLiveMatchesCommand(new EnhanceLiveMatchesRequest
                 {
                     AppName = nameof(EnhanceLiveMatchesBackgroundService),
-                }).ExecuteAsync(stoppingToken);
+                }).ExecuteAsync(ct: stoppingToken);
 
                 if (!result.Success)
                     logger.LogError("Failed Response EnhanceLive background: {Message}", result.Message);
-
-                logger.LogInformation("Success Response EnhanceLive background: {Message}", result.Message);
+                else
+                    logger.LogInformation("Success Response EnhanceLive background: {Message}", result.Message);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {

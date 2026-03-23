@@ -16,6 +16,8 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
 
     private MatchPageResult? _match;
     private MatchExtrasResult? _extras;
+    private MatchHighlightsResult? _highlights;
+    private bool _highlightsLoading;
     private bool _loaded;
     private CancellationTokenSource? _pollCts;
     private System.Timers.Timer? _clockTimer;
@@ -355,6 +357,19 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         {
             _extras = new MatchExtrasResult([], [], [], null, new CommunityPredictions(0, 0, 0, 0, null, 0), [], []);
         }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadHighlightsAsync()
+    {
+        // For live matches, always refetch (new goals may appear)
+        if (_highlights is not null && _match?.Status != nameof(MatchStatus.Live)) return;
+        if (_match is null) return;
+        _highlightsLoading = true;
+        StateHasChanged();
+        var resp = await Api.GetMatchHighlightsAsync(MatchId, CancellationToken.None);
+        _highlights = resp is { Success: true, Data: not null } ? resp.Data : new MatchHighlightsResult([]);
+        _highlightsLoading = false;
         await InvokeAsync(StateHasChanged);
     }
 
