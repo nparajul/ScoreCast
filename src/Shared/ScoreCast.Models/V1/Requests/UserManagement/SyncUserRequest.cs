@@ -5,4 +5,5 @@ public record SyncUserRequest : ScoreCastRequest
     public string? FirebaseUid { get; set; }
     public required string Email { get; set; }
     public string? DisplayName { get; set; }
+    public bool IsGoogleSignIn { get; set; }
 }

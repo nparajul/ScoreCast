@@ -50,8 +50,7 @@ public sealed class FirebaseUserPreprocessor : IGlobalPreProcessor
 
             request.UserId = userId;
 
-            if (!string.IsNullOrEmpty(userId))
-                ctx.HttpContext.Items[ScoreCastUserIdKey] = userId;
+            ctx.HttpContext.Items[ScoreCastUserIdKey] = userId ?? firebaseUserId;
         }
     }
 }

@@ -29,19 +29,23 @@ public partial class UserSync : IDisposable
         if (!firstRender || _synced || AuthStateTask is null) return;
 
         var state = await AuthStateTask;
-        if (state.User.Identity?.IsAuthenticated == true)
+        if (IsVerifiedUser(state))
             await EnsureUserSynced(state);
     }
 
     private async void OnAuthStateChanged(Task<AuthenticationState> task)
     {
         var state = await task;
-        if (state.User.Identity?.IsAuthenticated == true)
+        if (IsVerifiedUser(state))
         {
             _synced = false;
             await InvokeAsync(async () => await EnsureUserSynced(state));
         }
     }
+
+    private static bool IsVerifiedUser(AuthenticationState state) =>
+        state.User.Identity?.IsAuthenticated == true
+        && state.User.FindFirst("email_verified")?.Value == "true";
 
     private async Task EnsureUserSynced(AuthenticationState state)
     {
@@ -80,25 +84,19 @@ public partial class UserSync : IDisposable
             var user = state.User;
             var email = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
             var displayName = user.Identity?.Name;
+            var isGoogle = user.FindFirst("is_google_user")?.Value == "true";
 
             var syncResult = await Api.SyncUserAsync(new SyncUserRequest
             {
                 Email = email,
-                DisplayName = displayName,
+                DisplayName = isGoogle ? null : displayName,
+                IsGoogleSignIn = isGoogle,
                 AppName = _appName
             }, CancellationToken.None);
 
             if (syncResult is { Success: true, Data.IsNewUser: true })
             {
-                // Ensure display name is persisted (may be null during sync due to Firebase race)
-                if (!string.IsNullOrWhiteSpace(displayName) && string.IsNullOrWhiteSpace(syncResult.Data.DisplayName))
-                {
-                    await Api.UpdateMyProfileAsync(
-                        new UpdateUserProfileRequest { DisplayName = displayName },
-                        CancellationToken.None);
-                }
-
-                await ShowWelcomeDialog(displayName ?? email);
+                await ShowWelcomeDialog(syncResult.Data.DisplayName ?? email);
             }
 
             await RoleNav.LoadRolesAsync();
