@@ -11,8 +11,14 @@ window.touchDrag = {
             const t = e.touches[0];
             startX = t.clientX; startY = t.clientY; moved = false; held = false;
             tiles = [...container.querySelectorAll('[data-drag-idx]')];
-            // Activate drag after 150ms hold
-            holdTimer = setTimeout(() => { held = true; tile.style.transform = 'scale(1.03)'; }, 150);
+            // Activate drag after 300ms hold
+            holdTimer = setTimeout(() => {
+                held = true;
+                tile.style.transform = 'scale(1.05)';
+                tile.style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)';
+                // Haptic feedback if available
+                if (navigator.vibrate) navigator.vibrate(30);
+            }, 300);
         }, { passive: true });
 
         container.addEventListener('touchmove', e => {
@@ -20,20 +26,19 @@ window.touchDrag = {
             const t = e.touches[0];
             const dx = Math.abs(t.clientX - startX), dy = Math.abs(t.clientY - startY);
 
-            // Cancel hold if scrolling horizontally before hold activates
-            if (!held && dx > 10) { clearTimeout(holdTimer); dragIdx = -1; return; }
+            // Cancel hold if moved before hold activates
+            if (!held && (dx > 8 || dy > 8)) { clearTimeout(holdTimer); dragIdx = -1; return; }
             if (!held) return;
 
-            if (!moved && dy < 5 && dx < 5) return;
             moved = true;
             e.preventDefault();
 
             const tile = tiles[dragIdx];
             if (!ghost) {
                 ghost = tile.cloneNode(true);
-                ghost.style.cssText = `position:fixed;z-index:9999;pointer-events:none;opacity:0.85;transform:scale(1.05);width:${tile.offsetWidth}px;transition:none;`;
+                ghost.style.cssText = `position:fixed;z-index:9999;pointer-events:none;opacity:0.85;transform:scale(1.05);width:${tile.offsetWidth}px;transition:none;box-shadow:0 8px 24px rgba(0,0,0,0.3);border-radius:16px;`;
                 document.body.appendChild(ghost);
-                tile.style.opacity = '0.3'; tile.style.transform = '';
+                tile.style.opacity = '0.3'; tile.style.transform = ''; tile.style.boxShadow = '';
             }
             ghost.style.left = (t.clientX - ghost.offsetWidth / 2) + 'px';
             ghost.style.top = (t.clientY - ghost.offsetHeight / 2) + 'px';
@@ -55,7 +60,7 @@ window.touchDrag = {
         const end = () => {
             clearTimeout(holdTimer);
             if (ghost) { ghost.remove(); ghost = null; }
-            tiles.forEach(t => { t.style.opacity = ''; t.style.transform = ''; });
+            tiles.forEach(t => { t.style.opacity = ''; t.style.transform = ''; t.style.boxShadow = ''; });
             if (dragIdx >= 0 && moved) dotnetRef.invokeMethodAsync('JsDragEnd');
             dragIdx = -1; moved = false; held = false;
         };

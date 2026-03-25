@@ -70,6 +70,15 @@
     width: calc(50% - 12px);
     min-width: 140px;
     max-width: 200px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.prediction-tile img {
+    pointer-events: none;
+    -webkit-user-drag: none;
 }
 
 @media (min-width: 960px) {
