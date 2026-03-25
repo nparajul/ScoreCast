@@ -28,7 +28,8 @@ public sealed class SmtpEmailService(IConfiguration config, ILogger<SmtpEmailSer
             {
                 Subject = $"Welcome to ScoreCast, {displayName}! ⚽",
                 IsBodyHtml = true,
-                Body = BuildWelcomeHtml(displayName)
+                Body = BuildWelcomeHtml(displayName),
+                Sender = from
             };
 
             message.ReplyToList.Add(new MailAddress("noreply@scorecast.uk", "ScoreCast (No Reply)"));
