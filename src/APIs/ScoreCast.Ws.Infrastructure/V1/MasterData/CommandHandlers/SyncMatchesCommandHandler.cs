@@ -270,7 +270,7 @@ internal sealed record SyncMatchesCommandHandler(
                 .ToListAsync(ct);
 
             if (matches.Count == 0) continue;
-            gw.Status = matches.All(m => m.Status == MatchStatus.Finished) ? GameweekStatus.Completed
+            gw.Status = matches.All(m => m.Status is MatchStatus.Finished or MatchStatus.Postponed) ? GameweekStatus.Completed
                 : matches.Any(m => m.Status is MatchStatus.Live or MatchStatus.Finished) ? GameweekStatus.Active
                 : GameweekStatus.Upcoming;
         }
@@ -403,7 +403,7 @@ internal sealed record SyncMatchesCommandHandler(
                 .ToListAsync(ct);
 
             if (matches.Count == 0) continue;
-            gw.Status = matches.All(m => m.Status == MatchStatus.Finished) ? GameweekStatus.Completed
+            gw.Status = matches.All(m => m.Status is MatchStatus.Finished or MatchStatus.Postponed) ? GameweekStatus.Completed
                 : matches.Any(m => m.Status is MatchStatus.Live or MatchStatus.Finished) ? GameweekStatus.Active
                 : GameweekStatus.Upcoming;
         }
