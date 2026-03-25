@@ -26,7 +26,7 @@ public sealed class SyncUserEndpoint : Endpoint<SyncUserRequest, ScoreCastRespon
         if (result is { Success: true, Data.IsNewUser: true })
         {
             var email = Resolve<IEmailService>();
-            _ = email.SendWelcomeEmailAsync(result.Data.Email, result.Data.DisplayName ?? result.Data.UserId, ct);
+            _ = email.SendWelcomeEmailAsync(result.Data.Email, result.Data.DisplayName ?? result.Data.UserId, CancellationToken.None);
         }
 
         await Send.OkAsync(result, ct);
