@@ -8,6 +8,7 @@ public static class MatchEventHelpers
 {
     public const string YellowCardHtml = "<span style=\"display:inline-block;width:8px;height:11px;background:#fdd835;border-radius:1px;vertical-align:middle;\"></span>";
     public const string RedCardHtml = "<span style=\"display:inline-block;width:8px;height:11px;background:#d32f2f;border-radius:1px;vertical-align:middle;\"></span>";
+    public const string SecondYellowHtml = "<span style=\"display:inline-block;position:relative;width:12px;height:13px;vertical-align:middle;\"><span style=\"position:absolute;left:0;bottom:0;width:8px;height:11px;background:#fdd835;border-radius:1px;\"></span><span style=\"position:absolute;right:0;top:0;width:8px;height:11px;background:#d32f2f;border-radius:1px;\"></span></span>";
     public const string AssistHtml = "👟";
     public const string PenaltyMissedHtml = "<svg style=\"display:inline-block;vertical-align:middle;\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"14\" rx=\"0\" fill=\"none\"/><line x1=\"9\" y1=\"8\" x2=\"15\" y2=\"14\"/><line x1=\"15\" y1=\"8\" x2=\"9\" y2=\"14\"/></svg>";
 
@@ -19,6 +20,7 @@ public static class MatchEventHelpers
         EventTypes.Assist => AssistHtml,
         EventTypes.YellowCard => YellowCardHtml,
         EventTypes.RedCard => RedCardHtml,
+        EventTypes.SecondYellow => SecondYellowHtml,
         EventTypes.PenaltySaved => "🧤",
         EventTypes.PenaltyMissed => PenaltyMissedHtml,
         _ => ""

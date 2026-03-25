@@ -14,8 +14,8 @@
         }
         <div class="d-flex align-center justify-space-between">
             @{
-                var homeReds = Match.Events.Count(e => e.EventType == EventTypes.RedCard && e.IsHome);
-                var awayReds = Match.Events.Count(e => e.EventType == EventTypes.RedCard && !e.IsHome);
+                var homeReds = Match.Events.Count(e => e.EventType is EventTypes.RedCard or EventTypes.SecondYellow && e.IsHome);
+                var awayReds = Match.Events.Count(e => e.EventType is EventTypes.RedCard or EventTypes.SecondYellow && !e.IsHome);
             }
             <div class="d-flex align-center gap-1" style="flex:1;justify-content:flex-end;overflow:hidden;">
                 @if (homeReds > 0)

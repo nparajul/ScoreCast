@@ -161,6 +161,7 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         EventTypes.OwnGoal => "<span style=\"filter:hue-rotate(160deg) saturate(3);\">⚽</span>",
         EventTypes.YellowCard => "🟨",
         EventTypes.RedCard => "🟥",
+        EventTypes.SecondYellow => "🟨🟥",
         EventTypes.PenaltySaved => "🧤",
         EventTypes.PenaltyMissed => "❌",
         EventTypes.SubIn => "🔄",

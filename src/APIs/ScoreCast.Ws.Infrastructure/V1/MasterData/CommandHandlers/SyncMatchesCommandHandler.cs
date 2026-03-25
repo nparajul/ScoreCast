@@ -560,7 +560,7 @@ internal sealed record SyncMatchesCommandHandler(
                 var eventType = b.Card switch
                 {
                     "RED_CARD" => MatchEventType.RedCard,
-                    "YELLOW_RED_CARD" => MatchEventType.RedCard,
+                    "YELLOW_RED_CARD" => MatchEventType.SecondYellow,
                     _ => MatchEventType.YellowCard
                 };
 

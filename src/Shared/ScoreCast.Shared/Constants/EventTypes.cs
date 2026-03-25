@@ -8,6 +8,7 @@ public static class EventTypes
     public const string Assist = nameof(Assist);
     public const string YellowCard = nameof(YellowCard);
     public const string RedCard = nameof(RedCard);
+    public const string SecondYellow = nameof(SecondYellow);
     public const string PenaltySaved = nameof(PenaltySaved);
     public const string PenaltyMissed = nameof(PenaltyMissed);
     public const string SubIn = nameof(SubIn);

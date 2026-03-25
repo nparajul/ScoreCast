@@ -178,7 +178,7 @@ internal sealed record GetPlayerStatsQueryHandler(
                     g.Where(e => e.EventType == MatchEventType.OwnGoal).Sum(e => e.Value),
                     g.Where(e => e.EventType == MatchEventType.Assist).Sum(e => e.Value),
                     g.Where(e => e.EventType == MatchEventType.YellowCard).Sum(e => e.Value),
-                    g.Where(e => e.EventType == MatchEventType.RedCard).Sum(e => e.Value),
+                    g.Where(e => e.EventType is MatchEventType.RedCard or MatchEventType.SecondYellow).Sum(e => e.Value),
                     cleanSheetCounts.GetValueOrDefault(g.Key));
             })
             .Where(r => r.Goals + r.PenaltyGoals + r.Assists + r.YellowCards + r.RedCards + r.CleanSheets > 0)
