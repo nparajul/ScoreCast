@@ -5,6 +5,7 @@ using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Football;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
+using Microsoft.Extensions.Logging;
 using ScoreCast.Ws.Application.V1.Football.Queries;
 using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Infrastructure.V1.MasterData.ExternalModels;
@@ -13,7 +14,8 @@ namespace ScoreCast.Ws.Infrastructure.V1.Football.QueryHandlers;
 
 internal sealed record GetMatchPageQueryHandler(
     IScoreCastDbContext DbContext,
-    IHttpClientFactory HttpClientFactory) : IQueryHandler<GetMatchPageQuery, ScoreCastResponse<MatchPageResult>>
+    IHttpClientFactory HttpClientFactory,
+    ILogger<GetMatchPageQueryHandler> Logger) : IQueryHandler<GetMatchPageQuery, ScoreCastResponse<MatchPageResult>>
 {
     public async Task<ScoreCastResponse<MatchPageResult>> ExecuteAsync(GetMatchPageQuery query, CancellationToken ct)
     {
@@ -170,7 +172,8 @@ internal sealed record GetMatchPageQueryHandler(
                     // Sub minutes: SubOut minute for starters, SubIn minute for subs
                     var subMinutes = events
                         .Where(e => e.EventType is EventTypes.SubOut or EventTypes.SubIn)
-                        .ToDictionary(e => e.PlayerId, e => (string?)e.Minute);
+                        .GroupBy(e => e.PlayerId)
+                        .ToDictionary(g => g.Key, g => (string?)g.First().Minute);
 
                     // teamLists[0] = home, teamLists[1] = away (Pulse convention)
                     var teamLists = pulse.TeamLists ?? [];
@@ -207,7 +210,7 @@ internal sealed record GetMatchPageQueryHandler(
                     }
                 }
             }
-            catch { /* Pulse unavailable — show page without lineups */ }
+            catch (Exception ex) { Logger.LogWarning(ex, "Pulse lineup fetch failed for match {MatchId} (pulse {PulseId})", query.MatchId, pulseMapping); }
         }
 
         return ScoreCastResponse<MatchPageResult>.Ok(new MatchPageResult(
