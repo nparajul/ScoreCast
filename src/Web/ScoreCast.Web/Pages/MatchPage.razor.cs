@@ -203,12 +203,13 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
 
     private static string PlayerIcon(string type) => type switch
     {
-        EventTypes.Goal => "⚽",
-        EventTypes.PenaltyGoal => "⚽",
-        EventTypes.OwnGoal => "<span style=\"display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid #f44336;font-size:8px;line-height:12px;text-align:center;\">⚽</span>",
+        EventTypes.Goal => "<span style=\"font-size:13px;\">⚽</span>",
+        EventTypes.PenaltyGoal => "<span style=\"font-size:13px;\">⚽</span>",
+        EventTypes.OwnGoal => "<span style=\"font-size:13px;filter:grayscale(1) brightness(0.4) sepia(1) hue-rotate(-30deg) saturate(5);\">⚽</span>",
         EventTypes.Assist => "👟",
-        EventTypes.YellowCard => "🟨",
-        EventTypes.RedCard => "🟥",
+        EventTypes.YellowCard => MatchEventHelpers.YellowCardHtml,
+        EventTypes.RedCard => MatchEventHelpers.RedCardHtml,
+        EventTypes.SecondYellow => MatchEventHelpers.SecondYellowHtml,
         _ => ""
     };
 
