@@ -46,87 +46,41 @@ public sealed class SmtpEmailService(IConfiguration config, ILogger<SmtpEmailSer
         <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;">
             <div style="background:linear-gradient(135deg,#0A1929 0%,#37003C 100%);padding:40px 30px;text-align:center;border-radius:12px 12px 0 0;">
                 <div style="font-size:48px;margin-bottom:8px;">⚽</div>
-                <h1 style="color:#ffffff!important;font-size:24px;font-weight:800;margin:0;-webkit-text-fill-color:#ffffff;">Welcome to ScoreCast!</h1>
+                <div style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">Welcome to ScoreCast!</div>
             </div>
 
             <div style="padding:30px;color:#333;">
-                <p style="font-size:16px;line-height:1.6;">Hey <strong>{displayName}</strong>,</p>
+                <p style="font-size:15px;line-height:1.7;">Hey {displayName},</p>
 
-                <p style="font-size:15px;line-height:1.6;">
-                    Thanks for joining ScoreCast — the free football predictions app where you compete with friends
-                    and the community to prove you know the beautiful game best.
+                <p style="font-size:15px;line-height:1.7;">
+                    Thanks for signing up! ScoreCast is a free football predictions app where you predict match
+                    scores, compete with friends in prediction leagues, and climb the leaderboard.
                 </p>
 
-                <h3 style="color:#37003C;font-size:16px;margin-top:24px;">Here's what you can do:</h3>
+                <p style="font-size:15px;line-height:1.7;">Here's a quick overview of what's available:</p>
 
-                <table style="width:100%;border-collapse:collapse;margin:16px 0;">
-                    <tr>
-                        <td style="padding:10px 12px;font-size:20px;vertical-align:top;">🏆</td>
-                        <td style="padding:10px 0;font-size:14px;line-height:1.5;">
-                            <strong>Predict match scores</strong> — earn points for correct results, goal differences, and exact scorelines.
-                            Feeling bold? Use <strong>Risk Plays</strong> to double your points on matches you're confident about
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding:10px 12px;font-size:20px;vertical-align:top;">👥</td>
-                        <td style="padding:10px 0;font-size:14px;line-height:1.5;">
-                            <strong>Create or join prediction leagues</strong> — compete with friends using invite codes
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding:10px 12px;font-size:20px;vertical-align:top;">📊</td>
-                        <td style="padding:10px 0;font-size:14px;line-height:1.5;">
-                            <strong>Live scores &amp; stats</strong> — follow matches in real-time with player stats and league tables
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding:10px 12px;font-size:20px;vertical-align:top;">🤖</td>
-                        <td style="padding:10px 0;font-size:14px;line-height:1.5;">
-                            <strong>AI match insights</strong> — get pre-match analysis to help inform your predictions
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding:10px 12px;font-size:20px;vertical-align:top;">🎬</td>
-                        <td style="padding:10px 0;font-size:14px;line-height:1.5;">
-                            <strong>Highlights reels</strong> — watch goal clips in a TikTok-style feed
-                        </td>
-                    </tr>
-                </table>
-
-                <div style="text-align:center;margin:24px 0;">
-                    <a href="https://scorecast.uk/how-to-play" style="display:inline-block;color:#37003C;font-weight:700;font-size:14px;text-decoration:underline;">
-                        📖 Learn how scoring works →
-                    </a>
-                </div>
-
-                <div style="text-align:center;margin:30px 0;">
-                    <a href="https://scorecast.uk/dashboard" style="display:inline-block;background:#FF6B35;color:#ffffff;font-weight:700;font-size:16px;padding:14px 32px;border-radius:10px;text-decoration:none;">
-                        Start Predicting →
-                    </a>
-                </div>
-
-                <div style="background:#f0f4ff;border-radius:10px;padding:20px;margin:24px 0;">
-                    <h3 style="color:#0A1929;font-size:15px;margin:0 0 8px 0;">📱 Install ScoreCast on your phone</h3>
-                    <p style="font-size:13px;line-height:1.5;color:#555;margin:0 0 12px 0;">
-                        ScoreCast works as an app on your phone — no app store needed. For the best experience,
-                        open the link below in <strong>Google Chrome</strong> and follow the install steps.
-                    </p>
-                    <a href="https://scorecast.uk/install" style="display:inline-block;background:#0A1929;color:#ffffff;font-weight:600;font-size:13px;padding:10px 20px;border-radius:8px;text-decoration:none;">
-                        Install Guide →
-                    </a>
-                </div>
-
-                <p style="font-size:14px;color:#777;line-height:1.5;">
-                    ScoreCast is completely free — no premium tiers, no paywalls. Just football and bragging rights.
+                <p style="font-size:14px;line-height:1.8;margin:16px 0;">
+                    🏆 <strong>Predict scores</strong> and use <strong>Risk Plays</strong> to double your points<br/>
+                    👥 <strong>Prediction leagues</strong> — create one and invite friends with a code<br/>
+                    📊 <strong>Live scores</strong>, league tables, and player stats<br/>
+                    🤖 <strong>AI match insights</strong> to help with your predictions<br/>
+                    🎬 <strong>Goal highlights</strong> in a short-form video feed
                 </p>
 
-                <div style="background:#f6f8fa;border-radius:10px;padding:16px 20px;margin:24px 0;border:1px solid #e1e4e8;">
-                    <p style="font-size:13px;line-height:1.5;color:#555;margin:0;">
-                        🛠️ <strong>Are you a developer?</strong> ScoreCast is open source. Feel free to explore the codebase,
-                        open issues, or contribute on
-                        <a href="https://github.com/nparajul/ScoreCast" style="color:#37003C;font-weight:600;">GitHub</a>.
-                    </p>
-                </div>
+                <p style="font-size:14px;line-height:1.7;">
+                    Check out <a href="https://scorecast.uk/how-to-play" style="color:#37003C;font-weight:600;">How To Play</a>
+                    to learn the scoring system, and visit <a href="https://scorecast.uk/install" style="color:#37003C;font-weight:600;">the install guide</a>
+                    to add ScoreCast to your phone (works best in Chrome).
+                </p>
+
+                <p style="font-size:14px;line-height:1.7;">
+                    Head to <a href="https://scorecast.uk/dashboard" style="color:#37003C;font-weight:600;">your dashboard</a> to get started.
+                </p>
+
+                <p style="font-size:14px;line-height:1.7;color:#777;">
+                    ScoreCast is completely free — no premium tiers, no paywalls. And if you're a developer,
+                    the code is open source on <a href="https://github.com/nparajul/ScoreCast" style="color:#37003C;">GitHub</a>.
+                </p>
 
                 <div style="margin-top:28px;padding-top:20px;border-top:1px solid #eee;">
                     <p style="font-size:14px;line-height:1.6;color:#555;margin:0;">
