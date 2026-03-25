@@ -20,10 +20,12 @@ public sealed class EnhanceLiveMatchesBackgroundService(
             try
             {
                 using var scope = scopeFactory.CreateScope();
-                var result = await new EnhanceLiveMatchesCommand(new EnhanceLiveMatchesRequest
+                var command = new EnhanceLiveMatchesCommand(new EnhanceLiveMatchesRequest
                 {
                     AppName = nameof(EnhanceLiveMatchesBackgroundService),
-                }).ExecuteAsync(ct: stoppingToken);
+                });
+                var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<EnhanceLiveMatchesCommand, ScoreCast.Models.V1.Responses.ScoreCastResponse>>();
+                var result = await handler.ExecuteAsync(command, stoppingToken);
 
                 if (!result.Success)
                     logger.LogError("Failed Response EnhanceLive background: {Message}", result.Message);
