@@ -44,6 +44,8 @@ internal sealed record SyncUserCommandHandler(
             UserId = userId,
             Email = request.Email,
             DisplayName = request.IsGoogleSignIn ? userId : request.DisplayName ?? userId,
+            CreatedBy = userId,
+            ModifiedBy = userId,
         };
 
         DbContext.UserMasters.Add(newUser);
