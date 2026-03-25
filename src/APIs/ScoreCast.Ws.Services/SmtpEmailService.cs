@@ -46,7 +46,7 @@ public sealed class SmtpEmailService(IConfiguration config, ILogger<SmtpEmailSer
         <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;">
             <div style="background:linear-gradient(135deg,#0A1929 0%,#37003C 100%);padding:40px 30px;text-align:center;border-radius:12px 12px 0 0;">
                 <div style="font-size:48px;margin-bottom:8px;">⚽</div>
-                <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">Welcome to ScoreCast!</h1>
+                <h1 style="color:#ffffff!important;font-size:24px;font-weight:800;margin:0;-webkit-text-fill-color:#ffffff;">Welcome to ScoreCast!</h1>
             </div>
 
             <div style="padding:30px;color:#333;">
