@@ -2,59 +2,166 @@
 
 <MudDialog Class="welcome-dialog">
     <DialogContent>
-        <div class="onboard-hero">
-            <div class="onboard-icon-ring">
-                <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="44" Height="44" />
-            </div>
-            <MudText Typo="Typo.h5" Style="color:#fff;font-weight:800;letter-spacing:-0.02em;">Welcome, @Username! 👋</MudText>
-            <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.55);margin-top:2px;">One last thing — pick your team</MudText>
-        </div>
+        @switch (_step)
+        {
+            case 0:
+                <div class="onboard-hero">
+                    <div class="onboard-icon-ring">
+                        <MudImage Src="scorecast-icon-light.svg" Alt="ScoreCast" Width="44" Height="44" />
+                    </div>
+                    <MudText Typo="Typo.h5" Style="color:#fff;font-weight:800;letter-spacing:-0.02em;">Welcome, @Username! 👋</MudText>
+                    <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.55);margin-top:2px;">Let's get you set up in 30 seconds</MudText>
+                </div>
+                <div class="pa-6">
+                    <MudText Typo="Typo.body2" Style="line-height:1.7;color:var(--mud-palette-text-secondary);">
+                        ScoreCast is a free football predictions app where you compete with friends and the community.
+                        Predict match scores, climb leaderboards, and prove you know the beautiful game best.
+                    </MudText>
+                </div>
+                break;
 
-        <div class="pa-6">
-            <div class="d-flex align-center gap-3 mb-5">
-                @if (!string.IsNullOrWhiteSpace(_selectedTeam?.LogoUrl))
+            case 1:
+                <div class="onboard-hero" style="background:linear-gradient(135deg,#1b5e20 0%,#2e7d32 100%);">
+                    <div style="font-size:48px;margin-bottom:8px;">🏆</div>
+                    <MudText Typo="Typo.h6" Style="color:#fff;font-weight:800;">Predict & Score</MudText>
+                </div>
+                <div class="pa-6">
+                    <MudText Typo="Typo.body2" Style="line-height:1.7;color:var(--mud-palette-text-secondary);">
+                        Predict scorelines for upcoming matches and earn points based on accuracy.
+                        Feeling bold? Use <strong>Risk Plays</strong> to double your points on matches you're confident about.
+                    </MudText>
+                    <div class="d-flex justify-center mt-4">
+                        <a href="https://scorecast.uk/how-to-play" target="_blank" style="color:var(--mud-palette-primary);font-weight:600;font-size:13px;">
+                            📖 Learn how scoring works →
+                        </a>
+                    </div>
+                </div>
+                break;
+
+            case 2:
+                <div class="onboard-hero" style="background:linear-gradient(135deg,#e65100 0%,#ff6b35 100%);">
+                    <div style="font-size:48px;margin-bottom:8px;">👥</div>
+                    <MudText Typo="Typo.h6" Style="color:#fff;font-weight:800;">Leagues & Community</MudText>
+                </div>
+                <div class="pa-6">
+                    <MudText Typo="Typo.body2" Style="line-height:1.7;color:var(--mud-palette-text-secondary);">
+                        Create prediction leagues and invite friends with a code, or join existing ones.
+                        Track live scores, browse AI match insights, and watch goal highlights in a TikTok-style feed.
+                    </MudText>
+                </div>
+                break;
+
+            case 3:
+                <div class="onboard-hero" style="background:linear-gradient(135deg,#0A1929 0%,#1a237e 100%);">
+                    <div style="font-size:48px;margin-bottom:8px;">📱</div>
+                    <MudText Typo="Typo.h6" Style="color:#fff;font-weight:800;">Install on Your Phone</MudText>
+                </div>
+                <div class="pa-6">
+                    <MudText Typo="Typo.body2" Style="line-height:1.7;color:var(--mud-palette-text-secondary);">
+                        ScoreCast works as an app on your phone — no app store needed.
+                        For the best experience, use <strong>Google Chrome</strong>.
+                    </MudText>
+                    <div class="d-flex justify-center mt-4">
+                        <a href="https://scorecast.uk/install" target="_blank" style="color:var(--mud-palette-primary);font-weight:600;font-size:13px;">
+                            📲 View install guide →
+                        </a>
+                    </div>
+                </div>
+                break;
+
+            case 4:
+                <div class="onboard-hero" style="background:linear-gradient(135deg,#4a148c 0%,#7b1fa2 100%);">
+                    <div style="font-size:48px;margin-bottom:8px;">✏️</div>
+                    <MudText Typo="Typo.h6" Style="color:#fff;font-weight:800;">Your Display Name</MudText>
+                </div>
+                <div class="pa-6">
+                    <MudTextField @bind-Value="_displayName"
+                                  Label="Display Name"
+                                  Variant="Variant.Outlined"
+                                  Placeholder="How others will see you"
+                                  MaxLength="30"
+                                  Immediate="true"
+                                  Error="@(!string.IsNullOrEmpty(_nameError))"
+                                  ErrorText="@_nameError"
+                                  HelperText="2–30 characters" />
+                </div>
+                break;
+
+            case 5:
+                <div class="onboard-hero" style="background:linear-gradient(135deg,#37003C 0%,#6a1b9a 100%);">
+                    <div style="font-size:48px;margin-bottom:8px;">🛡️</div>
+                    <MudText Typo="Typo.h6" Style="color:#fff;font-weight:800;">Pick Your Team</MudText>
+                </div>
+                <div class="pa-6">
+                    <div class="d-flex align-center gap-3 mb-2">
+                        @if (!string.IsNullOrWhiteSpace(_selectedTeam?.LogoUrl))
+                        {
+                            <img src="@_selectedTeam.LogoUrl" alt="" width="36" height="36"
+                                 style="object-fit:contain;animation:popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);" />
+                        }
+                        <MudAutocomplete T="TeamResult"
+                                         Label="Favourite Team"
+                                         Placeholder="Search any team..."
+                                         @bind-Value="_selectedTeam"
+                                         SearchFunc="SearchTeams"
+                                         ToStringFunc="@(t => t?.Name ?? "")"
+                                         Variant="Variant.Outlined"
+                                         Clearable="true"
+                                         CoerceValue="false"
+                                         MinCharacters="0"
+                                         MaxItems="50"
+                                         Style="flex:1;">
+                            <ItemTemplate Context="team">
+                                <div class="d-flex align-center gap-2">
+                                    @if (!string.IsNullOrWhiteSpace(team.LogoUrl))
+                                    {
+                                        <MudImage Src="@team.LogoUrl" Width="24" Height="24" ObjectFit="ObjectFit.Contain" />
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Small" />
+                                    }
+                                    <MudText Typo="Typo.body2">@team.Name</MudText>
+                                </div>
+                            </ItemTemplate>
+                        </MudAutocomplete>
+                    </div>
+                </div>
+                break;
+        }
+
+        @* Step indicators + navigation *@
+        <div class="px-6 pb-5">
+            <div class="d-flex justify-center gap-1 mb-4">
+                @for (var i = 0; i <= MaxStep; i++)
                 {
-                    <img src="@_selectedTeam.LogoUrl" alt="" width="36" height="36"
-                         style="object-fit:contain;animation:popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);" />
+                    var idx = i;
+                    <div style="width:@(idx == _step ? "20px" : "6px");height:6px;border-radius:3px;background:@(idx == _step ? "var(--mud-palette-primary)" : "#ddd");transition:all 0.3s;"></div>
                 }
-                <MudAutocomplete T="TeamResult"
-                                 Label="Favourite Team"
-                                 Placeholder="Search any team..."
-                                 @bind-Value="_selectedTeam"
-                                 SearchFunc="SearchTeams"
-                                 ToStringFunc="@(t => t?.Name ?? "")"
-                                 Variant="Variant.Outlined"
-                                 Clearable="true"
-                                 CoerceValue="false"
-                                 MinCharacters="0"
-                                 MaxItems="50"
-                                 AutoFocus="true"
-                                 Style="flex:1;">
-                    <ItemTemplate Context="team">
-                        <div class="d-flex align-center gap-2">
-                            @if (!string.IsNullOrWhiteSpace(team.LogoUrl))
-                            {
-                                <MudImage Src="@team.LogoUrl" Width="24" Height="24" ObjectFit="ObjectFit.Contain" />
-                            }
-                            else
-                            {
-                                <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Small" />
-                            }
-                            <MudText Typo="Typo.body2">@team.Name</MudText>
-                        </div>
-                    </ItemTemplate>
-                </MudAutocomplete>
             </div>
 
             <div class="d-flex gap-3">
-                <MudButton OnClick="Skip" Variant="Variant.Text" Color="Color.Default"
-                           Style="border-radius:14px;flex:1;text-transform:none;">Skip</MudButton>
-                <MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Tertiary"
-                           StartIcon="@Icons.Material.Filled.RocketLaunch"
-                           Disabled="@(_selectedTeam is null)"
-                           Style="border-radius:14px;flex:2;text-transform:none;font-weight:700;">
-                    Let's Go!
-                </MudButton>
+                @if (_step > 0)
+                {
+                    <MudButton OnClick="Back" Variant="Variant.Text" Color="Color.Default"
+                               Style="border-radius:14px;flex:1;text-transform:none;">Back</MudButton>
+                }
+                @if (_step < MaxStep)
+                {
+                    <MudButton OnClick="Next" Variant="Variant.Filled" Color="Color.Primary"
+                               Disabled="@(!CanAdvance)"
+                               Style="border-radius:14px;flex:2;text-transform:none;font-weight:700;">
+                        Next
+                    </MudButton>
+                }
+                else
+                {
+                    <MudButton OnClick="Finish" Variant="Variant.Filled" Color="Color.Tertiary"
+                               StartIcon="@Icons.Material.Filled.RocketLaunch"
+                               Style="border-radius:14px;flex:2;text-transform:none;font-weight:700;">
+                        Start Predicting!
+                    </MudButton>
+                }
             </div>
         </div>
     </DialogContent>

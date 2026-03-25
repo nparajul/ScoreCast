@@ -6,4 +6,7 @@
   <ItemGroup>
     <Folder Include="Helpers\LoggerHelper\" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Validation\profanity-en.txt" />
+  </ItemGroup>
 </Project>

@@ -114,12 +114,16 @@ public partial class UserSync : IDisposable
         var dialog = await DialogService.ShowAsync<WelcomeDialog>(string.Empty, parameters, options);
         var result = await dialog.Result;
 
-        if (result is { Canceled: false, Data: WelcomeDialogResult data }
-            && !string.IsNullOrWhiteSpace(data.FavoriteTeam))
+        if (result is { Canceled: false, Data: WelcomeDialogResult data })
         {
-            await Loading.While(async () => await Api.UpdateMyProfileAsync(
-                new UpdateUserProfileRequest { FavoriteTeam = data.FavoriteTeam },
-                CancellationToken.None));
+            var update = new UpdateUserProfileRequest();
+            if (!string.IsNullOrWhiteSpace(data.FavoriteTeam)) update.FavoriteTeam = data.FavoriteTeam;
+            if (!string.IsNullOrWhiteSpace(data.DisplayName)) update.DisplayName = data.DisplayName;
+
+            if (update.FavoriteTeam is not null || update.DisplayName is not null)
+            {
+                await Loading.While(async () => await Api.UpdateMyProfileAsync(update, CancellationToken.None));
+            }
         }
     }
 
