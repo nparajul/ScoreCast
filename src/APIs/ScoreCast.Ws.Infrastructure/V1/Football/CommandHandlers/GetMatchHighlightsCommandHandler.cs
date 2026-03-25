@@ -85,7 +85,7 @@ internal sealed partial record GetMatchHighlightsCommandHandler(
             }
 
             var title = "Highlights";
-            var embedHtml = $"<iframe src='https://www.youtube-nocookie.com/embed/{vid}?autoplay=1&amp;modestbranding=1&amp;rel=0&amp;iv_load_policy=3&amp;playsinline=1&amp;controls=1' frameborder='0' allowfullscreen allow='autoplay; fullscreen; encrypted-media' style='width:100%;height:100%;'></iframe>";
+            var embedHtml = $"<iframe src='https://www.youtube-nocookie.com/embed/{vid}?autoplay=1&amp;mute=1&amp;modestbranding=1&amp;rel=0&amp;iv_load_policy=3&amp;playsinline=1&amp;controls=1' frameborder='0' allowfullscreen allow='autoplay; fullscreen; encrypted-media' style='width:100%;height:100%;'></iframe>";
 
             DbContext.MatchHighlights.Add(new MatchHighlight { MatchId = query.MatchId, Title = title, EmbedHtml = embedHtml, Type = ScoreCast.Shared.Enums.HighlightType.Highlight });
             await UnitOfWork.SaveChangesAsync(nameof(GetMatchHighlightsCommand), ct);
