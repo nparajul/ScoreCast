@@ -36,12 +36,16 @@ internal sealed record SyncUserCommandHandler(
                 new SyncUserResult(existingUser.Id, existingUser.UserId, existingUser.Email, existingUser.DisplayName, false));
         }
 
+        var userId = await GenerateUniqueUserId(request.Email, ct);
+
         var newUser = new UserMaster
         {
             FirebaseUid = request.FirebaseUid!,
-            UserId = await GenerateUniqueUserId(request.Email, ct),
+            UserId = userId,
             Email = request.Email,
-            DisplayName = request.DisplayName,
+            DisplayName = request.IsGoogleSignIn ? userId : request.DisplayName ?? userId,
+            CreatedBy = userId,
+            ModifiedBy = userId,
         };
 
         DbContext.UserMasters.Add(newUser);

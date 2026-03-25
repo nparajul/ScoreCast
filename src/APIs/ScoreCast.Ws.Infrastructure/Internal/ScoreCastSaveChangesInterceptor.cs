@@ -29,9 +29,9 @@ public sealed class ScoreCastSaveChangesInterceptor(IHttpContextAccessor httpCon
             {
                 case EntityState.Added:
                     entry.Entity.CreatedDate = CurrentDate;
-                    entry.Entity.CreatedBy = userId;
+                    entry.Entity.CreatedBy ??= userId;
                     entry.Entity.ModifiedDate = CurrentDate;
-                    entry.Entity.ModifiedBy = userId;
+                    entry.Entity.ModifiedBy ??= userId;
                     entry.Entity.IsDeleted = false;
                     break;
                 case EntityState.Modified:

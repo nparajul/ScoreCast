@@ -31,6 +31,6 @@ internal sealed record GetUserProfileQueryHandler(
                 user.Id, user.UserId, user.Email, user.DisplayName,
                 user.AvatarUrl, user.FavoriteTeam, user.TotalPoints,
                 user.BestGameweek, completedGws, user.IsActive,
-                user.CreatedDate));
+                user.CreatedDate, user.HasCompletedOnboarding));
     }
 }

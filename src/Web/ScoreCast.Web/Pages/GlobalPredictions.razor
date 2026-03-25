@@ -24,11 +24,13 @@
                 <div class="d-flex align-center justify-space-between mb-2">
                     <div class="d-flex align-center gap-2" style="flex:1;">
                         @if (match.HomeTeamCrest is not null) { <img src="@match.HomeTeamCrest" alt="" style="width:24px;height:24px;object-fit:contain;" /> }
-                        <MudText Typo="Typo.body2" Style="font-weight:600;">@match.HomeTeam</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:600;" Class="d-none d-sm-block">@match.HomeTeam</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:600;" Class="d-block d-sm-none">@(match.HomeTeamShortName ?? match.HomeTeam)</MudText>
                     </div>
                     <MudText Typo="Typo.caption" Style="opacity:0.5;">vs</MudText>
                     <div class="d-flex align-center gap-2 justify-end" style="flex:1;">
-                        <MudText Typo="Typo.body2" Style="font-weight:600;">@match.AwayTeam</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:600;" Class="d-none d-sm-block">@match.AwayTeam</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:600;" Class="d-block d-sm-none">@(match.AwayTeamShortName ?? match.AwayTeam)</MudText>
                         @if (match.AwayTeamCrest is not null) { <img src="@match.AwayTeamCrest" alt="" style="width:24px;height:24px;object-fit:contain;" /> }
                     </div>
                 </div>

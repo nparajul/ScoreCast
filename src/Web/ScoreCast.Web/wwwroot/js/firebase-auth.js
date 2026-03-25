@@ -18,7 +18,8 @@ window.firebaseAuth = {
                 uid: user.uid,
                 email: user.email,
                 displayName: user.displayName,
-                emailVerified: user.emailVerified
+                emailVerified: user.emailVerified,
+                isGoogleUser: user.providerData?.some(p => p.providerId === "google.com") ?? false
             } : null);
         });
     },
@@ -42,7 +43,8 @@ window.firebaseAuth = {
                 uid: result.user.uid,
                 email: result.user.email,
                 displayName: result.user.displayName,
-                emailVerified: result.user.emailVerified
+                emailVerified: result.user.emailVerified,
+                isGoogleUser: false
             });
             return { success: true, uid: result.user.uid };
         } catch (e) {
@@ -68,7 +70,8 @@ window.firebaseAuth = {
             uid: currentUser.uid,
             email: currentUser.email,
             displayName: currentUser.displayName,
-            emailVerified: currentUser.emailVerified
+            emailVerified: currentUser.emailVerified,
+            isGoogleUser: currentUser.providerData?.some(p => p.providerId === "google.com") ?? false
         } : null);
         return currentUser.emailVerified;
     },

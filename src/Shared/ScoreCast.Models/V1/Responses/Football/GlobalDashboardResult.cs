@@ -26,7 +26,9 @@ public record MatchPredictionSummary(
     double MostPredictedPct,
     double HomePct,
     double DrawPct,
-    double AwayPct);
+    double AwayPct,
+    string? HomeTeamShortName = null,
+    string? AwayTeamShortName = null);
 
 public record GlobalLeaderboardEntry(
     int Rank,

@@ -68,7 +68,7 @@ internal sealed record GetGlobalDashboardQueryHandler(
 
         var matchInfos = await DbContext.Matches
             .Where(m => upcomingMatchIds.Contains(m.Id))
-            .Select(m => new { m.Id, HomeName = m.HomeTeam.Name, AwayName = m.AwayTeam.Name, HomeLogo = m.HomeTeam.LogoUrl, AwayLogo = m.AwayTeam.LogoUrl, KickoffTime = m.KickoffTime ?? ScoreCastDateTime.Now.Value })
+            .Select(m => new { m.Id, HomeName = m.HomeTeam.Name, AwayName = m.AwayTeam.Name, HomeLogo = m.HomeTeam.LogoUrl, AwayLogo = m.AwayTeam.LogoUrl, HomeShort = m.HomeTeam.ShortName, AwayShort = m.AwayTeam.ShortName, KickoffTime = m.KickoffTime ?? ScoreCastDateTime.Now.Value })
             .ToListAsync(ct);
 
         var upcomingPredictions = new List<MatchPredictionSummary>();
@@ -78,7 +78,7 @@ internal sealed record GetGlobalDashboardQueryHandler(
             var count = preds.Count;
             if (count == 0)
             {
-                upcomingPredictions.Add(new MatchPredictionSummary(mi.Id, mi.HomeName, mi.AwayName, mi.HomeLogo, mi.AwayLogo, mi.KickoffTime, 0, "-", 0, 33, 34, 33));
+                upcomingPredictions.Add(new MatchPredictionSummary(mi.Id, mi.HomeName, mi.AwayName, mi.HomeLogo, mi.AwayLogo, mi.KickoffTime, 0, "-", 0, 33, 34, 33, mi.HomeShort, mi.AwayShort));
                 continue;
             }
 
@@ -91,7 +91,7 @@ internal sealed record GetGlobalDashboardQueryHandler(
             var awayWins = count - homeWins - draws;
 
             upcomingPredictions.Add(new MatchPredictionSummary(mi.Id, mi.HomeName, mi.AwayName, mi.HomeLogo, mi.AwayLogo, mi.KickoffTime, count, grouped.Key, mostPct,
-                Math.Round(homeWins * 100.0 / count, 0), Math.Round(draws * 100.0 / count, 0), Math.Round(awayWins * 100.0 / count, 0)));
+                Math.Round(homeWins * 100.0 / count, 0), Math.Round(draws * 100.0 / count, 0), Math.Round(awayWins * 100.0 / count, 0), mi.HomeShort, mi.AwayShort));
         }
 
         // 3. Global leaderboard — top 5

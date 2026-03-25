@@ -64,6 +64,8 @@ public sealed class ScoreCastAuthStateProvider : AuthenticationStateProvider, IA
 
     public bool EmailVerified => _firebaseUser?.EmailVerified ?? false;
 
+    public bool IsGoogleUser => _firebaseUser?.IsGoogleUser ?? false;
+
     public async Task<AuthResult> ResendVerificationAsync()
     {
         var result = await _js.InvokeAsync<FirebaseAuthResult>("firebaseAuth.resendVerification");
@@ -82,7 +84,8 @@ public sealed class ScoreCastAuthStateProvider : AuthenticationStateProvider, IA
         {
             new(ClaimTypes.NameIdentifier, user.Uid),
             new("sub", user.Uid),
-            new("email_verified", user.EmailVerified.ToString().ToLowerInvariant())
+            new("email_verified", user.EmailVerified.ToString().ToLowerInvariant()),
+            new("is_google_user", user.IsGoogleUser.ToString().ToLowerInvariant())
         };
 
         if (user.Email is not null)
@@ -100,6 +103,6 @@ public sealed class ScoreCastAuthStateProvider : AuthenticationStateProvider, IA
     }
 }
 
-public sealed record FirebaseUser(string Uid, string? Email, string? DisplayName, bool EmailVerified = false);
+public sealed record FirebaseUser(string Uid, string? Email, string? DisplayName, bool EmailVerified = false, bool IsGoogleUser = false);
 public sealed record FirebaseAuthResult(bool Success, string? Uid = null, string? Error = null, bool EmailVerified = false);
 public sealed record AuthResult(bool Success, string? Error = null);

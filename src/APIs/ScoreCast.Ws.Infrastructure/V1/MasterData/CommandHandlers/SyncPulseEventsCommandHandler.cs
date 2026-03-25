@@ -259,7 +259,7 @@ internal sealed record SyncPulseEventsCommandHandler(
         ("O", "O") => MatchEventType.OwnGoal,
         ("B", "Y") => MatchEventType.YellowCard,
         ("B", "R") => MatchEventType.RedCard,
-        ("B", "YR") => MatchEventType.RedCard,
+        ("B", "YR") => MatchEventType.SecondYellow,
         ("MP", "MP") => MatchEventType.PenaltyMissed,
         ("SP", "SP") => MatchEventType.PenaltySaved,
         ("S", "ON") => MatchEventType.SubIn,

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ScoreCast.Models.V1.Responses;
 using ScoreCast.Models.V1.Responses.Prediction;
 using ScoreCast.Shared.Enums;
+using ScoreCast.Shared.Validation;
 using ScoreCast.Ws.Application;
 using ScoreCast.Ws.Application.V1.Interfaces;
 using ScoreCast.Ws.Application.V1.PredictionGame.Commands;
@@ -17,6 +18,9 @@ internal sealed record CreatePredictionLeagueCommandHandler(
     public async Task<ScoreCastResponse<PredictionLeagueResult>> ExecuteAsync(CreatePredictionLeagueCommand command, CancellationToken ct)
     {
         var request = command.Request;
+
+        if (ProfanityFilter.ContainsProfanity(request.Name))
+            return ScoreCastResponse<PredictionLeagueResult>.Error("Please choose an appropriate league name");
 
         var user = await DbContext.UserMasters
             .AsNoTracking()

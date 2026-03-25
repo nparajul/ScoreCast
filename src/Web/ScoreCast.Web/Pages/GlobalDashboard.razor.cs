@@ -71,8 +71,5 @@ public partial class GlobalDashboard : IDisposable
         }
     }
 
-    private static string ShortName(string name) =>
-        name.Replace(" FC", "").Replace(" AFC", "").Trim();
-
     public void Dispose() => _timer?.Dispose();
 }

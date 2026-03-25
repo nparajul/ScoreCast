@@ -13,7 +13,8 @@ public record UserProfileResult(
     int BestGameweek,
     int CompletedGameweeks,
     bool IsActive,
-    ScoreCastDateTime MemberSince)
+    ScoreCastDateTime MemberSince,
+    bool HasCompletedOnboarding = true)
 {
     public string AvgPerGameweek => CompletedGameweeks > 0
         ? ((double)TotalPoints / CompletedGameweeks).ToString("F2")
