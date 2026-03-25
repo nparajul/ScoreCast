@@ -34,6 +34,7 @@ try
     builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
     builder.Services.AddHostedService<EnhanceLiveMatchesBackgroundService>();
     builder.Services.AddHostedService<CacheHighlightsBackgroundService>();
+    builder.Services.AddHostedService<CleanupHighlightsBackgroundService>();
 
     builder.Services.AddApiVersioning(o =>
     {
