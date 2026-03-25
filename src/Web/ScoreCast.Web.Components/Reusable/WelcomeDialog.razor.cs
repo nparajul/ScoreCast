@@ -12,8 +12,14 @@ public partial class WelcomeDialog
     [Inject] private IScoreCastApiClient Api { get; set; } = null!;
 
     private int _step;
-    private string _displayName = "";
+    private string _displayNameBacking = "";
     private string? _nameError;
+
+    private string _displayName
+    {
+        get => _displayNameBacking;
+        set { _displayNameBacking = value; _nameError = null; }
+    }
     private TeamResult? _selectedTeam;
     private List<TeamResult> _allTeams = [];
 
