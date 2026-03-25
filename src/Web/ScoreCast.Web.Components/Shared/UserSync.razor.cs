@@ -75,8 +75,11 @@ public partial class UserSync : IDisposable
                 }
             }, "Connecting to server...");
 
-            if (profile is { Success: true })
+            if (profile is { Success: true, Data: not null })
             {
+                if (!profile.Data.HasCompletedOnboarding)
+                    await ShowWelcomeDialog(profile.Data.DisplayName ?? profile.Data.UserId);
+
                 await RoleNav.LoadRolesAsync();
                 return;
             }
@@ -116,14 +119,11 @@ public partial class UserSync : IDisposable
 
         if (result is { Canceled: false, Data: WelcomeDialogResult data })
         {
-            var update = new UpdateUserProfileRequest();
+            var update = new UpdateUserProfileRequest { HasCompletedOnboarding = true };
             if (!string.IsNullOrWhiteSpace(data.FavoriteTeam)) update.FavoriteTeam = data.FavoriteTeam;
             if (!string.IsNullOrWhiteSpace(data.DisplayName)) update.DisplayName = data.DisplayName;
 
-            if (update.FavoriteTeam is not null || update.DisplayName is not null)
-            {
-                await Loading.While(async () => await Api.UpdateMyProfileAsync(update, CancellationToken.None));
-            }
+            await Loading.While(async () => await Api.UpdateMyProfileAsync(update, CancellationToken.None));
         }
     }
 

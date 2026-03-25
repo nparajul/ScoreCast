@@ -24,6 +24,7 @@ internal sealed record UpdateUserProfileCommandHandler(
         user.DisplayName = req.DisplayName ?? user.DisplayName;
         user.AvatarUrl = req.AvatarUrl ?? user.AvatarUrl;
         user.FavoriteTeam = req.FavoriteTeam ?? user.FavoriteTeam;
+        if (req.HasCompletedOnboarding == true) user.HasCompletedOnboarding = true;
 
         await UnitOfWork.SaveChangesAsync(req.AppName ?? nameof(UpdateUserProfileCommand), ct);
 
@@ -32,6 +33,6 @@ internal sealed record UpdateUserProfileCommandHandler(
                 user.Id, user.UserId, user.Email, user.DisplayName,
                 user.AvatarUrl, user.FavoriteTeam, user.TotalPoints,
                 user.BestGameweek, 0, user.IsActive,
-                user.CreatedDate));
+                user.CreatedDate, user.HasCompletedOnboarding));
     }
 }

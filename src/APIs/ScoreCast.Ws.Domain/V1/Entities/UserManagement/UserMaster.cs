@@ -13,6 +13,7 @@ public sealed record UserMaster : ScoreCastEntity
     public int TotalPoints { get; set; }
     public int BestGameweek { get; set; }
     public bool IsActive { get; set; } = true;
+    public bool HasCompletedOnboarding { get; set; }
     public DateTime? LastLoginDate { get; set; }
 
     public ICollection<UserRole> UserRoles { get; init; } = [];

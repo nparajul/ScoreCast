@@ -64,6 +64,11 @@ internal sealed class UserEntityConfiguration : BaseEntityConfiguration<UserMast
             .HasColumnOrder(order++)
             .HasDefaultValue(true);
 
+        builder.Property(u => u.HasCompletedOnboarding)
+            .HasColumnName("has_completed_onboarding")
+            .HasColumnOrder(order++)
+            .HasDefaultValue(false);
+
         builder.Property(u => u.LastLoginDate)
             .HasColumnName("last_login_date")
             .HasColumnOrder(order++);

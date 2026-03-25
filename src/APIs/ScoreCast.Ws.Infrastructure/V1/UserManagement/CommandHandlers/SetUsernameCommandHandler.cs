@@ -43,7 +43,7 @@ internal sealed partial record SetUsernameCommandHandler(
                 user.Id, user.UserId, user.Email, user.DisplayName,
                 user.AvatarUrl, user.FavoriteTeam, user.TotalPoints,
                 user.BestGameweek, 0, user.IsActive,
-                user.CreatedDate));
+                user.CreatedDate, user.HasCompletedOnboarding));
     }
 
     [GeneratedRegex("^[a-z0-9_]+$")]
