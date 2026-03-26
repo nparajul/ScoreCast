@@ -116,7 +116,7 @@ public sealed partial class CacheHighlightsBackgroundService(
         }
     }
 
-    private static readonly string[] AdKeywords = ["ad", "sponsor", "promo", "subscribe", "giveaway", "betting", "odds", "casino", "bet365", "betway", "1xbet"];
+    private static readonly string[] AdKeywords = ["new feature ad", "sponsor", "promo", "subscribe", "giveaway", "betting site", "odds boost", "casino", "bet365", "betway", "1xbet", "free bet"];
 
     private async Task<string?> ScrapeFirstVideoId(HttpClient http, string query, string sp, CancellationToken ct)
     {
