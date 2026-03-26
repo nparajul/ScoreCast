@@ -139,9 +139,14 @@ public sealed partial class CacheHighlightsBackgroundService(
                     var titleLower = oembed.ToLowerInvariant();
                     if (AdKeywords.Any(kw => titleLower.Contains(kw))) continue;
 
-                    // Verify page doesn't contain private/unavailable markers
+                    // Verify page doesn't contain private/unavailable/copyright markers
                     var page = await http.GetStringAsync($"https://www.youtube.com/watch?v={vid}", ct);
-                    if (page.Contains("\"isPrivate\":true") || page.Contains("\"status\":\"ERROR\""))
+                    if (page.Contains("\"isPrivate\":true") ||
+                        page.Contains("\"status\":\"ERROR\"") ||
+                        page.Contains("\"status\":\"UNPLAYABLE\"") ||
+                        page.Contains("blocked it on copyright grounds") ||
+                        page.Contains("not available in your country") ||
+                        page.Contains("This video is unavailable"))
                         continue;
 
                     return vid;

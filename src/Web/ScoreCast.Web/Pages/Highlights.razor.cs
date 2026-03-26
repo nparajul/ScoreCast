@@ -79,6 +79,20 @@ public partial class Highlights : ScoreCastComponentBase, IAsyncDisposable
 
     private void ToggleMute() { _unmuted = !_unmuted; }
 
+    private static string? ExtractVideoId(string? embedHtml)
+    {
+        if (embedHtml is null) return null;
+        var match = System.Text.RegularExpressions.Regex.Match(embedHtml, @"embed/([a-zA-Z0-9_-]{11})");
+        return match.Success ? match.Groups[1].Value : null;
+    }
+
+    private readonly HashSet<int> _playingIndices = [];
+
+    private void PlayVideo(int idx)
+    {
+        _playingIndices.Add(idx);
+    }
+
     private async Task OnClose()
     {
         var hasHistory = await Js.InvokeAsync<bool>("eval", "window.history.length > 1");

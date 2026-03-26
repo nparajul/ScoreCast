@@ -137,14 +137,24 @@
             var idx = i;
             <div class="reel-card" data-index="@idx">
                 <div class="reel-video-wrap">
-                    @if (idx == _currentIndex)
+                    @if (idx == _currentIndex && _playingIndices.Contains(idx))
                     {
                         @((MarkupString)ApplyMute(item.EmbedHtml))
                     }
                     else
                     {
-                        <div class="reel-placeholder">
-                            <MudIcon Icon="@Icons.Material.Filled.PlayCircle" Size="Size.Large" Style="color:rgba(255,255,255,0.3);" />
+                        var videoId = ExtractVideoId(item.EmbedHtml);
+                        <div class="reel-placeholder" @onclick="@(() => PlayVideo(idx))" style="cursor:pointer;position:relative;">
+                            @if (videoId is not null)
+                            {
+                                <img src="https://img.youtube.com/vi/@videoId/hqdefault.jpg" alt="" style="width:100%;height:100%;object-fit:cover;" />
+                            }
+                            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);">
+                                <svg width="68" height="68" viewBox="0 0 68 68" fill="none">
+                                    <circle cx="34" cy="34" r="34" fill="rgba(0,0,0,0.6)"/>
+                                    <path d="M27 20L50 34L27 48V20Z" fill="white"/>
+                                </svg>
+                            </div>
                         </div>
                     }
                 </div>
