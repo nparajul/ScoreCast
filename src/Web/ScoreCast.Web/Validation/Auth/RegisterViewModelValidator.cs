@@ -18,7 +18,7 @@ public sealed class RegisterViewModelValidator : AbstractValidator<RegisterViewM
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Password is required")
             .MinimumLength(8).WithMessage("At least 8 characters")
-            .MaximumLength(128).WithMessage("128 characters or less")
+            .MaximumLength(32).WithMessage("32 characters or less")
             .Matches("[A-Z]").WithMessage("At least 1 uppercase letter")
             .Matches("[a-z]").WithMessage("At least 1 lowercase letter")
             .Matches("[0-9]").WithMessage("At least 1 digit")
