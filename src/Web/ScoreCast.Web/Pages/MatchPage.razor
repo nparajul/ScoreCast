@@ -93,7 +93,7 @@
             @foreach (var tab in tabs)
             {
                 var isActive = _activeTab == tab;
-                <div @onclick="@(() => { _activeTab = tab; if (tab == "Stats" && _extras is null) _ = LoadExtrasAsync(); if (tab == "Highlights") _ = LoadHighlightsAsync(); })"
+                <div @onclick="@(() => { _activeTab = tab; SaveState("tab", tab); if (tab == "Stats" && _extras is null) _ = LoadExtrasAsync(); if (tab == "Highlights") _ = LoadHighlightsAsync(); })"
                      style="flex:1;text-align:center;padding:8px 0;border-radius:24px;font-size:0.8rem;font-weight:700;cursor:pointer;
                             background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
                             color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">

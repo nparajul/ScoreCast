@@ -4,7 +4,7 @@ using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
 
-public partial class PlayerStats
+public partial class PlayerStats : ScoreCastComponentBase
 {
     [Inject] private IScoreCastApiClient Api { get; set; } = null!;
     [Inject] private ILoadingService Loading { get; set; } = null!;
@@ -16,6 +16,11 @@ public partial class PlayerStats
     private bool _sortDescending = true;
     private string _search = "";
     private string _mobileTab = "Overall";
+
+    protected override void OnInitialized()
+    {
+        _mobileTab = RestoreState("mobileTab", "Overall")!;
+    }
 
     private async Task OnFilterChanged(CompetitionFilterState state)
     {

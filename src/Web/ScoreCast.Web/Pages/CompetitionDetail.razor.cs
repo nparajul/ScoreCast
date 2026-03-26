@@ -14,6 +14,8 @@ public partial class CompetitionDetail : ScoreCastComponentBase
     [Inject] private IAlertService Alert { get; set; } = null!;
     [Inject] private IClientTimeProvider ClientTime { get; set; } = null!;
 
+    protected override string PageKey => $"competition-{CompetitionId}";
+
     private CompetitionResult? _competition;
     private List<SeasonResult> _seasons = [];
     private SeasonResult? _selectedSeason;
@@ -34,6 +36,8 @@ public partial class CompetitionDetail : ScoreCastComponentBase
         if (!firstRender) return;
         await ClientTime.InitializeAsync();
 
+        _activeTab = RestoreState("tab", "Table")!;
+
         await Loading.While(async () =>
         {
             var comps = await Api.GetCompetitionsAsync(CancellationToken.None);
@@ -52,6 +56,7 @@ public partial class CompetitionDetail : ScoreCastComponentBase
         });
 
         StateHasChanged();
+        await RestoreScrollAsync();
     }
 
     private async Task LoadSeasonDataAsync()
@@ -60,7 +65,8 @@ public partial class CompetitionDetail : ScoreCastComponentBase
 
         var tableTask = Api.GetPointsTableAsync(_selectedSeason.Id, CancellationToken.None);
         var zonesTask = Api.GetCompetitionZonesAsync(_competition.Code, CancellationToken.None);
-        var gwTask = Api.GetGameweekMatchesAsync(_selectedSeason.Id, SharedConstants.CurrentGameweek, CancellationToken.None);
+        var savedGw = RestoreState<int>("gw");
+        var gwTask = Api.GetGameweekMatchesAsync(_selectedSeason.Id, savedGw > 0 ? savedGw : SharedConstants.CurrentGameweek, CancellationToken.None);
         var statsTask = Api.GetPlayerStatsAsync(_selectedSeason.Id, CancellationToken.None);
 
         await Task.WhenAll(tableTask, zonesTask, gwTask, statsTask);
@@ -81,7 +87,11 @@ public partial class CompetitionDetail : ScoreCastComponentBase
         StateHasChanged();
     }
 
-    private void SwitchTab(string tab) => _activeTab = tab;
+    private void SwitchTab(string tab)
+    {
+        _activeTab = tab;
+        SaveState("tab", tab);
+    }
 
     private async Task PrevGw()
     {
@@ -92,6 +102,7 @@ public partial class CompetitionDetail : ScoreCastComponentBase
             if (r is { Success: true, Data: not null }) _gameweek = r.Data;
         });
         _expandedMatches.Clear();
+        SaveState("gw", _gameweek?.GameweekNumber ?? 0);
     }
 
     private async Task NextGw()
@@ -103,6 +114,7 @@ public partial class CompetitionDetail : ScoreCastComponentBase
             if (r is { Success: true, Data: not null }) _gameweek = r.Data;
         });
         _expandedMatches.Clear();
+        SaveState("gw", _gameweek?.GameweekNumber ?? 0);
     }
 
     private void ToggleMatch(long matchId)

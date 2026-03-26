@@ -15,6 +15,8 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     [Inject] private IClientTimeProvider ClientTime { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
 
+    protected override string PageKey => $"match-{MatchId}";
+
     private MatchPageResult? _match;
     private MatchExtrasResult? _extras;
     private MatchHighlightsResult? _highlights;
@@ -31,10 +33,12 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
+        _activeTab = RestoreState("tab", "Events")!;
         await ClientTime.InitializeAsync();
         await Loading.While(LoadAsync);
         _loaded = true;
         StateHasChanged();
+        await RestoreScrollAsync();
         StartPolling();
     }
 

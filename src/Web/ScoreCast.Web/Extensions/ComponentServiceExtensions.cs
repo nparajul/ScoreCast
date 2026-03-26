@@ -11,6 +11,7 @@ public static class ComponentServiceExtensions
         services.AddScoped<IAlertService, AlertService>();
         services.AddScoped<IRoleNavigationService, RoleNavigationService>();
         services.AddScoped<IClientTimeProvider, ClientTimeProvider>();
+        services.AddSingleton<PageStateService>();
         return services;
     }
 }

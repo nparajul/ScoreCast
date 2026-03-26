@@ -8,7 +8,7 @@ using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
 
-public partial class TeamDetail
+public partial class TeamDetail : ScoreCastComponentBase
 {
     [Parameter] public long TeamId { get; set; }
 
@@ -17,6 +17,8 @@ public partial class TeamDetail
     [Inject] private IAlertService Alert { get; set; } = null!;
     [Inject] private IJSRuntime Js { get; set; } = null!;
     [Inject] private IClientTimeProvider ClientTime { get; set; } = null!;
+
+    protected override string PageKey => $"team-{TeamId}";
 
     private static readonly string[] _tabs = ["Overview", "Fixtures", "Table", "Stats", "Squad"];
     private string _activeTab = "Overview";
@@ -38,7 +40,10 @@ public partial class TeamDetail
 
     protected override async Task OnInitializedAsync()
     {
+        _activeTab = RestoreState("tab", _tabs[0])!;
+        _tabIndex = Array.IndexOf(_tabs, _activeTab);
         await LoadTeamAsync();
+        await RestoreScrollAsync();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -50,7 +55,8 @@ public partial class TeamDetail
             _tableResult = null;
             _statsRows = [];
             _squad = null;
-            _activeTab = _tabs[0];
+            _activeTab = RestoreState("tab", _tabs[0])!;
+            _tabIndex = Array.IndexOf(_tabs, _activeTab);
             _tabIndex = 0;
             _expandedMatches.Clear();
             await LoadTeamAsync();
@@ -80,6 +86,7 @@ public partial class TeamDetail
     {
         _activeTab = tab;
         _tabIndex = Array.IndexOf(_tabs, tab);
+        SaveState("tab", tab);
         await LoadTabDataAsync();
         StateHasChanged();
     }
