@@ -57,7 +57,7 @@ public sealed partial class CacheHighlightsBackgroundService(
             .ToListAsync(ct);
 
         var existing = await db.MatchHighlights.AsNoTracking()
-            .Where(h => h.EmbedHtml.Contains("youtube"))
+            .Where(h => !h.IsDeleted)
             .Select(h => new { h.MatchId, h.Type })
             .ToListAsync(ct);
 
