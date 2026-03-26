@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
          signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup,
-         updateProfile, getIdToken, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+         updateProfile, getIdToken, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
 let auth = null;
 let currentUser = null;
@@ -92,6 +92,15 @@ window.firebaseAuth = {
     async getIdToken() {
         if (!currentUser) return null;
         return await getIdToken(currentUser, false);
+    },
+
+    async resetPassword(email) {
+        try {
+            await sendPasswordResetEmail(auth, email);
+            return { success: true };
+        } catch (e) {
+            return { success: false, error: mapError(e.code) };
+        }
     }
 };
 

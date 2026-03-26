@@ -15,6 +15,10 @@
         {
             <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4" Variant="Variant.Filled">@_error</MudAlert>
         }
+        @if (_success is not null)
+        {
+            <MudAlert Severity="Severity.Success" Dense="true" Class="mb-4" Variant="Variant.Filled">@_success</MudAlert>
+        }
 
         <MudButton Variant="Variant.Outlined"
                    FullWidth="true"
@@ -58,10 +62,17 @@
                        Color="Color.Tertiary"
                        FullWidth="true"
                        Size="Size.Large"
-                       Class="mb-4"
+                       Class="mb-2"
                        OnClick="HandleLogin">
                 Log In
             </MudButton>
+
+            <div class="d-flex justify-end mb-2">
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small"
+                           Style="text-transform:none;font-size:13px;" OnClick="HandleForgotPassword">
+                    Forgot password?
+                </MudButton>
+            </div>
         </MudForm>
 
         <MudDivider Class="my-4" />

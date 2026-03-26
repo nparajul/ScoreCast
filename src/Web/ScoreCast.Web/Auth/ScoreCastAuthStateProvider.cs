@@ -78,6 +78,12 @@ public sealed class ScoreCastAuthStateProvider : AuthenticationStateProvider, IA
     public async Task<string?> GetIdTokenAsync() =>
         await _js.InvokeAsync<string?>("firebaseAuth.getIdToken");
 
+    public async Task<AuthResult> ResetPasswordAsync(string email)
+    {
+        var result = await _js.InvokeAsync<FirebaseAuthResult>("firebaseAuth.resetPassword", email);
+        return result.Success ? new AuthResult(true) : new AuthResult(false, result.Error);
+    }
+
     private static ClaimsPrincipal BuildPrincipal(FirebaseUser user)
     {
         var claims = new List<Claim>
