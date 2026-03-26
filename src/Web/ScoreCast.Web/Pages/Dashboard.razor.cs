@@ -166,7 +166,11 @@ public partial class Dashboard : IDisposable
     private DotNetObjectReference<Dashboard>? _dotnetRef;
 
     [JSInvokable]
-    public void JsDragEnter(int targetIndex) => OnDragEnter(targetIndex);
+    public async Task JsDragEnter(int targetIndex)
+    {
+        OnDragEnter(targetIndex);
+        await InvokeAsync(StateHasChanged);
+    }
 
     [JSInvokable]
     public async Task JsDragEnd()

@@ -56,14 +56,25 @@ public sealed partial class CleanupHighlightsBackgroundService(
                 var resp = await http.GetAsync(
                     $"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={videoId}&format=json", ct);
 
-                if (resp.IsSuccessStatusCode) continue;
-
-                // Video is unavailable — soft delete
-                var entity = await db.MatchHighlights.FindAsync([h.Id], ct);
-                if (entity is not null)
+                if (!resp.IsSuccessStatusCode)
                 {
-                    entity.IsDeleted = true;
-                    removed++;
+                    var entity = await db.MatchHighlights.FindAsync([h.Id], ct);
+                    if (entity is not null) { entity.IsDeleted = true; removed++; }
+                    continue;
+                }
+
+                // Check for copyright blocks / unavailable when embedded
+                var page = await http.GetStringAsync($"https://www.youtube.com/watch?v={videoId}", ct);
+                if (page.Contains("\"isPrivate\":true") ||
+                    page.Contains("\"status\":\"ERROR\"") ||
+                    page.Contains("blocked it on copyright grounds") ||
+                    page.Contains("not available in your country") ||
+                    page.Contains("This video is unavailable") ||
+                    page.Contains("\"playabilityStatus\":{\"status\":\"ERROR\"") ||
+                    page.Contains("\"playabilityStatus\":{\"status\":\"UNPLAYABLE\""))
+                {
+                    var entity = await db.MatchHighlights.FindAsync([h.Id], ct);
+                    if (entity is not null) { entity.IsDeleted = true; removed++; }
                 }
             }
             catch

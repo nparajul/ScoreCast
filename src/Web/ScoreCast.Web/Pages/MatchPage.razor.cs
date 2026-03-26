@@ -27,6 +27,7 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     private string? _clockDisplay;
     private string _activeTab = "Events";
     private string _lineupTab = "home";
+    private string? _playingHighlight;
     private PointsTableResult? _table;
     private List<CompetitionZoneResult> _zones = [];
 
@@ -222,6 +223,21 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
     {
         var parts = name.Split(' ');
         return parts.Length > 1 ? parts[^1] : name;
+    }
+
+    private async Task NavigateToCompetition()
+    {
+        if (_match is null) return;
+        var comps = await Api.GetCompetitionsAsync(CancellationToken.None);
+        var comp = comps?.Data?.FirstOrDefault(c => c.Code == _match.CompetitionCode);
+        if (comp is not null) Nav.NavigateTo($"/competitions/{comp.Id}");
+    }
+
+    private static string? ExtractVideoId(string? embedHtml)
+    {
+        if (embedHtml is null) return null;
+        var match = System.Text.RegularExpressions.Regex.Match(embedHtml, @"embed/([a-zA-Z0-9_-]{11})");
+        return match.Success ? match.Groups[1].Value : null;
     }
 
     private RenderFragment RenderPlayerCard(MatchPageLineupPlayer p, int size) => builder =>

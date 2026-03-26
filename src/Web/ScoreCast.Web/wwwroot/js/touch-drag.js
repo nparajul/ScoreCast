@@ -50,7 +50,7 @@ window.touchDrag = {
                     if (targetIdx !== dragIdx) {
                         dotnetRef.invokeMethodAsync('JsDragEnter', targetIdx);
                         dragIdx = targetIdx;
-                        setTimeout(() => { tiles = [...container.querySelectorAll('[data-drag-idx]')]; }, 50);
+                        setTimeout(() => { tiles = [...container.querySelectorAll('[data-drag-idx]')]; }, 150);
                     }
                     break;
                 }
