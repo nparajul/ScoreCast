@@ -173,3 +173,25 @@ Run both projects:
 - Feature branches → squash merge PRs → delete branch
 - `cloudfare-dev` synced via `git merge master` for Cloudflare Pages deployment
 - Branch naming: `feat/xxx`, `fix/xxx`, `chore/xxx`
+
+## Background Services
+
+| Service | Interval | Purpose |
+|---|---|---|
+| `EnhanceLiveMatchesBackgroundService` | 30s | Calls enhance-live endpoint via loopback HTTP for real-time scores |
+| `CacheHighlightsBackgroundService` | Hourly | Scrapes YouTube for goal clips and full highlights |
+| `CleanupHighlightsBackgroundService` | 2 hours | Checks all highlights via oEmbed, soft-deletes unavailable videos |
+
+## Email
+
+Welcome emails sent via Gmail SMTP from `nitesh@scorecast.uk` on new user signup. Cloudflare Email Routing handles inbound, Gmail "Send mail as" handles outbound. Password reset emails handled by Firebase.
+
+## Onboarding
+
+6-step carousel on first login: Welcome → Predict & Score → Leagues & Community → Install Guide → Display Name (with profanity filter) → Favourite Team. State persisted via `has_completed_onboarding` column — re-shows if closed mid-flow.
+
+## Content Moderation
+
+- **Display names**: Profanity filter with 2,487-word blocklist + allowlist for legitimate names (Dickens, Hancock, Arsenal, etc.)
+- **League names**: Same profanity check on creation
+- **YouTube highlights**: Ad keyword filter blocks betting/sponsor/promo content from being cached
