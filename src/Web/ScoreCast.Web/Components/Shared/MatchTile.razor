@@ -24,13 +24,13 @@
                 }
                 @if (Match.HomeTeamId != ExcludeTeamId)
                 {
-                    <a href="/teams/@Match.HomeTeamId" @onclick:stopPropagation="true" style="display:inline-flex;align-items:center;gap:4px;text-decoration:none;color:inherit;overflow:hidden;">
+                    <span style="display:inline-flex;align-items:center;gap:4px;overflow:hidden;">
                         <span style="font-weight:600;font-size:@(IsMobile ? "13" : "15")px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@Match.HomeTeamShortName</span>
                         @if (Match.HomeTeamLogo is not null)
                         {
                             <img src="@Match.HomeTeamLogo" alt="" style="width:@(IsMobile ? "20" : "26")px;height:@(IsMobile ? "20" : "26")px;flex-shrink:0;" />
                         }
-                    </a>
+                    </span>
                 }
                 else
                 {
@@ -68,13 +68,13 @@
             <div class="d-flex align-center gap-1" style="flex:1;overflow:hidden;">
                 @if (Match.AwayTeamId != ExcludeTeamId)
                 {
-                    <a href="/teams/@Match.AwayTeamId" @onclick:stopPropagation="true" style="display:inline-flex;align-items:center;gap:4px;text-decoration:none;color:inherit;overflow:hidden;">
+                    <span style="display:inline-flex;align-items:center;gap:4px;overflow:hidden;">
                         @if (Match.AwayTeamLogo is not null)
                         {
                             <img src="@Match.AwayTeamLogo" alt="" style="width:@(IsMobile ? "20" : "26")px;height:@(IsMobile ? "20" : "26")px;flex-shrink:0;" />
                         }
                         <span style="font-weight:600;font-size:@(IsMobile ? "13" : "15")px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@Match.AwayTeamShortName</span>
-                    </a>
+                    </span>
                 }
                 else
                 {
