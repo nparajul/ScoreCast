@@ -192,6 +192,6 @@ Welcome emails sent via Gmail SMTP from `nitesh@scorecast.uk` on new user signup
 
 ## Content Moderation
 
-- **Display names**: Profanity filter with 2,487-word blocklist + allowlist for legitimate names (Dickens, Hancock, Arsenal, etc.)
+- **Display names**: Profanity filter with 2,487-word blocklist + allowlist for legitimate names
 - **League names**: Same profanity check on creation
 - **YouTube highlights**: Ad keyword filter blocks betting/sponsor/promo content from being cached
