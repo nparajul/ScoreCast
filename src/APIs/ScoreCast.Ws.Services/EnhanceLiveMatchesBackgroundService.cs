@@ -1,36 +1,42 @@
-using FastEndpoints;
-using Microsoft.Extensions.DependencyInjection;
+using System.Net.Http.Json;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ScoreCast.Models.V1.Requests.MasterData;
-using ScoreCast.Ws.Application.V1.MasterData.Commands;
+using ScoreCast.Shared.Constants;
 
 namespace ScoreCast.Ws.Services;
 
 public sealed class EnhanceLiveMatchesBackgroundService(
-    IServiceScopeFactory scopeFactory,
+    IHttpClientFactory httpClientFactory,
+    IConfiguration config,
     ILogger<EnhanceLiveMatchesBackgroundService> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+        await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                using var scope = scopeFactory.CreateScope();
-                var command = new EnhanceLiveMatchesCommand(new EnhanceLiveMatchesRequest
-                {
-                    AppName = nameof(EnhanceLiveMatchesBackgroundService),
-                });
-                var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<EnhanceLiveMatchesCommand, ScoreCast.Models.V1.Responses.ScoreCastResponse>>();
-                var result = await handler.ExecuteAsync(command, stoppingToken);
+                var client = httpClientFactory.CreateClient();
+                var apiKey = config["ApiKeySettings:Clients:0:Key"];
+                client.DefaultRequestHeaders.Add(ApiKeyAuth.HeaderName, apiKey);
 
-                if (!result.Success)
-                    logger.LogError("Failed Response EnhanceLive background: {Message}", result.Message);
+                var baseUrl = config["Kestrel:Endpoints:Http:Url"]
+                              ?? config["ASPNETCORE_URLS"]
+                              ?? "http://localhost:5105";
+
+                var response = await client.PostAsJsonAsync(
+                    $"{baseUrl}/api/v1/master-data/enhance-live",
+                    new EnhanceLiveMatchesRequest { AppName = nameof(EnhanceLiveMatchesBackgroundService) },
+                    stoppingToken);
+
+                if (response.IsSuccessStatusCode)
+                    logger.LogInformation("EnhanceLive background: completed successfully");
                 else
-                    logger.LogInformation("Success Response EnhanceLive background: {Message}", result.Message);
+                    logger.LogError("EnhanceLive background: HTTP {StatusCode}", response.StatusCode);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {

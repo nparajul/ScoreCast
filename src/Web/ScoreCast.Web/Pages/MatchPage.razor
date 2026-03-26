@@ -93,7 +93,7 @@
             @foreach (var tab in tabs)
             {
                 var isActive = _activeTab == tab;
-                <div @onclick="@(() => { _activeTab = tab; if (tab == "Stats" && _extras is null) _ = LoadExtrasAsync(); if (tab == "Highlights") _ = LoadHighlightsAsync(); })"
+                <div @onclick="@(() => { _activeTab = tab; SaveState("tab", tab); if (tab == "Stats" && _extras is null) _ = LoadExtrasAsync(); if (tab == "Highlights") _ = LoadHighlightsAsync(); })"
                      style="flex:1;text-align:center;padding:8px 0;border-radius:24px;font-size:0.8rem;font-weight:700;cursor:pointer;
                             background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
                             color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
@@ -458,7 +458,7 @@
             else
             {
                 <MudPaper Elevation="1" Style="border-radius:12px;padding:24px;text-align:center;">
-                    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">Lineups not available yet</MudText>
+                    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">👕 Lineups not available yet</MudText>
                 </MudPaper>
             }
         }
@@ -654,7 +654,7 @@
                 {
                     <MudPaper Elevation="1" Style="border-radius:12px;overflow:hidden;margin-bottom:10px;">
                         <div style="padding:10px 14px;font-weight:700;font-size:13px;">
-                            @(video.Title == "Goals" ? "⚽ Goals" : "🎬 " + video.Title)
+                            @(video.Title == "Clip" ? "🎥 Clip" : video.Title == "Goals" ? "⚽ Goals" : "🎬 " + video.Title)
                         </div>
                         <div style="border-top:1px solid var(--mud-palette-divider);position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
                             <div style="position:absolute;top:0;left:0;width:100%;height:100%;">
@@ -670,7 +670,7 @@
             else
             {
                 <MudPaper Elevation="1" Style="border-radius:12px;padding:24px;text-align:center;">
-                    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">No highlights available yet</MudText>
+                    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">🎬 No highlights available yet</MudText>
                 </MudPaper>
             }
         }
@@ -695,7 +695,7 @@
             else
             {
                 <MudPaper Elevation="1" Style="border-radius:12px;padding:24px;text-align:center;">
-                    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">Table not available</MudText>
+                    <MudText Typo="Typo.body2" Style="color:var(--mud-palette-text-secondary);">📊 Table not available</MudText>
                 </MudPaper>
             }
         }

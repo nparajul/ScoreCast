@@ -57,7 +57,7 @@ public sealed partial class CacheHighlightsBackgroundService(
             .ToListAsync(ct);
 
         var existing = await db.MatchHighlights.AsNoTracking()
-            .Where(h => h.EmbedHtml.Contains("youtube"))
+            .Where(h => !h.IsDeleted)
             .Select(h => new { h.MatchId, h.Type })
             .ToListAsync(ct);
 
@@ -83,7 +83,7 @@ public sealed partial class CacheHighlightsBackgroundService(
                 {
                     db.MatchHighlights.Add(new MatchHighlight
                     {
-                        MatchId = match.Id, Title = "Goal", Type = HighlightType.Short,
+                        MatchId = match.Id, Title = "Clip", Type = HighlightType.Short,
                         EmbedHtml = BuildEmbed(vid)
                     });
                     saved++;
@@ -116,6 +116,8 @@ public sealed partial class CacheHighlightsBackgroundService(
         }
     }
 
+    private static readonly string[] AdKeywords = ["new feature ad", "sponsor", "promo", "subscribe", "giveaway", "betting site", "odds boost", "casino", "bet365", "betway", "1xbet", "free bet"];
+
     private async Task<string?> ScrapeFirstVideoId(HttpClient http, string query, string sp, CancellationToken ct)
     {
         try
@@ -131,6 +133,11 @@ public sealed partial class CacheHighlightsBackgroundService(
                     var resp = await http.GetAsync(
                         $"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={vid}&format=json", ct);
                     if (!resp.IsSuccessStatusCode) continue;
+
+                    // Check title relevance via oEmbed
+                    var oembed = await resp.Content.ReadAsStringAsync(ct);
+                    var titleLower = oembed.ToLowerInvariant();
+                    if (AdKeywords.Any(kw => titleLower.Contains(kw))) continue;
 
                     // Verify page doesn't contain private/unavailable markers
                     var page = await http.GetStringAsync($"https://www.youtube.com/watch?v={vid}", ct);

@@ -19,6 +19,7 @@ public partial class Highlights : ScoreCastComponentBase, IAsyncDisposable
     private bool _hasMore = true;
     private bool _loadingMore;
     private int _currentIndex;
+    private bool _unmuted;
     private DotNetObjectReference<Highlights>? _dotnetRef;
     private ElementReference _containerRef;
     private bool _jsReady;
@@ -73,7 +74,19 @@ public partial class Highlights : ScoreCastComponentBase, IAsyncDisposable
     private string FormatLocal(DateTime utc, string format) =>
         ClientTime.ToLocal(utc).ToString(format);
 
-    private void OnClose() => Nav.NavigateTo("/scores");
+    private string ApplyMute(string? embedHtml) =>
+        _unmuted ? (embedHtml ?? "").Replace("mute=1", "mute=0") : embedHtml ?? "";
+
+    private void ToggleMute() { _unmuted = !_unmuted; }
+
+    private async Task OnClose()
+    {
+        var hasHistory = await Js.InvokeAsync<bool>("eval", "window.history.length > 1");
+        if (hasHistory)
+            await Js.InvokeVoidAsync("history.back");
+        else
+            Nav.NavigateTo("/");
+    }
 
     public async ValueTask DisposeAsync()
     {

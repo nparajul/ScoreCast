@@ -26,24 +26,28 @@
             <div class="more-menu-overlay" @onclick="@(() => { _menuOpen = false; })"></div>
             <div class="more-menu">
                 <button class="more-menu-item" @onclick='() => Navigate("/points-table")'>
-                    <MudIcon Icon="@Icons.Material.Filled.Leaderboard" Size="Size.Small" />
+                    <span>📊</span>
                     <span>Tables</span>
                 </button>
                 <button class="more-menu-item" @onclick='() => Navigate("/teams")'>
-                    <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Small" />
+                    <span>🛡️</span>
                     <span>Teams</span>
                 </button>
-                <button class="more-menu-item" @onclick='() => Navigate("/settings")'>
-                    <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
-                    <span>Profile</span>
+                <button class="more-menu-item" @onclick='() => Navigate("/player-stats")'>
+                    <span>⚽</span>
+                    <span>Players</span>
                 </button>
                 <button class="more-menu-item" @onclick='() => Navigate("/insights")'>
-                    <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Size="Size.Small" />
+                    <span>🧠</span>
                     <span>Insights</span>
                 </button>
-                <button class="more-menu-item" @onclick='() => Navigate("/player-stats")'>
-                    <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" />
-                    <span>Players</span>
+                <button class="more-menu-item" @onclick='() => Navigate("/how-to-play")'>
+                    <span>❓</span>
+                    <span>How To Play</span>
+                </button>
+                <button class="more-menu-item" @onclick='() => Navigate("/settings")'>
+                    <span>⚙️</span>
+                    <span>Profile & Settings</span>
                 </button>
             </div>
         }

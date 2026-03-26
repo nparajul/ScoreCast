@@ -5,7 +5,7 @@
     var isPostponed = Match.Status == nameof(MatchStatus.Postponed);
 }
 <div style="@($"{(Match.Status == nameof(MatchStatus.Live) ? "border-left:3px solid #4caf50;background:linear-gradient(90deg, rgba(76,175,80,0.06) 0%, transparent 30%);" : isPostponed ? "opacity:0.45;" : "")}")">
-    <div @onclick="@HandleClick" style="@(isPostponed ? "" : "cursor:pointer;")padding:@(IsMobile ? "5px 8px" : "8px 10px");position:relative;">
+    <div @onclick="@HandleClick" style="@(isPostponed ? "" : "cursor:pointer;")padding:@(IsMobile ? "10px 10px" : "10px 12px");position:relative;">
         @if (Match.Minute is not null)
         {
             <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:@(Match.Status == nameof(MatchStatus.Live) ? "var(--mud-palette-text-primary)" : "var(--mud-palette-text-secondary)");">
@@ -24,13 +24,13 @@
                 }
                 @if (Match.HomeTeamId != ExcludeTeamId)
                 {
-                    <a href="/teams/@Match.HomeTeamId" @onclick:stopPropagation="true" style="display:inline-flex;align-items:center;gap:4px;text-decoration:none;color:inherit;overflow:hidden;">
+                    <span style="display:inline-flex;align-items:center;gap:4px;overflow:hidden;">
                         <span style="font-weight:600;font-size:@(IsMobile ? "13" : "15")px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@Match.HomeTeamShortName</span>
                         @if (Match.HomeTeamLogo is not null)
                         {
                             <img src="@Match.HomeTeamLogo" alt="" style="width:@(IsMobile ? "20" : "26")px;height:@(IsMobile ? "20" : "26")px;flex-shrink:0;" />
                         }
-                    </a>
+                    </span>
                 }
                 else
                 {
@@ -68,13 +68,13 @@
             <div class="d-flex align-center gap-1" style="flex:1;overflow:hidden;">
                 @if (Match.AwayTeamId != ExcludeTeamId)
                 {
-                    <a href="/teams/@Match.AwayTeamId" @onclick:stopPropagation="true" style="display:inline-flex;align-items:center;gap:4px;text-decoration:none;color:inherit;overflow:hidden;">
+                    <span style="display:inline-flex;align-items:center;gap:4px;overflow:hidden;">
                         @if (Match.AwayTeamLogo is not null)
                         {
                             <img src="@Match.AwayTeamLogo" alt="" style="width:@(IsMobile ? "20" : "26")px;height:@(IsMobile ? "20" : "26")px;flex-shrink:0;" />
                         }
                         <span style="font-weight:600;font-size:@(IsMobile ? "13" : "15")px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@Match.AwayTeamShortName</span>
-                    </a>
+                    </span>
                 }
                 else
                 {
@@ -150,7 +150,7 @@
             else if (Match.Status == nameof(MatchStatus.Finished))
             {
                 <MudText Typo="Typo.body2" Align="Align.Center" Style="color:var(--mud-palette-text-secondary);">
-                    No event data available
+                    ⚽ No event data available
                 </MudText>
             }
             <MudDivider Class="my-1" />

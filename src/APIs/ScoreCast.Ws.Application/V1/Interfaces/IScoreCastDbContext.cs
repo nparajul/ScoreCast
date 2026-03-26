@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using ScoreCast.Ws.Domain.V1.Entities;
 using ScoreCast.Ws.Domain.V1.Entities.Football;
 using ScoreCast.Ws.Domain.V1.Entities.UserManagement;
@@ -8,7 +7,6 @@ namespace ScoreCast.Ws.Application.V1.Interfaces;
 
 public interface IScoreCastDbContext
 {
-    DatabaseFacade Database { get; }
     DbSet<UserMaster> UserMasters { get; }
     DbSet<RoleMaster> RoleMasters { get; }
     DbSet<PageMaster> PageMasters { get; }

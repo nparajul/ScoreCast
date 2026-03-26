@@ -77,7 +77,14 @@ public partial class MainLayout : IDisposable
         if (url is not null) Nav.NavigateTo(url);
     }
 
-    private async Task GoBack() => await Js.InvokeVoidAsync("history.back");
+    private async Task GoBack()
+    {
+        var hasHistory = await Js.InvokeAsync<bool>("eval", "window.history.length > 1");
+        if (hasHistory)
+            await Js.InvokeVoidAsync("history.back");
+        else
+            Nav.NavigateTo("/");
+    }
 
     private bool IsActive(string? url)
     {

@@ -21,7 +21,7 @@
                     @foreach (var tab in new[] { "Overall", "Goals", "Assists", "Clean Sheets", "Discipline" })
                     {
                         var isActive = _mobileTab == tab;
-                        <div @onclick="@(() => _mobileTab = tab)"
+                        <div @onclick="@(() => { _mobileTab = tab; SaveState("mobileTab", tab); })"
                              style="flex:1;text-align:center;padding:5px 8px;border-radius:24px;font-size:0.65rem;font-weight:700;cursor:pointer;white-space:nowrap;
                                     background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
                                     color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">

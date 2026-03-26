@@ -70,6 +70,15 @@
     width: calc(50% - 12px);
     min-width: 140px;
     max-width: 200px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.prediction-tile img {
+    pointer-events: none;
+    -webkit-user-drag: none;
 }
 
 @media (min-width: 960px) {
@@ -153,7 +162,7 @@
     align-items: center;
     justify-content: center;
     flex: 1;
-    padding: 8px 4px 6px;
+    padding: 10px 4px 8px;
     border: none;
     background: transparent;
     color: rgba(255, 255, 255, 0.45);
@@ -408,4 +417,13 @@
 
 .hover-highlight:hover {
     background: var(--mud-palette-action-default-hover);
+}
+
+/* Page transition */
+.main-container > * {
+    animation: pageFadeIn 0.2s ease-out;
+}
+@keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
