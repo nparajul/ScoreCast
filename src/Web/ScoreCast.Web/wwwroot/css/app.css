@@ -162,7 +162,7 @@
     align-items: center;
     justify-content: center;
     flex: 1;
-    padding: 8px 4px 6px;
+    padding: 10px 4px 8px;
     border: none;
     background: transparent;
     color: rgba(255, 255, 255, 0.45);
@@ -417,4 +417,13 @@
 
 .hover-highlight:hover {
     background: var(--mud-palette-action-default-hover);
+}
+
+/* Page transition */
+.main-container > * {
+    animation: pageFadeIn 0.2s ease-out;
+}
+@keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
 }

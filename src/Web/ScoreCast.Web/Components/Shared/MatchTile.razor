@@ -5,7 +5,7 @@
     var isPostponed = Match.Status == nameof(MatchStatus.Postponed);
 }
 <div style="@($"{(Match.Status == nameof(MatchStatus.Live) ? "border-left:3px solid #4caf50;background:linear-gradient(90deg, rgba(76,175,80,0.06) 0%, transparent 30%);" : isPostponed ? "opacity:0.45;" : "")}")">
-    <div @onclick="@HandleClick" style="@(isPostponed ? "" : "cursor:pointer;")padding:@(IsMobile ? "5px 8px" : "8px 10px");position:relative;">
+    <div @onclick="@HandleClick" style="@(isPostponed ? "" : "cursor:pointer;")padding:@(IsMobile ? "10px 10px" : "10px 12px");position:relative;">
         @if (Match.Minute is not null)
         {
             <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:@(Match.Status == nameof(MatchStatus.Live) ? "var(--mud-palette-text-primary)" : "var(--mud-palette-text-secondary)");">
@@ -150,7 +150,7 @@
             else if (Match.Status == nameof(MatchStatus.Finished))
             {
                 <MudText Typo="Typo.body2" Align="Align.Center" Style="color:var(--mud-palette-text-secondary);">
-                    No event data available
+                    ⚽ No event data available
                 </MudText>
             }
             <MudDivider Class="my-1" />
