@@ -16,6 +16,7 @@ public partial class Login
     private readonly Func<object, string, Task<IEnumerable<string>>> _validation = new LoginViewModelValidator().ToMudValidation();
     private MudForm _form = null!;
     private string? _error;
+    private string? _success;
 
     protected override async Task OnInitializedAsync()
     {
@@ -30,6 +31,7 @@ public partial class Login
         if (!_form.IsValid) return;
 
         _error = null;
+        _success = null;
         AuthResult result = default!;
         await Loading.While(async () =>
             result = await Auth.LoginAsync(_model.Email, _model.Password));
@@ -43,6 +45,7 @@ public partial class Login
     private async Task HandleGoogleSignIn()
     {
         _error = null;
+        _success = null;
         AuthResult result = default!;
         await Loading.While(async () =>
             result = await Auth.SignInWithGoogleAsync());
@@ -50,6 +53,24 @@ public partial class Login
         if (result.Success)
             Nav.NavigateTo("/dashboard", replace: true);
         else if (result.Error != "Sign-in cancelled")
+            _error = result.Error;
+    }
+
+    private async Task HandleForgotPassword()
+    {
+        _error = null;
+        _success = null;
+
+        if (string.IsNullOrWhiteSpace(_model.Email))
+        {
+            _error = "Enter your email address above, then click Forgot password";
+            return;
+        }
+
+        var result = await Auth.ResetPasswordAsync(_model.Email);
+        if (result.Success)
+            _success = "Password reset email sent — check your inbox";
+        else
             _error = result.Error;
     }
 }
