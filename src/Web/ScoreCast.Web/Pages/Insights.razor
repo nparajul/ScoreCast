@@ -102,21 +102,21 @@
                 {
                     <div class="insight-match" @onclick="@(() => Nav.NavigateTo($"/matches/{m.MatchId}"))">
                         <div class="insight-teams">
-                            <a href="/teams/@m.HomeTeamId" class="insight-team">
+                            <span class="insight-team">
                                 @if (m.HomeTeamLogo is not null)
                                 {
                                     <img src="@m.HomeTeamLogo" alt="" class="insight-team-logo" />
                                 }
                                 <span class="insight-team-name">@(m.HomeTeamShortName ?? m.HomeTeamName)</span>
-                            </a>
+                            </span>
                             <span style="font-size:11px;color:var(--mud-palette-text-secondary);">vs</span>
-                            <a href="/teams/@m.AwayTeamId" class="insight-team">
+                            <span class="insight-team">
                                 <span class="insight-team-name">@(m.AwayTeamShortName ?? m.AwayTeamName)</span>
                                 @if (m.AwayTeamLogo is not null)
                                 {
                                     <img src="@m.AwayTeamLogo" alt="" class="insight-team-logo" />
                                 }
-                            </a>
+                            </span>
                         </div>
 
                         <div class="insight-bar">

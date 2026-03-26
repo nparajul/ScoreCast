@@ -15,11 +15,15 @@
     }
     .main-container { padding: 0 !important; }
     .mud-layout > footer { display: none !important; }
-    .reels-close {
+    .reels-top-bar {
         position: fixed;
         top: 12px;
         left: 12px;
         z-index: 10;
+        display: flex;
+        gap: 8px;
+    }
+    .reels-top-btn {
         background: rgba(0,0,0,0.5);
         border: none;
         border-radius: 50%;
@@ -33,7 +37,7 @@
         backdrop-filter: blur(8px);
     }
     @@media (min-width: 960px) {
-        .reels-close { display: none; }
+        .reels-top-bar .reels-close { display: none; }
     }
     .reels-container {
         height: calc(100vh - var(--mud-appbar-height));
@@ -106,9 +110,14 @@
     }
 </style>
 
-<button class="reels-close" @onclick="OnClose">
-    <MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
-</button>
+<div class="reels-top-bar">
+    <button class="reels-top-btn" @onclick="ToggleMute">
+        <MudIcon Icon="@(_unmuted ? Icons.Material.Filled.VolumeUp : Icons.Material.Filled.VolumeOff)" Size="Size.Small" />
+    </button>
+    <button class="reels-top-btn reels-close" @onclick="OnClose">
+        <MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
+    </button>
+</div>
 
 <div class="reels-container" @ref="_containerRef">
     @if (_items.Count == 0 && !Loading.IsLoading)
@@ -130,7 +139,7 @@
                 <div class="reel-video-wrap">
                     @if (idx == _currentIndex)
                     {
-                        @((MarkupString)(item.EmbedHtml ?? ""))
+                        @((MarkupString)ApplyMute(item.EmbedHtml))
                     }
                     else
                     {
