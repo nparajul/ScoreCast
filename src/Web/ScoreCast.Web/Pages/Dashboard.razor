@@ -73,57 +73,95 @@
 
     @if (_userSeasons.Count > 0)
     {
-        <MudText Typo="Typo.h5" Style="font-weight:700;text-align:center;" Class="mb-3">Predictions</MudText>
-        <div id="tile-container" class="d-flex flex-wrap justify-center gap-3 mb-6">
-            @foreach (var us in _userSeasons)
+        <div class="d-flex justify-center align-center mb-3" style="position:relative;">
+            <MudText Typo="Typo.h5" Style="font-weight:700;">Predictions</MudText>
+            @if (_userSeasons.Count > 1)
             {
-                var idx = _userSeasons.IndexOf(us);
-                <MudPaper Elevation="@(_dragIndex == idx ? 6 : 3)"
-                          Class="rounded-xl overflow-hidden d-flex flex-column prediction-tile"
-                          Style="@($"text-align:center;color:white;transition:transform 0.15s,box-shadow 0.15s;position:relative;{(_dragIndex == idx ? "transform:scale(1.05);opacity:0.7;" : "")}")"
-                          draggable="true"
-                          data-drag-idx="@idx"
-                          @ondragstart="@(() => _dragIndex = idx)"
-                          @ondragover:preventDefault
-                          @ondragenter="@(() => OnDragEnter(idx))"
-                          @ondragend="OnDragEnd">
-                    @if (us.CompetitionLogoUrl is not null)
-                    {
-                        <div style="background:rgba(255,255,255,0.95);padding:12px 0;display:flex;align-items:center;justify-content:center;">
-                            <MudImage Src="@us.CompetitionLogoUrl" Width="56" Height="56" ObjectFit="ObjectFit.Contain" />
-                        </div>
-                    }
-                    else
-                    {
-                        <div style="background:rgba(255,255,255,0.1);padding:12px 0;display:flex;align-items:center;justify-content:center;">
-                            <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Style="font-size:48px;opacity:0.9;" />
-                        </div>
-                    }
-                    <div class="pa-3 d-flex flex-column align-center flex-grow-1"
-                         style="background:linear-gradient(135deg, var(--mud-palette-tertiary) 0%, var(--mud-palette-primary) 100%);">
-                        <MudText Typo="Typo.body2" Style="font-weight:700;color:white;line-height:1.2;">@us.CompetitionName</MudText>
-                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
-                                 Style="color:rgba(255,255,255,0.85);border-color:rgba(255,255,255,0.4);font-weight:600;font-size:0.7rem;"
-                                 Class="mt-1 mb-2">
-                            @us.SeasonName Season
-                        </MudChip>
-                        <MudButton Variant="Variant.Filled" Size="Size.Small" FullWidth="true"
-                                   Style="background:white;color:var(--mud-palette-tertiary);font-weight:700;border-radius:8px;font-size:0.75rem;"
-                                   StartIcon="@Icons.Material.Filled.SportsSoccer"
-                                   OnClick="@(() => Nav.NavigateTo($"/predict/{us.SeasonId}"))">
-                            Predict
-                        </MudButton>
-                    </div>
-                </MudPaper>
+                <MudButton Variant="@(_reordering ? Variant.Filled : Variant.Text)"
+                           Color="@(_reordering ? Color.Success : Color.Default)"
+                           Size="Size.Small"
+                           StartIcon="@(_reordering ? Icons.Material.Filled.Check : Icons.Material.Filled.SwapVert)"
+                           OnClick="ToggleReorder"
+                           Style="position:absolute;right:0;">
+                    @(_reordering ? "Done" : "Reorder")
+                </MudButton>
             }
-
-            <MudPaper Elevation="1" Class="pa-4 rounded-xl d-flex flex-column align-center justify-center prediction-tile"
-                      Style="text-align:center;border:2px dashed var(--mud-palette-lines-default);cursor:pointer;"
-                      @onclick="@(() => _showAddPredictionDialog = true)">
-                <MudIcon Icon="@Icons.Material.Filled.Add" Style="font-size:32px;color:var(--mud-palette-text-secondary);" Class="mb-1" />
-                <MudText Typo="Typo.caption" Color="Color.Secondary">Add Competition</MudText>
-            </MudPaper>
         </div>
+
+        @if (_reordering)
+        {
+            <MudStack Spacing="2" Class="mb-6" Style="max-width:480px;margin:0 auto;">
+                @foreach (var us in _userSeasons)
+                {
+                    var idx = _userSeasons.IndexOf(us);
+                    <MudPaper Elevation="2" Class="rounded-xl overflow-hidden"
+                              Style="background:linear-gradient(135deg, var(--mud-palette-tertiary) 0%, var(--mud-palette-primary) 100%);">
+                        <div class="d-flex align-center pa-3 gap-3">
+                            <MudIcon Icon="@Icons.Material.Filled.DragIndicator" Style="color:rgba(255,255,255,0.5);" />
+                            @if (us.CompetitionLogoUrl is not null)
+                            {
+                                <div style="background:white;border-radius:8px;padding:4px;display:flex;">
+                                    <MudImage Src="@us.CompetitionLogoUrl" Width="28" Height="28" ObjectFit="ObjectFit.Contain" />
+                                </div>
+                            }
+                            <MudText Typo="Typo.body1" Style="font-weight:700;color:white;flex:1;">@us.CompetitionName</MudText>
+                            <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowUp" Size="Size.Small"
+                                           Style="color:white;" Disabled="@(idx == 0)"
+                                           OnClick="@(() => MoveItem(idx, idx - 1))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowDown" Size="Size.Small"
+                                           Style="color:white;" Disabled="@(idx == _userSeasons.Count - 1)"
+                                           OnClick="@(() => MoveItem(idx, idx + 1))" />
+                        </div>
+                    </MudPaper>
+                }
+            </MudStack>
+        }
+        else
+        {
+            <div class="d-flex flex-wrap justify-center gap-3 mb-6">
+                @foreach (var us in _userSeasons)
+                {
+                    <MudPaper Elevation="3"
+                              Class="rounded-xl overflow-hidden d-flex flex-column prediction-tile"
+                              Style="text-align:center;color:white;">
+                        @if (us.CompetitionLogoUrl is not null)
+                        {
+                            <div style="background:rgba(255,255,255,0.95);padding:12px 0;display:flex;align-items:center;justify-content:center;">
+                                <MudImage Src="@us.CompetitionLogoUrl" Width="56" Height="56" ObjectFit="ObjectFit.Contain" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="background:rgba(255,255,255,0.1);padding:12px 0;display:flex;align-items:center;justify-content:center;">
+                                <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Style="font-size:48px;opacity:0.9;" />
+                            </div>
+                        }
+                        <div class="pa-3 d-flex flex-column align-center flex-grow-1"
+                             style="background:linear-gradient(135deg, var(--mud-palette-tertiary) 0%, var(--mud-palette-primary) 100%);">
+                            <MudText Typo="Typo.body2" Style="font-weight:700;color:white;line-height:1.2;">@us.CompetitionName</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
+                                     Style="color:rgba(255,255,255,0.85);border-color:rgba(255,255,255,0.4);font-weight:600;font-size:0.7rem;"
+                                     Class="mt-1 mb-2">
+                                @us.SeasonName Season
+                            </MudChip>
+                            <MudButton Variant="Variant.Filled" Size="Size.Small" FullWidth="true"
+                                       Style="background:white;color:var(--mud-palette-tertiary);font-weight:700;border-radius:8px;font-size:0.75rem;"
+                                       StartIcon="@Icons.Material.Filled.SportsSoccer"
+                                       OnClick="@(() => Nav.NavigateTo($"/predict/{us.SeasonId}"))">
+                                Predict
+                            </MudButton>
+                        </div>
+                    </MudPaper>
+                }
+
+                <MudPaper Elevation="1" Class="pa-4 rounded-xl d-flex flex-column align-center justify-center prediction-tile"
+                          Style="text-align:center;border:2px dashed var(--mud-palette-lines-default);cursor:pointer;"
+                          @onclick="@(() => _showAddPredictionDialog = true)">
+                    <MudIcon Icon="@Icons.Material.Filled.Add" Style="font-size:32px;color:var(--mud-palette-text-secondary);" Class="mb-1" />
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Add Competition</MudText>
+                </MudPaper>
+            </div>
+        }
     }
     else if (_initialized)
     {
