@@ -1,227 +1,179 @@
 @page "/dashboard"
 
 <PageGuard>
-<MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
+<div class="dashboard">
 
-    <div class="d-flex justify-end mb-2">
-        <MudButton Variant="Variant.Outlined" Size="Size.Small" Color="Color.Primary"
-                   StartIcon="@Icons.Material.Filled.HelpOutline"
-                   Href="/how-to-play">
-            How to Play
-        </MudButton>
-    </div>
-
-    @if (DeadlineUrgency is not null)
+    @* ── Hero Card ── *@
+    @if (_stats is not null && _stats.TotalPredictions > 0 && _stats.LastGameweek is not null)
     {
-        <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Dense="true" Class="mb-3"
-                  Style="border-radius:10px;font-weight:600;">
-            @DeadlineUrgency
-        </MudAlert>
-    }
-
-    @if (_stats is not null && _stats.TotalPredictions > 0)
-    {
-        @* Streak Banner *@
-        @if (_stats.CurrentStreak >= 2)
-        {
-            <MudPaper Class="pa-3 mb-3" Elevation="1" Style="border-radius:10px;background:linear-gradient(135deg,#ff6b35,#ff8f00);color:white;text-align:center;">
-                <MudText Typo="Typo.h6" Style="font-weight:800;color:white;">🔥 @_stats.CurrentStreak-match streak!</MudText>
-                <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.8);">
-                    @(_stats.StreakType == "exact" ? "Including exact scores!" : "Keep it going!")
-                    Best ever: @_stats.BestStreak
-                </MudText>
-            </MudPaper>
-        }
-
-        @* You vs Community *@
-        @if (_stats.LastGameweek is not null)
-        {
-            var gw = _stats.LastGameweek;
-            <MudPaper Class="pa-3 mb-3" Elevation="1" Style="border-radius:10px;">
-                <MudText Typo="Typo.subtitle2" Style="font-weight:700;">📊 GW@(gw.GameweekNumber) Recap</MudText>
-                <div class="d-flex justify-space-around text-center mt-2">
-                    <div>
-                        <MudText Typo="Typo.h5" Style="font-weight:800;color:#FF6B35;">@gw.UserCorrect/@gw.UserTotal</MudText>
-                        <MudText Typo="Typo.caption" Style="opacity:0.6;">Your results</MudText>
-                    </div>
-                    <div>
-                        <MudText Typo="Typo.h5" Style="font-weight:800;">@gw.CommunityAvgCorrect/@gw.CommunityAvgTotal</MudText>
-                        <MudText Typo="Typo.caption" Style="opacity:0.6;">Community avg</MudText>
-                    </div>
-                    <div>
-                        <MudText Typo="Typo.h5" Style="@($"font-weight:800;color:{(gw.BeatPct >= 50 ? "#4CAF50" : "#f44336")}")">@(gw.BeatPct)%</MudText>
-                        <MudText Typo="Typo.caption" Style="opacity:0.6;">Beaten</MudText>
-                    </div>
+        var gw = _stats.LastGameweek;
+        <div class="hero-card">
+            <div class="hero-gw">Gameweek @gw.GameweekNumber</div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-value">@gw.UserCorrect/@gw.UserTotal</span>
+                    <span class="hero-stat-label">You</span>
                 </div>
-            </MudPaper>
-        }
-
-        @* Achievements *@
-        @if (_stats.Achievements.Count > 0)
-        {
-            <div class="d-flex flex-wrap gap-1 mb-3">
-                @foreach (var badge in _stats.Achievements)
-                {
-                    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled"
-                             Style="background:rgba(255,107,53,0.15);color:#FF6B35;font-weight:600;font-size:0.7rem;">
-                        @badge
-                    </MudChip>
-                }
+                <div class="hero-stat hero-stat-main">
+                    <span class="hero-stat-value">@gw.BeatPct<span style="font-size:0.5em;">%</span></span>
+                    <span class="hero-stat-label">Beaten →</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-value">@gw.CommunityAvgCorrect/@gw.CommunityAvgTotal</span>
+                    <span class="hero-stat-label">Average</span>
+                </div>
             </div>
-        }
+
+            @if (_stats.CurrentStreak >= 2)
+            {
+                <div class="hero-streak">🔥 @_stats.CurrentStreak-match streak</div>
+            }
+
+            @if (DeadlineUrgency is not null)
+            {
+                <div class="hero-deadline">@DeadlineUrgency</div>
+            }
+
+            @if (_userSeasons.Count > 0)
+            {
+                var first = _userSeasons[0];
+                <button class="hero-btn" @onclick="@(() => Nav.NavigateTo($"/predict/{first.SeasonId}"))">
+                    ⚽ Predict Now
+                </button>
+            }
+        </div>
+    }
+    else if (DeadlineUrgency is not null)
+    {
+        <div class="hero-card hero-card-slim">
+            <div class="hero-deadline" style="margin:0;">@DeadlineUrgency</div>
+            @if (_userSeasons.Count > 0)
+            {
+                var first = _userSeasons[0];
+                <button class="hero-btn" @onclick="@(() => Nav.NavigateTo($"/predict/{first.SeasonId}"))">
+                    ⚽ Predict Now
+                </button>
+            }
+        </div>
     }
 
-    @if (_userSeasons.Count > 0)
+    @* ── Achievements ── *@
+    @if (_stats is not null && _stats.Achievements.Count > 0)
     {
-        <div class="d-flex justify-center align-center mb-3" style="position:relative;">
-            <MudText Typo="Typo.h5" Style="font-weight:700;">Predictions</MudText>
+        <div class="badge-row">
+            @foreach (var badge in _stats.Achievements)
+            {
+                <span class="badge">@badge</span>
+            }
+        </div>
+    }
+
+    @* ── Competitions ── *@
+    <div class="section">
+        <div class="section-header">
+            <span class="section-title">Competitions</span>
             @if (_userSeasons.Count > 1)
             {
-                <MudButton Variant="@(_reordering ? Variant.Filled : Variant.Text)"
-                           Color="@(_reordering ? Color.Success : Color.Default)"
-                           Size="Size.Small"
-                           StartIcon="@(_reordering ? Icons.Material.Filled.Check : Icons.Material.Filled.SwapVert)"
-                           OnClick="ToggleReorder"
-                           Style="position:absolute;right:0;">
-                    @(_reordering ? "Done" : "Reorder")
-                </MudButton>
+                <button class="text-btn" @onclick="ToggleReorder">
+                    @(_reordering ? "✓ Done" : "Reorder")
+                </button>
             }
         </div>
 
         @if (_reordering)
         {
-            <MudStack Spacing="2" Class="mb-6" Style="max-width:480px;margin:0 auto;">
-                @foreach (var us in _userSeasons)
-                {
-                    var idx = _userSeasons.IndexOf(us);
-                    <MudPaper Elevation="2" Class="rounded-xl overflow-hidden"
-                              Style="background:linear-gradient(135deg, var(--mud-palette-tertiary) 0%, var(--mud-palette-primary) 100%);">
-                        <div class="d-flex align-center pa-3 gap-3">
-                            <MudIcon Icon="@Icons.Material.Filled.DragIndicator" Style="color:rgba(255,255,255,0.5);" />
-                            @if (us.CompetitionLogoUrl is not null)
-                            {
-                                <div style="background:white;border-radius:8px;padding:4px;display:flex;">
-                                    <MudImage Src="@us.CompetitionLogoUrl" Width="28" Height="28" ObjectFit="ObjectFit.Contain" />
-                                </div>
-                            }
-                            <MudText Typo="Typo.body1" Style="font-weight:700;color:white;flex:1;">@us.CompetitionName</MudText>
-                            <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowUp" Size="Size.Small"
-                                           Style="color:white;" Disabled="@(idx == 0)"
-                                           OnClick="@(() => MoveItem(idx, idx - 1))" />
-                            <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowDown" Size="Size.Small"
-                                           Style="color:white;" Disabled="@(idx == _userSeasons.Count - 1)"
-                                           OnClick="@(() => MoveItem(idx, idx + 1))" />
+            @foreach (var us in _userSeasons)
+            {
+                var idx = _userSeasons.IndexOf(us);
+                <div class="list-row reorder-row">
+                    <MudIcon Icon="@Icons.Material.Filled.DragIndicator" Style="color:rgba(255,255,255,0.5);font-size:20px;" />
+                    @if (us.CompetitionLogoUrl is not null)
+                    {
+                        <div class="reorder-logo">
+                            <img src="@us.CompetitionLogoUrl" width="24" height="24" alt="" />
                         </div>
-                    </MudPaper>
-                }
-            </MudStack>
+                    }
+                    <span style="flex:1;font-weight:600;color:white;">@us.CompetitionName</span>
+                    <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowUp" Size="Size.Small"
+                                   Style="color:white;" Disabled="@(idx == 0)"
+                                   OnClick="@(() => MoveItem(idx, idx - 1))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowDown" Size="Size.Small"
+                                   Style="color:white;" Disabled="@(idx == _userSeasons.Count - 1)"
+                                   OnClick="@(() => MoveItem(idx, idx + 1))" />
+                </div>
+            }
         }
         else
         {
-            <div class="d-flex flex-wrap justify-center gap-3 mb-6">
-                @foreach (var us in _userSeasons)
-                {
-                    <MudPaper Elevation="3"
-                              Class="rounded-xl overflow-hidden d-flex flex-column prediction-tile"
-                              Style="text-align:center;color:white;">
-                        @if (us.CompetitionLogoUrl is not null)
-                        {
-                            <div style="background:rgba(255,255,255,0.95);padding:12px 0;display:flex;align-items:center;justify-content:center;">
-                                <MudImage Src="@us.CompetitionLogoUrl" Width="56" Height="56" ObjectFit="ObjectFit.Contain" />
-                            </div>
-                        }
-                        else
-                        {
-                            <div style="background:rgba(255,255,255,0.1);padding:12px 0;display:flex;align-items:center;justify-content:center;">
-                                <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Style="font-size:48px;opacity:0.9;" />
-                            </div>
-                        }
-                        <div class="pa-3 d-flex flex-column align-center flex-grow-1"
-                             style="background:linear-gradient(135deg, var(--mud-palette-tertiary) 0%, var(--mud-palette-primary) 100%);">
-                            <MudText Typo="Typo.body2" Style="font-weight:700;color:white;line-height:1.2;">@us.CompetitionName</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
-                                     Style="color:rgba(255,255,255,0.85);border-color:rgba(255,255,255,0.4);font-weight:600;font-size:0.7rem;"
-                                     Class="mt-1 mb-2">
-                                @us.SeasonName Season
-                            </MudChip>
-                            <MudButton Variant="Variant.Filled" Size="Size.Small" FullWidth="true"
-                                       Style="background:white;color:var(--mud-palette-tertiary);font-weight:700;border-radius:8px;font-size:0.75rem;"
-                                       StartIcon="@Icons.Material.Filled.SportsSoccer"
-                                       OnClick="@(() => Nav.NavigateTo($"/predict/{us.SeasonId}"))">
-                                Predict
-                            </MudButton>
-                        </div>
-                    </MudPaper>
-                }
+            @foreach (var us in _userSeasons)
+            {
+                <div class="list-row" @onclick="@(() => Nav.NavigateTo($"/predict/{us.SeasonId}"))">
+                    @if (us.CompetitionLogoUrl is not null)
+                    {
+                        <img src="@us.CompetitionLogoUrl" width="32" height="32" alt="" style="object-fit:contain;" />
+                    }
+                    <div style="flex:1;">
+                        <div class="list-row-title">@us.CompetitionName</div>
+                        <div class="list-row-sub">@us.SeasonName Season</div>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Style="color:var(--mud-palette-text-secondary);font-size:20px;" />
+                </div>
+            }
 
-                <MudPaper Elevation="1" Class="pa-4 rounded-xl d-flex flex-column align-center justify-center prediction-tile"
-                          Style="text-align:center;border:2px dashed var(--mud-palette-lines-default);cursor:pointer;"
-                          @onclick="@(() => _showAddPredictionDialog = true)">
-                    <MudIcon Icon="@Icons.Material.Filled.Add" Style="font-size:32px;color:var(--mud-palette-text-secondary);" Class="mb-1" />
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Add Competition</MudText>
-                </MudPaper>
+            <div class="list-row list-row-add" @onclick="@(() => _showAddPredictionDialog = true)">
+                <MudIcon Icon="@Icons.Material.Filled.Add" Style="color:var(--mud-palette-tertiary);font-size:20px;" />
+                <span class="list-row-title" style="color:var(--mud-palette-tertiary);">Add Competition</span>
             </div>
         }
-    }
-    else if (_initialized)
-    {
-        <MudText Typo="Typo.h5" Style="font-weight:700;text-align:center;" Class="mb-1">Predictions</MudText>
-        <MudText Typo="Typo.body2" Color="Color.Secondary" Style="text-align:center;" Class="mb-3">Pick a competition to start predicting scores</MudText>
-        <div class="d-flex justify-center mb-6">
-            <MudPaper Elevation="1" Class="pa-4 rounded-xl d-flex flex-column align-center justify-center prediction-tile"
-                      Style="text-align:center;border:2px dashed var(--mud-palette-lines-default);cursor:pointer;"
-                      @onclick="@(() => _showAddPredictionDialog = true)">
-                <MudIcon Icon="@Icons.Material.Filled.Add" Style="font-size:32px;color:var(--mud-palette-text-secondary);" Class="mb-1" />
-                <MudText Typo="Typo.caption" Color="Color.Secondary">Add Competition</MudText>
-            </MudPaper>
-        </div>
-    }
-
-    <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center gap-2 mb-4">
-        <MudText Typo="Typo.h5" Style="font-weight:700;">My Leagues</MudText>
-        <div class="d-flex gap-2">
-            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
-                       StartIcon="@Icons.Material.Filled.Login" OnClick="@(() => _showJoinDialog = true)">
-                Join League
-            </MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Size="Size.Small"
-                       StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => _showCreateDialog = true)">
-                Create League
-            </MudButton>
-        </div>
     </div>
 
-    @if (_initialized && _leagues.Count == 0)
-    {
-        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
-            You haven't joined any prediction leagues yet. Create one or join with an invite code!
-        </MudAlert>
-    }
-    else
-    {
-        <MudStack Spacing="3">
+    @* ── Leagues ── *@
+    <div class="section">
+        <div class="section-header">
+            <span class="section-title">My Leagues</span>
+            <div class="d-flex gap-2">
+                <button class="text-btn" @onclick="@(() => _showJoinDialog = true)">Join</button>
+                <button class="pill-btn" @onclick="@(() => _showCreateDialog = true)">+ Create</button>
+            </div>
+        </div>
+
+        @if (_initialized && _leagues.Count == 0)
+        {
+            <div class="empty-hint">Create a league or join with an invite code</div>
+        }
+        else
+        {
             @foreach (var league in _leagues)
             {
-                <MudPaper Elevation="1" Class="pa-4 rounded-lg">
-                    <div class="d-flex justify-space-between align-center" style="cursor:pointer;" @onclick="@(() => NavigateToLeague(league.Id))">
-                        <div>
-                            <MudText Typo="Typo.subtitle1" Style="font-weight:600;">@league.Name</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                @league.CompetitionName · @league.MemberCount 👥
-                            </MudText>
-                        </div>
-                        <div class="d-flex align-center gap-2" @onclick:stopPropagation="true">
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary">@league.InviteCode</MudChip>
-                            <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Size="Size.Small"
-                                           OnClick="@(() => CopyInviteCode(league.InviteCode))" />
-                        </div>
-                        <MudIcon Icon="@Icons.Material.Filled.ChevronRight" />
+                <div class="list-row" @onclick="@(() => NavigateToLeague(league.Id))">
+                    <div style="flex:1;min-width:0;">
+                        <div class="list-row-title">@league.Name</div>
+                        <div class="list-row-sub">@league.CompetitionName · @league.MemberCount members</div>
                     </div>
-                </MudPaper>
+                    <div class="d-flex align-center gap-1" @onclick:stopPropagation="true">
+                        <span class="invite-code">@league.InviteCode</span>
+                        <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Size="Size.Small"
+                                       Style="color:var(--mud-palette-text-secondary);"
+                                       OnClick="@(() => CopyInviteCode(league.InviteCode))" />
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Style="color:var(--mud-palette-text-secondary);font-size:20px;" />
+                </div>
             }
-        </MudStack>
+        }
+    </div>
+
+    @if (_initialized && _userSeasons.Count == 0 && _leagues.Count == 0)
+    {
+        <div class="section">
+            <div class="list-row" @onclick='@(() => Nav.NavigateTo("/how-to-play"))'>
+                <MudIcon Icon="@Icons.Material.Filled.HelpOutline" Style="color:var(--mud-palette-text-secondary);font-size:20px;" />
+                <span class="list-row-title">How to Play</span>
+                <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Style="color:var(--mud-palette-text-secondary);font-size:20px;" />
+            </div>
+        </div>
     }
-</MudContainer>
+
+</div>
 </PageGuard>
 
 <MudDialog @bind-Visible="_showCreateDialog" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
@@ -260,7 +212,7 @@
 </MudDialog>
 
 <MudDialog @bind-Visible="_showAddPredictionDialog" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
-    <TitleContent>Add Competition Predictions</TitleContent>
+    <TitleContent>Add Competition</TitleContent>
     <DialogContent>
         <MudSelect T="CompetitionResult" @bind-Value="_selectedCompetition" Label="Competition" Variant="Variant.Outlined"
                    ToStringFunc="@(c => c?.Name ?? "")">
@@ -268,7 +220,7 @@
             {
                 var isActive = _userSeasons.Any(us => us.CompetitionId == comp.Id);
                 <MudSelectItem T="CompetitionResult" Value="comp" Disabled="isActive">
-                    @comp.Name @(isActive ? "(Already Active)" : "")
+                    @comp.Name @(isActive ? "(Active)" : "")
                 </MudSelectItem>
             }
         </MudSelect>

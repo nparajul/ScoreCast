@@ -34,6 +34,21 @@ public static class AppTheme
             TextPrimary = "#333333",
             ActionDefault = "#555555",
             LinesDefault = "#E0E0E0"
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography
+            {
+                FontFamily = ["Inter", "system-ui", "-apple-system", "sans-serif"],
+                LetterSpacing = "-0.011em"
+            },
+            H5 = new H5Typography { FontWeight = "800", LetterSpacing = "-0.02em" },
+            H6 = new H6Typography { FontWeight = "700", LetterSpacing = "-0.02em" },
+            Subtitle1 = new Subtitle1Typography { FontWeight = "600" },
+            Subtitle2 = new Subtitle2Typography { FontWeight = "600" },
+            Body1 = new Body1Typography { LetterSpacing = "-0.011em" },
+            Body2 = new Body2Typography { LetterSpacing = "-0.006em" },
+            Button = new ButtonTypography { FontWeight = "700", LetterSpacing = "0.01em" }
         }
     };
 }

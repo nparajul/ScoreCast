@@ -9,7 +9,13 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddMudServices();
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomCenter;
+    config.SnackbarConfiguration.ShowTransitionDuration = 150;
+    config.SnackbarConfiguration.HideTransitionDuration = 150;
+    config.SnackbarConfiguration.VisibleStateDuration = 2000;
+});
 builder.Services.AddScoreCastComponentServices();
 builder.AddScoreCastAuth();
 builder.AddScoreCastApiClients();
