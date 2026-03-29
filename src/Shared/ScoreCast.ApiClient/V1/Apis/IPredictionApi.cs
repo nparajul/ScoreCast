@@ -54,4 +54,7 @@ public partial interface IScoreCastApiClient
 
     [Get("/api/v1/prediction/my-stats")]
     Task<ScoreCastResponse<MyPredictionStatsResult>> GetMyPredictionStatsAsync(CancellationToken ct);
+
+    [Get("/api/v1/prediction/replay/{matchId}/{predictionLeagueId}")]
+    Task<ScoreCastResponse<PredictionReplayResult>> GetPredictionReplayAsync(long matchId, long? predictionLeagueId, CancellationToken ct);
 }
