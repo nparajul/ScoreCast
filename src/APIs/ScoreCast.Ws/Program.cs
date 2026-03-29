@@ -32,8 +32,6 @@ try
     builder.AddAiServices();
     builder.Services.AddScoreCastInfrastructure(builder.Environment.EnvironmentName);
     builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
-    builder.Services.AddHostedService<CacheHighlightsBackgroundService>();
-    builder.Services.AddHostedService<CleanupHighlightsBackgroundService>();
 
     builder.Services.AddApiVersioning(o =>
     {

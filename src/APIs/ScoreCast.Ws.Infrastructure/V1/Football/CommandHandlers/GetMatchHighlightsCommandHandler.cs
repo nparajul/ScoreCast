@@ -52,18 +52,6 @@ internal sealed partial record GetMatchHighlightsCommandHandler(
         if (cached.Count > 0)
             return ScoreCastResponse<MatchHighlightsResult>.Ok(new MatchHighlightsResult(cached));
 
-        // Fallback: load up to 5 recent Short clips for this match
-        var shorts = await DbContext.MatchHighlights
-            .AsNoTracking()
-            .Where(h => h.MatchId == query.MatchId && h.Type == HighlightType.Short && !h.IsDeleted)
-            .OrderByDescending(h => h.CreatedDate)
-            .Take(5)
-            .Select(h => new HighlightVideo("Clip", h.EmbedHtml))
-            .ToListAsync(ct);
-
-        if (shorts.Count > 0)
-            return ScoreCastResponse<MatchHighlightsResult>.Ok(new MatchHighlightsResult(shorts));
-
         // Skip if we already searched recently and found nothing
         lock (_missCache)
         {
