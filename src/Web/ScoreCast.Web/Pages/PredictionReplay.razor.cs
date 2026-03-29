@@ -1,3 +1,4 @@
+using Microsoft.JSInterop;
 using ScoreCast.Models.V1.Responses.Prediction;
 using ScoreCast.Web.Components;
 using ScoreCast.Web.Components.Helpers;
@@ -11,8 +12,10 @@ public partial class PredictionReplay : ScoreCastComponentBase
     [Inject] private IScoreCastApiClient Api { get; set; } = null!;
     [Inject] private ILoadingService Loading { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
+    [Inject] private IJSRuntime JS { get; set; } = null!;
 
     private PredictionReplayResult? _replay;
+    private long _internalUserId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -20,7 +23,16 @@ public partial class PredictionReplay : ScoreCastComponentBase
         {
             var result = await Api.GetPredictionReplayAsync(MatchId, LeagueId, CancellationToken.None);
             if (result.Success) _replay = result.Data;
+
+            var profile = await Api.GetMyProfileAsync(CancellationToken.None);
+            if (profile.Success) _internalUserId = profile.Data!.Id;
         });
+    }
+
+    private async Task ShareReplay()
+    {
+        var url = $"https://scorecast.uk/api/v1/share/replay/{MatchId}/{_internalUserId}/og";
+        await JS.InvokeVoidAsync("navigator.share", new { title = "My ScoreCast Prediction", url });
     }
 
     private string OutcomeColor(string? outcome) => outcome switch

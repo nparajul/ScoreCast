@@ -149,4 +149,6 @@
 
 .pill-btn:active { opacity: 0.7; }
 
+.share-btn { background: var(--mud-palette-primary); }
+
 @media (min-width: 600px) { .replay-hero { margin: -12px 0 16px; border-radius: 24px; } }
