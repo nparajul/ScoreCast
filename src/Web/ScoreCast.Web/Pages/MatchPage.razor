@@ -493,6 +493,14 @@
                                             — @_extras.MyPrediction.Points pts
                                         </span>
                                     </div>
+                                    @if (_match?.Status == MatchStatus.Finished.ToString())
+                                    {
+                                        <div style="margin-top:8px;">
+                                            <a href="/replay/@MatchId/0" style="font-size:12px;font-weight:700;color:var(--mud-palette-tertiary);text-decoration:none;">
+                                                📽️ View Replay
+                                            </a>
+                                        </div>
+                                    }
                                 }
                             </div>
                         </div>
