@@ -1,42 +1,33 @@
-using FastEndpoints;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using ScoreCast.Shared.Enums;
-using ScoreCast.Ws.Application.V1.Interfaces;
+using ScoreCast.Models.V1.Requests.Prediction;
+using ScoreCast.Ws.Application.V1.PredictionGame.Queries;
 
 namespace ScoreCast.Ws.Endpoints.V1.Share;
 
-public sealed class GetPredictionReplayOgEndpoint : EndpointWithoutRequest
+public sealed class GetPredictionReplayOgEndpoint : Endpoint<GetPredictionReplayCardRequest>
 {
     public override void Configure()
     {
-        Get("/share/replay/{matchId}/{userId}/og");
+        Get("/share/replay/{MatchId}/{TargetUserId}/og");
         AllowAnonymous();
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(GetPredictionReplayCardRequest req, CancellationToken ct)
     {
-        var matchId = Route<long>("matchId");
-        var userId = Route<long>("userId");
-        var db = Resolve<IScoreCastDbContext>();
+        var result = await new GetPredictionReplayCardQuery(req.MatchId, req.TargetUserId).ExecuteAsync(ct);
 
-        var match = await db.Matches.AsNoTracking()
-            .Where(m => m.Id == matchId && m.Status == MatchStatus.Finished)
-            .Select(m => new { m.HomeScore, m.AwayScore, Home = m.HomeTeam.ShortName ?? m.HomeTeam.Name, Away = m.AwayTeam.ShortName ?? m.AwayTeam.Name })
-            .FirstOrDefaultAsync(ct);
+        if (!result.Success || result.Data is null)
+        {
+            HttpContext.Response.Redirect($"https://scorecast.uk/match/{req.MatchId}");
+            return;
+        }
 
-        var pred = match is null ? null : await db.Predictions.AsNoTracking()
-            .Where(p => p.MatchId == matchId && p.UserId == userId && p.PredictionType == PredictionType.Score && !p.IsDeleted)
-            .Select(p => new { p.PredictedHomeScore, p.PredictedAwayScore, p.Outcome, DisplayName = p.User.DisplayName ?? "Player" })
-            .FirstOrDefaultAsync(ct);
-
-        if (match is null || pred is null) { HttpContext.Response.Redirect($"https://scorecast.uk/match/{matchId}"); return; }
-
+        var d = result.Data;
         var e = (Func<string, string>)(s => s.Replace("&", "&amp;").Replace("\"", "&quot;").Replace("<", "&lt;"));
-        var title = $"{pred.DisplayName} predicted {match.Home} {pred.PredictedHomeScore}-{pred.PredictedAwayScore} {match.Away}";
-        var desc = $"Result: {match.Home} {match.HomeScore}-{match.AwayScore} {match.Away} — {pred.Outcome?.ToString() ?? "Pending"}";
-        var img = $"https://scorecast.uk/api/v1/share/replay/{matchId}/{userId}";
-        var page = $"https://scorecast.uk/replay/{matchId}/0";
+        var title = $"{d.DisplayName} predicted {d.HomeTeam} {d.PredictedHome}-{d.PredictedAway} {d.AwayTeam}";
+        var desc = $"Result: {d.HomeTeam} {d.HomeScore}-{d.AwayScore} {d.AwayTeam} — {d.OutcomeLabel}";
+        var img = $"https://scorecast.uk/api/v1/share/replay/{req.MatchId}/{req.TargetUserId}";
+        var page = $"https://scorecast.uk/replay/{req.MatchId}/0";
 
         HttpContext.Response.ContentType = "text/html";
         await HttpContext.Response.WriteAsync($"""
