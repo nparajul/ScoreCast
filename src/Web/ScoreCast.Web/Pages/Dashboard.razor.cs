@@ -23,6 +23,7 @@ public partial class Dashboard
     private List<UserSeasonResult> _userSeasons = [];
     private MyPredictionStatsResult? _stats;
     private GlobalDashboardResult? _globalData;
+    private PredictionReplayResult? _lastReplay;
     private bool _initialized;
     private bool _showCreateDialog;
     private bool _showJoinDialog;
@@ -54,6 +55,7 @@ public partial class Dashboard
 
             // Load global data for deadline urgency (non-blocking)
             _ = LoadGlobalDataAsync();
+            _ = LoadLastReplayAsync();
 
             _initialized = true;
         });
@@ -192,6 +194,29 @@ public partial class Dashboard
             {
                 _globalData = resp.Data;
                 await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch { /* non-critical */ }
+    }
+
+    private async Task LoadLastReplayAsync()
+    {
+        try
+        {
+            if (_userSeasons.Count == 0 || _stats?.LastGameweek is null) return;
+            var season = _userSeasons[0];
+            var gwResp = await Api.GetGameweekMatchesAsync(season.SeasonId, _stats.LastGameweek.GameweekNumber, CancellationToken.None);
+            if (gwResp is not { Success: true, Data: not null }) return;
+            var finishedMatches = gwResp.Data.Matches.Where(m => m.Status == "Finished").ToList();
+            foreach (var match in finishedMatches.AsEnumerable().Reverse())
+            {
+                var replayResp = await Api.GetPredictionReplayAsync(match.MatchId, 0, CancellationToken.None);
+                if (replayResp is { Success: true, Data: not null })
+                {
+                    _lastReplay = replayResp.Data;
+                    await InvokeAsync(StateHasChanged);
+                    return;
+                }
             }
         }
         catch { /* non-critical */ }
