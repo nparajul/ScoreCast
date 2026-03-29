@@ -7,7 +7,7 @@ using ScoreCast.Web.Components.Helpers;
 
 namespace ScoreCast.Web.Pages;
 
-public partial class Dashboard : IDisposable
+public partial class Dashboard
 {
     private const string _appName = "DASHBOARD";
     [Inject] private IScoreCastApiClient Api { get; set; } = default!;
@@ -58,8 +58,6 @@ public partial class Dashboard : IDisposable
             _initialized = true;
         });
         StateHasChanged();
-        _dotnetRef = DotNetObjectReference.Create(this);
-        await Js.InvokeVoidAsync("touchDrag.init", "tile-container", _dotnetRef);
     }
 
     private async Task CreateLeagueAsync()
@@ -162,22 +160,12 @@ public partial class Dashboard : IDisposable
 
     private void NavigateToLeague(long leagueId) => Nav.NavigateTo($"/dashboard/{leagueId}");
 
-    private int _dragIndex = -1;
-    private DotNetObjectReference<Dashboard>? _dotnetRef;
+    private bool _reordering;
 
-    [JSInvokable]
-    public async Task JsDragEnter(int targetIndex)
+    private async Task ToggleReorder()
     {
-        OnDragEnter(targetIndex);
-        await InvokeAsync(StateHasChanged);
-    }
-
-    [JSInvokable]
-    public async Task JsDragEnd()
-    {
-        _dragIndex = -1;
-        await SaveOrder();
-        StateHasChanged();
+        if (_reordering) await SaveOrder();
+        _reordering = !_reordering;
     }
 
     private async Task MoveItem(int from, int to)
@@ -188,29 +176,12 @@ public partial class Dashboard : IDisposable
         await SaveOrder();
     }
 
-    private void OnDragEnter(int targetIndex)
-    {
-        if (_dragIndex < 0 || _dragIndex == targetIndex) return;
-        var item = _userSeasons[_dragIndex];
-        _userSeasons.RemoveAt(_dragIndex);
-        _userSeasons.Insert(targetIndex, item);
-        _dragIndex = targetIndex;
-    }
-
-    private async Task OnDragEnd()
-    {
-        _dragIndex = -1;
-        await SaveOrder();
-    }
-
     private async Task SaveOrder()
     {
         await Api.ReorderUserSeasonsAsync(
             new ReorderUserSeasonsRequest { SeasonIds = _userSeasons.Select(s => s.SeasonId).ToList() },
             CancellationToken.None);
     }
-
-    public void Dispose() => _dotnetRef?.Dispose();
 
     private async Task LoadGlobalDataAsync()
     {
