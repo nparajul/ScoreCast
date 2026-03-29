@@ -1,0 +1,126 @@
+@page "/replay/{MatchId:long}/{LeagueId:long}"
+
+@if (_replay is not null)
+{
+    <div class="replay">
+        <!-- Scoreboard -->
+        <div class="replay-hero">
+            <div class="replay-ft">FULL TIME</div>
+            <div class="replay-teams">
+                <div class="replay-team">
+                    @if (_replay.HomeLogo is not null) { <img src="@_replay.HomeLogo" alt="" class="replay-logo" /> }
+                    <span class="replay-team-name">@_replay.HomeTeam</span>
+                </div>
+                <div class="replay-score">@_replay.HomeScore – @_replay.AwayScore</div>
+                <div class="replay-team">
+                    @if (_replay.AwayLogo is not null) { <img src="@_replay.AwayLogo" alt="" class="replay-logo" /> }
+                    <span class="replay-team-name">@_replay.AwayTeam</span>
+                </div>
+            </div>
+
+            <!-- User prediction -->
+            <div class="replay-prediction" style="border-color: @OutcomeColor(_replay.Outcome)">
+                <div class="replay-pred-label">YOUR PREDICTION</div>
+                <div class="replay-pred-score">@_replay.PredictedHome – @_replay.PredictedAway</div>
+                <div class="replay-outcome" style="background: @OutcomeColor(_replay.Outcome)">
+                    @OutcomeLabel(_replay.Outcome) · @_replay.PointsEarned pts
+                </div>
+            </div>
+        </div>
+
+        <!-- Death minute -->
+        @if (_replay.DeathMinute is not null)
+        {
+            <div class="section">
+                <div class="replay-death">
+                    💀 Your prediction died at minute <strong>@_replay.DeathMinute</strong>
+                </div>
+            </div>
+        }
+        else if (_replay.Outcome == "ExactScore")
+        {
+            <div class="section">
+                <div class="replay-nailed">🎯 You nailed it. Exact score.</div>
+            </div>
+        }
+
+        <!-- AI Commentary -->
+        @if (_replay.AiCommentary is not null)
+        {
+            <div class="section">
+                <div class="replay-ai">
+                    <div class="replay-ai-label">🎙️ THE VERDICT</div>
+                    <div class="replay-ai-text">@_replay.AiCommentary</div>
+                </div>
+            </div>
+        }
+
+        <!-- Goal Timeline -->
+        @if (_replay.GoalTimeline.Count > 0)
+        {
+            <div class="section">
+                <div class="section-title">Goal Timeline</div>
+                @foreach (var goal in _replay.GoalTimeline)
+                {
+                    <div class="timeline-row">
+                        <div class="timeline-minute">@goal.Minute'</div>
+                        <div class="timeline-icon">@StatusIcon(goal.PredictionStatus)</div>
+                        <div class="timeline-detail">
+                            <div class="timeline-scorer">⚽ @goal.Scorer (@goal.Team)</div>
+                            <div class="timeline-running">@goal.RunningHome – @goal.RunningAway</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- League Rivals -->
+        @if (_replay.LeagueRivals.Count > 0)
+        {
+            <div class="section">
+                <div class="section-title">League Rivals</div>
+                @foreach (var rival in _replay.LeagueRivals)
+                {
+                    <div class="rival-row">
+                        <MudAvatar Size="Size.Small" image="@rival.AvatarUrl" Style="width:28px;height:28px;">
+                            @rival.DisplayName[0]
+                        </MudAvatar>
+                        <div class="rival-info">
+                            <div class="rival-name">@rival.DisplayName</div>
+                            <div class="rival-pred">@rival.PredictedHome – @rival.PredictedAway</div>
+                        </div>
+                        <div class="rival-pts" style="color: @OutcomeColor(rival.Outcome)">@rival.Points pts</div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Season Accuracy -->
+        <div class="section">
+            <div class="section-title">Your Season @TrendIcon(_replay.SeasonAccuracy.Trend)</div>
+            <div class="accuracy-grid">
+                <div class="accuracy-stat">
+                    <div class="accuracy-value">@_replay.SeasonAccuracy.AccuracyPct%</div>
+                    <div class="accuracy-label">Accuracy</div>
+                </div>
+                <div class="accuracy-stat">
+                    <div class="accuracy-value">@_replay.SeasonAccuracy.ExactScores</div>
+                    <div class="accuracy-label">Exact</div>
+                </div>
+                <div class="accuracy-stat">
+                    <div class="accuracy-value">@_replay.SeasonAccuracy.CorrectResults</div>
+                    <div class="accuracy-label">Correct</div>
+                </div>
+                <div class="accuracy-stat">
+                    <div class="accuracy-value">@_replay.SeasonAccuracy.TotalPredictions</div>
+                    <div class="accuracy-label">Total</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Share -->
+        <div class="section" style="text-align:center; padding-bottom:24px;">
+            <button class="pill-btn" @onclick="GoToMatch">View Match</button>
+        </div>
+    </div>
+}
