@@ -67,5 +67,5 @@ public partial class PredictionReplay : ScoreCastComponentBase
         _ => "➡️"
     };
 
-    private void GoToMatch() => Nav.NavigateTo($"/match/{MatchId}");
+    private void GoToMatch() => Nav.NavigateTo($"/matches/{MatchId}");
 }
