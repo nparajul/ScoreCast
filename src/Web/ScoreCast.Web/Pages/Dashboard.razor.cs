@@ -24,6 +24,7 @@ public partial class Dashboard
     private MyPredictionStatsResult? _stats;
     private GlobalDashboardResult? _globalData;
     private PredictionReplayResult? _lastReplay;
+    private long _myUserId;
     private bool _initialized;
     private bool _showCreateDialog;
     private bool _showJoinDialog;
@@ -41,8 +42,9 @@ public partial class Dashboard
             var competitionsTask = Api.GetCompetitionsAsync(CancellationToken.None);
             var userSeasonsTask = Api.GetUserSeasonsAsync(CancellationToken.None);
             var statsTask = Api.GetMyPredictionStatsAsync(CancellationToken.None);
+            var profileTask = Api.GetMyProfileAsync(CancellationToken.None);
 
-            await Task.WhenAll(leaguesTask, competitionsTask, userSeasonsTask, statsTask);
+            await Task.WhenAll(leaguesTask, competitionsTask, userSeasonsTask, statsTask, profileTask);
 
             if (leaguesTask.Result is { Success: true, Data: not null })
                 _leagues = leaguesTask.Result.Data;
@@ -52,6 +54,8 @@ public partial class Dashboard
                 _userSeasons = userSeasonsTask.Result.Data;
             if (statsTask.Result is { Success: true, Data: not null })
                 _stats = statsTask.Result.Data;
+            if (profileTask.Result is { Success: true, Data: not null })
+                _myUserId = profileTask.Result.Data.Id;
 
             // Load global data for deadline urgency (non-blocking)
             _ = LoadGlobalDataAsync();

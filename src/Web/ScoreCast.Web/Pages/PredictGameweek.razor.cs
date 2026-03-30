@@ -28,6 +28,7 @@ public partial class PredictGameweek
     private List<PredictionMatchViewModel> _matches = [];
     private List<ScoringRuleResult> _scoringRules = [];
     private bool _showBreakdown;
+    private long _myUserId;
     private readonly HashSet<string> _expandedRules = [];
     private bool _showRiskPlays;
     private List<RiskPlayViewModel> _riskPlays = [];
@@ -79,6 +80,10 @@ public partial class PredictGameweek
             var statsResp = await Api.GetMyPredictionStatsAsync(CancellationToken.None);
             if (statsResp is { Success: true, Data: not null })
                 _stats = statsResp.Data;
+
+            var profileResp = await Api.GetMyProfileAsync(CancellationToken.None);
+            if (profileResp is { Success: true, Data: not null })
+                _myUserId = profileResp.Data.Id;
         });
         StateHasChanged();
     }
