@@ -63,4 +63,7 @@ public partial interface IScoreCastApiClient
 
     [Get("/api/v1/share/replay/{matchId}/{userId}/view")]
     Task<ScoreCastResponse<PredictionReplayResult>> GetPublicPredictionReplayAsync(long matchId, long userId, CancellationToken ct);
+
+    [Get("/api/v1/share/gw-replay/{seasonId}/{gameweekNumber}/{userId}")]
+    Task<ScoreCastResponse<GameweekReplayResult>> GetGameweekReplayAsync(long seasonId, int gameweekNumber, long userId, CancellationToken ct);
 }

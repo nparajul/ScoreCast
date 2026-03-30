@@ -25,6 +25,8 @@ public partial class Dashboard
     private GlobalDashboardResult? _globalData;
     private PredictionReplayResult? _lastReplay;
     private long _myUserId;
+    private long _lastReplaySeasonId;
+    private int _lastReplayGwNumber;
     private bool _initialized;
     private bool _showCreateDialog;
     private bool _showJoinDialog;
@@ -228,6 +230,8 @@ public partial class Dashboard
                 if (replayResp is { Success: true, Data: not null })
                 {
                     _lastReplay = replayResp.Data;
+                    _lastReplaySeasonId = season.SeasonId;
+                    _lastReplayGwNumber = gwResp.Data.GameweekNumber;
                     await InvokeAsync(StateHasChanged);
                     return;
                 }

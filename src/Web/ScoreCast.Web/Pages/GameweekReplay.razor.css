@@ -1,0 +1,54 @@
+/* ── Gameweek Replay ── */
+
+.gw-replay { max-width: 600px; margin: 0 auto; padding: 0 0 32px; }
+
+.gw-hero {
+    background: linear-gradient(135deg, #00e5c6 0%, #37003C 50%, #0A1929 100%);
+    border-radius: 0 0 24px 24px;
+    padding: 28px 24px 24px;
+    margin: -12px -16px 16px;
+    color: white;
+    text-align: center;
+}
+
+.gw-label { font-size: 0.7rem; font-weight: 700; opacity: 0.5; letter-spacing: 0.1em; margin-bottom: 12px; }
+
+.gw-points { font-size: 3.5rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+
+.gw-points-label { font-size: 0.7rem; font-weight: 700; opacity: 0.5; letter-spacing: 0.1em; margin-top: 4px; }
+
+.gw-summary { display: flex; justify-content: center; gap: 6px; font-size: 0.8rem; font-weight: 600; opacity: 0.7; margin-top: 12px; }
+
+.gw-match {
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(0,0,0,0.06);
+}
+
+.gw-match-teams { display: flex; align-items: center; justify-content: center; gap: 12px; }
+
+.gw-match-team { display: flex; align-items: center; gap: 6px; flex: 1; font-size: 0.85rem; font-weight: 600; }
+
+.gw-match-team:first-child { justify-content: flex-end; }
+
+.gw-match-logo { width: 20px; height: 20px; object-fit: contain; }
+
+.gw-match-score { font-size: 1.1rem; font-weight: 800; min-width: 50px; text-align: center; }
+
+.gw-match-pred { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.8rem; margin-top: 6px; }
+
+.section { padding: 0 16px; margin-bottom: 8px; }
+
+.pill-btn { background: var(--mud-palette-tertiary); color: white; border: none; border-radius: 20px; font-family: inherit; font-size: 0.8rem; font-weight: 700; padding: 10px 24px; cursor: pointer; }
+.pill-btn:active { opacity: 0.7; }
+.share-btn { background: var(--mud-palette-primary); }
+
+.gw-cta {
+    background: linear-gradient(135deg, #0A1929 0%, #37003C 100%);
+    border-radius: 16px;
+    padding: 24px 20px;
+    color: white;
+}
+
+@media (min-width: 600px) { .gw-hero { margin: -12px 0 16px; border-radius: 24px; } }

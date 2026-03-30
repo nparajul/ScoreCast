@@ -1,0 +1,73 @@
+@page "/gw-replay/{SeasonId:long}/{GameweekNumber:int}/{UserId:long}"
+
+@if (_data is not null)
+{
+    <div class="gw-replay">
+        <!-- Hero -->
+        <div class="gw-hero">
+            <div class="gw-label">@PlayerNameUpper GAMEWEEK @_data.GameweekNumber</div>
+            @if (_data.CompetitionLogo is not null)
+            {
+                <img src="@_data.CompetitionLogo" alt="" style="width:32px;height:32px;margin-bottom:8px;" />
+            }
+            <div class="gw-points">@_data.TotalPoints</div>
+            <div class="gw-points-label">POINTS</div>
+            <div class="gw-summary">
+                <span>@_data.MatchesPredicted predicted</span>
+                <span>·</span>
+                <span>@_data.CorrectResults correct</span>
+                <span>·</span>
+                <span>@_data.ExactScores exact</span>
+            </div>
+        </div>
+
+        <!-- Match list -->
+        <div class="section">
+            @foreach (var m in _data.Matches)
+            {
+                <div class="gw-match" style="background:@OutcomeBg(m.Outcome);">
+                    <div class="gw-match-teams">
+                        <div class="gw-match-team">
+                            @if (m.HomeLogo is not null) { <img src="@m.HomeLogo" alt="" class="gw-match-logo" /> }
+                            <span>@m.HomeTeam</span>
+                        </div>
+                        <div class="gw-match-score">@m.HomeScore – @m.AwayScore</div>
+                        <div class="gw-match-team">
+                            @if (m.AwayLogo is not null) { <img src="@m.AwayLogo" alt="" class="gw-match-logo" /> }
+                            <span>@m.AwayTeam</span>
+                        </div>
+                    </div>
+                    <div class="gw-match-pred">
+                        <span style="color:var(--mud-palette-text-secondary);">@m.PredictedHome – @m.PredictedAway</span>
+                        <span style="font-weight:700;color:@OutcomeColor(m.Outcome);">@OutcomeShort(m.Outcome)</span>
+                        <span style="font-weight:800;color:@OutcomeColor(m.Outcome);">+@m.Points</span>
+                    </div>
+                    @if (m.DeathMinute is not null)
+                    {
+                        <div style="font-size:11px;color:#C62828;text-align:center;margin-top:4px;">💀 @m.DeathMinute'</div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Actions -->
+        <div class="section" style="text-align:center; padding-bottom:24px;">
+            @if (_isOwnReplay)
+            {
+                <div style="display:flex; justify-content:center; gap:12px;">
+                    <button class="pill-btn share-btn" @onclick="ShareReplay">📤 Share</button>
+                </div>
+            }
+            else if (!_isLoggedIn)
+            {
+                <div class="gw-cta">
+                    <div style="font-size:1.1rem;font-weight:800;margin-bottom:6px;">Think you can do better?</div>
+                    <div style="font-size:0.85rem;opacity:0.7;margin-bottom:14px;">
+                        Predict scores, compete with friends, and prove you know football.
+                    </div>
+                    <button class="pill-btn" @onclick="@(() => Nav.NavigateTo("/register"))">⚽ Join ScoreCast — It's Free</button>
+                </div>
+            }
+        </div>
+    </div>
+}
