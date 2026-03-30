@@ -203,12 +203,22 @@ public partial class Dashboard
     {
         try
         {
-            if (_userSeasons.Count == 0 || _stats?.LastGameweek is null) return;
+            if (_userSeasons.Count == 0) return;
             var season = _userSeasons[0];
-            var gwResp = await Api.GetGameweekMatchesAsync(season.SeasonId, _stats.LastGameweek.GameweekNumber, CancellationToken.None);
+            // Get current gameweek matches directly
+            var gwResp = await Api.GetGameweekMatchesAsync(season.SeasonId, 0, CancellationToken.None);
             if (gwResp is not { Success: true, Data: not null }) return;
-            var finishedMatches = gwResp.Data.Matches.Where(m => m.Status == "Finished").ToList();
-            foreach (var match in finishedMatches.AsEnumerable().Reverse())
+
+            // If current GW has no finished matches, try previous
+            var finished = gwResp.Data.Matches.Where(m => m.Status == "Finished").ToList();
+            if (finished.Count == 0 && gwResp.Data.GameweekNumber > 1)
+            {
+                gwResp = await Api.GetGameweekMatchesAsync(season.SeasonId, gwResp.Data.GameweekNumber - 1, CancellationToken.None);
+                if (gwResp is not { Success: true, Data: not null }) return;
+                finished = gwResp.Data.Matches.Where(m => m.Status == "Finished").ToList();
+            }
+
+            foreach (var match in finished.AsEnumerable().Reverse())
             {
                 var replayResp = await Api.GetPredictionReplayAsync(match.MatchId, CancellationToken.None);
                 if (replayResp is { Success: true, Data: not null })
