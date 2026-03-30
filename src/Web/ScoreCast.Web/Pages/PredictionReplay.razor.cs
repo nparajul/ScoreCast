@@ -8,7 +8,7 @@ namespace ScoreCast.Web.Pages;
 public partial class PredictionReplay : ScoreCastComponentBase
 {
     [Parameter] public long MatchId { get; set; }
-    [Parameter] public long LeagueId { get; set; }
+    [Parameter] public long UserId { get; set; }
     [Inject] private IScoreCastApiClient Api { get; set; } = null!;
     [Inject] private ILoadingService Loading { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
@@ -22,29 +22,17 @@ public partial class PredictionReplay : ScoreCastComponentBase
         {
             try
             {
-                var result = await Api.GetPredictionReplayAsync(MatchId, LeagueId, CancellationToken.None);
+                var result = await Api.GetPublicPredictionReplayAsync(MatchId, UserId, CancellationToken.None);
                 if (result.Success) _replay = result.Data;
             }
-            catch
-            {
-                // 401 for logged-out users — redirect to login
-                Nav.NavigateTo("/login");
-            }
+            catch { /* endpoint unavailable */ }
         });
-    }
-
-    private async Task ShareReplay()
-    {
-        var baseUrl = Nav.BaseUri.TrimEnd('/');
-        var url = $"{baseUrl}/replay/{MatchId}/{LeagueId}";
-        await JS.InvokeVoidAsync("navigator.share", new { title = "My ScoreCast Prediction", url });
     }
 
     private string OutcomeColor(string? outcome) => outcome switch
     {
         "ExactScore" => "#2E7D32",
-        "CorrectResultAndGoalDifference" => "#1565C0",
-        "CorrectResult" => "#1565C0",
+        "CorrectResultAndGoalDifference" or "CorrectResult" => "#1565C0",
         "CorrectGoalDifference" => "#FF6B35",
         _ => "#C62828"
     };
@@ -73,4 +61,11 @@ public partial class PredictionReplay : ScoreCastComponentBase
     };
 
     private void GoToMatch() => Nav.NavigateTo($"/matches/{MatchId}");
+
+    private async Task ShareReplay()
+    {
+        var baseUrl = Nav.BaseUri.TrimEnd('/');
+        var url = $"{baseUrl}/replay/{MatchId}/{UserId}";
+        await JS.InvokeVoidAsync("navigator.share", new { title = "My ScoreCast Prediction", url });
+    }
 }

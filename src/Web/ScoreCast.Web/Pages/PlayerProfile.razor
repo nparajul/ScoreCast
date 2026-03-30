@@ -248,7 +248,7 @@
                                     <text>FT @match.HomeScore-@match.AwayScore</text>
                                     @if (match.HasPrediction && match.Outcome is not null)
                                     {
-                                        <a href="/replay/@match.MatchId/@LeagueId" style="margin-left:6px;color:var(--mud-palette-tertiary);text-decoration:none;font-weight:700;">📽️</a>
+                                        <a href="/replay/@match.MatchId/@UserId" style="margin-left:6px;color:var(--mud-palette-tertiary);text-decoration:none;font-weight:700;">📽️</a>
                                     }
                                 }
                                 else if (match.KickoffTime.HasValue) { @ClientTime.ToLocal(match.KickoffTime.Value).ToString("dd MMM HH:mm") }
