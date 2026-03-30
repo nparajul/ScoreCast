@@ -118,10 +118,29 @@
             </div>
         </div>
 
-        <!-- Share + View Match -->
-        <div class="section" style="text-align:center; padding-bottom:24px; display:flex; justify-content:center; gap:12px;">
-            <button class="pill-btn share-btn" @onclick="ShareReplay">📤 Share</button>
-            <button class="pill-btn" @onclick="GoToMatch">View Match</button>
+        <!-- Actions -->
+        <div class="section" style="text-align:center; padding-bottom:24px;">
+            @if (_isOwnReplay)
+            {
+                <div style="display:flex; justify-content:center; gap:12px;">
+                    <button class="pill-btn share-btn" @onclick="ShareReplay">📤 Share</button>
+                    <button class="pill-btn" @onclick="GoToMatch">View Match</button>
+                </div>
+            }
+            else if (_isLoggedIn)
+            {
+                <button class="pill-btn" @onclick="GoToMatch">View Match</button>
+            }
+            else
+            {
+                <div class="replay-cta">
+                    <div style="font-size:1.1rem;font-weight:800;margin-bottom:6px;">Think you can do better?</div>
+                    <div style="font-size:0.85rem;color:var(--mud-palette-text-secondary);margin-bottom:14px;">
+                        Predict scores, compete with friends, and prove you know football.
+                    </div>
+                    <button class="pill-btn" @onclick="@(() => Nav.NavigateTo("/register"))">⚽ Join ScoreCast — It's Free</button>
+                </div>
+            }
         </div>
     </div>
 }

@@ -16,6 +16,7 @@ public partial class PredictionReplay : ScoreCastComponentBase
 
     private PredictionReplayResult? _replay;
     private bool _isOwnReplay;
+    private bool _isLoggedIn;
 
     protected override async Task OnInitializedAsync()
     {
@@ -30,7 +31,10 @@ public partial class PredictionReplay : ScoreCastComponentBase
                 {
                     var profile = await Api.GetMyProfileAsync(CancellationToken.None);
                     if (profile is { Success: true, Data: not null })
+                    {
+                        _isLoggedIn = true;
                         _isOwnReplay = profile.Data.Id == UserId;
+                    }
                 }
                 catch { /* not logged in */ }
             }
