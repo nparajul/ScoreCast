@@ -20,7 +20,7 @@
 
             <!-- User prediction -->
             <div class="replay-prediction" style="border-color: @OutcomeColor(_replay.Outcome)">
-                <div class="replay-pred-label">@_replay.DisplayName.ToUpper()'S PREDICTION</div>
+                <div class="replay-pred-label">@PlayerNameUpper PREDICTION</div>
                 <div class="replay-pred-score">@_replay.PredictedHome – @_replay.PredictedAway</div>
                 <div class="replay-outcome" style="background: @OutcomeColor(_replay.Outcome)">
                     @OutcomeLabel(_replay.Outcome) · @_replay.PointsEarned pts
@@ -97,7 +97,7 @@
 
         <!-- Season Accuracy -->
         <div class="section">
-            <div class="section-title">@_replay.DisplayName's Season @TrendIcon(_replay.SeasonAccuracy.Trend)</div>
+            <div class="section-title">@PlayerName Season @TrendIcon(_replay.SeasonAccuracy.Trend)</div>
             <div class="accuracy-grid">
                 <div class="accuracy-stat">
                     <div class="accuracy-value">@_replay.SeasonAccuracy.AccuracyPct%</div>

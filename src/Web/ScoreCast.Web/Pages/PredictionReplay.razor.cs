@@ -15,6 +15,7 @@ public partial class PredictionReplay : ScoreCastComponentBase
     [Inject] private IJSRuntime JS { get; set; } = null!;
 
     private PredictionReplayResult? _replay;
+    private bool _isOwnReplay;
 
     protected override async Task OnInitializedAsync()
     {
@@ -24,10 +25,21 @@ public partial class PredictionReplay : ScoreCastComponentBase
             {
                 var result = await Api.GetPublicPredictionReplayAsync(MatchId, UserId, CancellationToken.None);
                 if (result.Success) _replay = result.Data;
+
+                try
+                {
+                    var profile = await Api.GetMyProfileAsync(CancellationToken.None);
+                    if (profile is { Success: true, Data: not null })
+                        _isOwnReplay = profile.Data.Id == UserId;
+                }
+                catch { /* not logged in */ }
             }
             catch { /* endpoint unavailable */ }
         });
     }
+
+    private string PlayerName => _isOwnReplay ? "Your" : $"{_replay?.DisplayName}'s";
+    private string PlayerNameUpper => _isOwnReplay ? "YOUR" : $"{_replay?.DisplayName?.ToUpper()}'S";
 
     private string OutcomeColor(string? outcome) => outcome switch
     {
