@@ -15,17 +15,21 @@ public partial class PredictionReplay : ScoreCastComponentBase
     [Inject] private IJSRuntime JS { get; set; } = null!;
 
     private PredictionReplayResult? _replay;
-    private long _internalUserId;
 
     protected override async Task OnInitializedAsync()
     {
         await Loading.While(async () =>
         {
-            var result = await Api.GetPredictionReplayAsync(MatchId, LeagueId, CancellationToken.None);
-            if (result.Success) _replay = result.Data;
-
-            var profile = await Api.GetMyProfileAsync(CancellationToken.None);
-            if (profile.Success) _internalUserId = profile.Data!.Id;
+            try
+            {
+                var result = await Api.GetPredictionReplayAsync(MatchId, LeagueId, CancellationToken.None);
+                if (result.Success) _replay = result.Data;
+            }
+            catch
+            {
+                // 401 for logged-out users — redirect to login
+                Nav.NavigateTo("/login");
+            }
         });
     }
 
