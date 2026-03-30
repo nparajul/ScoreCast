@@ -168,7 +168,7 @@ else
                     {
                         <img src="@context.TeamLogo" alt="" style="width:24px;height:24px;" />
                     }
-                    <MudText>@context.TeamName</MudText>
+                    <MudText>@(context.TeamShortName ?? context.TeamName)</MudText>
                 </a>
             </MudTd>
             <MudTd DataLabel="PL" Style="text-align:center;">@context.Played</MudTd>
