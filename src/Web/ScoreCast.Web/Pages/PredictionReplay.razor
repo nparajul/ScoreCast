@@ -20,7 +20,7 @@
 
             <!-- User prediction -->
             <div class="replay-prediction" style="border-color: @OutcomeColor(_replay.Outcome)">
-                <div class="replay-pred-label">YOUR PREDICTION</div>
+                <div class="replay-pred-label">@_replay.DisplayName.ToUpper()'S PREDICTION</div>
                 <div class="replay-pred-score">@_replay.PredictedHome – @_replay.PredictedAway</div>
                 <div class="replay-outcome" style="background: @OutcomeColor(_replay.Outcome)">
                     @OutcomeLabel(_replay.Outcome) · @_replay.PointsEarned pts
@@ -33,14 +33,14 @@
         {
             <div class="section">
                 <div class="replay-death">
-                    💀 Your prediction died at minute <strong>@_replay.DeathMinute</strong>
+                    💀 Prediction died at minute <strong>@_replay.DeathMinute</strong>
                 </div>
             </div>
         }
         else if (_replay.Outcome == "ExactScore")
         {
             <div class="section">
-                <div class="replay-nailed">🎯 You nailed it. Exact score.</div>
+                <div class="replay-nailed">🎯 Nailed it. Exact score.</div>
             </div>
         }
 
@@ -97,7 +97,7 @@
 
         <!-- Season Accuracy -->
         <div class="section">
-            <div class="section-title">Your Season @TrendIcon(_replay.SeasonAccuracy.Trend)</div>
+            <div class="section-title">@_replay.DisplayName's Season @TrendIcon(_replay.SeasonAccuracy.Trend)</div>
             <div class="accuracy-grid">
                 <div class="accuracy-stat">
                     <div class="accuracy-value">@_replay.SeasonAccuracy.AccuracyPct%</div>

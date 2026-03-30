@@ -12,8 +12,11 @@ internal sealed record GetPublicPredictionReplayQueryHandler(
 {
     public async Task<ScoreCastResponse<PredictionReplayResult>> ExecuteAsync(GetPublicPredictionReplayQuery query, CancellationToken ct)
     {
-        var userExists = await DbContext.UserMasters.AsNoTracking().AnyAsync(u => u.Id == query.UserId, ct);
-        if (!userExists)
+        var user = await DbContext.UserMasters.AsNoTracking()
+            .Where(u => u.Id == query.UserId)
+            .Select(u => new { u.DisplayName })
+            .FirstOrDefaultAsync(ct);
+        if (user is null)
             return ScoreCastResponse<PredictionReplayResult>.Error("User not found.");
 
         var match = await DbContext.Matches.AsNoTracking()
@@ -75,7 +78,7 @@ internal sealed record GetPublicPredictionReplayQueryHandler(
         var accuracy = await GetAccuracyAsync(query.UserId, match.SeasonId, ct);
 
         return ScoreCastResponse<PredictionReplayResult>.Ok(new PredictionReplayResult(
-            match.Id, match.HomeTeam, match.AwayTeam, match.HomeLogo, match.AwayLogo,
+            match.Id, user.DisplayName ?? "Player", match.HomeTeam, match.AwayTeam, match.HomeLogo, match.AwayLogo,
             match.HomeScore ?? 0, match.AwayScore ?? 0,
             prediction.PredictedHomeScore ?? 0, prediction.PredictedAwayScore ?? 0,
             prediction.Outcome?.ToString(), points,

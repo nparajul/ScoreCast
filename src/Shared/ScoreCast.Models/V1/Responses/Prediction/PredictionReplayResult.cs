@@ -2,6 +2,7 @@ namespace ScoreCast.Models.V1.Responses.Prediction;
 
 public record PredictionReplayResult(
     long MatchId,
+    string DisplayName,
     string HomeTeam,
     string AwayTeam,
     string? HomeLogo,

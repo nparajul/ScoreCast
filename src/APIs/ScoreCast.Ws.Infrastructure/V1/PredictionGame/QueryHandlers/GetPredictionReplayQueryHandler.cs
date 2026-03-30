@@ -71,7 +71,7 @@ internal sealed record GetPredictionReplayQueryHandler(
         string? aiCommentary = null;
 
         return ScoreCastResponse<PredictionReplayResult>.Ok(new PredictionReplayResult(
-            match.Id, match.HomeTeam, match.AwayTeam, match.HomeLogo, match.AwayLogo,
+            match.Id, user.DisplayName ?? "Player", match.HomeTeam, match.AwayTeam, match.HomeLogo, match.AwayLogo,
             match.HomeScore ?? 0, match.AwayScore ?? 0,
             prediction.PredictedHomeScore ?? 0, prediction.PredictedAwayScore ?? 0,
             prediction.Outcome?.ToString(), points,
