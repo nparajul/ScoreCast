@@ -18,7 +18,7 @@ internal sealed record GetPredictionReplayQueryHandler(
     public async Task<ScoreCastResponse<PredictionReplayResult>> ExecuteAsync(GetPredictionReplayQuery query, CancellationToken ct)
     {
         var user = await DbContext.UserMasters.AsNoTracking()
-            .FirstOrDefaultAsync(u => u.FirebaseUid == query.UserId, ct);
+            .FirstOrDefaultAsync(u => u.UserId == query.UserId, ct);
         if (user is null)
             return ScoreCastResponse<PredictionReplayResult>.Error("User not found.");
 
@@ -68,11 +68,7 @@ internal sealed record GetPredictionReplayQueryHandler(
         var rivals = await GetLeagueRivalsAsync(query.MatchId, query.PredictionLeagueId, user.Id, match.SeasonId, ct);
         var accuracy = await GetSeasonAccuracyAsync(user.Id, match.SeasonId, ct);
 
-        var aiCommentary = await GenerateAiCommentaryAsync(
-            match.HomeTeam, match.AwayTeam,
-            prediction.PredictedHomeScore ?? 0, prediction.PredictedAwayScore ?? 0,
-            match.HomeScore ?? 0, match.AwayScore ?? 0,
-            prediction.Outcome?.ToString(), deathMinute, accuracy, ct);
+        string? aiCommentary = null;
 
         return ScoreCastResponse<PredictionReplayResult>.Ok(new PredictionReplayResult(
             match.Id, match.HomeTeam, match.AwayTeam, match.HomeLogo, match.AwayLogo,

@@ -210,7 +210,7 @@ public partial class Dashboard
             var finishedMatches = gwResp.Data.Matches.Where(m => m.Status == "Finished").ToList();
             foreach (var match in finishedMatches.AsEnumerable().Reverse())
             {
-                var replayResp = await Api.GetPredictionReplayAsync(match.MatchId, 0, CancellationToken.None);
+                var replayResp = await Api.GetPredictionReplayAsync(match.MatchId, CancellationToken.None);
                 if (replayResp is { Success: true, Data: not null })
                 {
                     _lastReplay = replayResp.Data;

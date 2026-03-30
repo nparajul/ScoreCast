@@ -377,18 +377,24 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
                 _extras = resp.Data;
             else
                 _extras = new MatchExtrasResult([], [], [], null, new CommunityPredictions(0, 0, 0, 0, null, 0), [], []);
-
-            if (_match?.Status == nameof(MatchStatus.Finished))
-            {
-                var replayResp = await Api.GetPredictionReplayAsync(MatchId, 0, CancellationToken.None);
-                if (replayResp is { Success: true, Data: not null })
-                    _replay = replayResp.Data;
-            }
         }
         catch
         {
             _extras = new MatchExtrasResult([], [], [], null, new CommunityPredictions(0, 0, 0, 0, null, 0), [], []);
         }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadReplayAsync()
+    {
+        if (_replay is not null) return;
+        try
+        {
+            var resp = await Api.GetPredictionReplayAsync(MatchId, CancellationToken.None);
+            if (resp is { Success: true, Data: not null })
+                _replay = resp.Data;
+        }
+        catch { /* non-critical */ }
         await InvokeAsync(StateHasChanged);
     }
 

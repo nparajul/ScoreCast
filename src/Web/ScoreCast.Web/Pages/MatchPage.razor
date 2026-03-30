@@ -86,14 +86,14 @@
         @* Tabs *@
         @{
             var tabs = _match.Status is nameof(MatchStatus.Finished) or nameof(MatchStatus.Live)
-                ? new[] { "Events", "Lineups", "Stats", "Highlights", "Table" }
+                ? new[] { "Events", "Lineups", "Replay", "Stats", "Highlights", "Table" }
                 : new[] { "Events", "Lineups", "Stats", "Table" };
         }
         <div style="display:flex;background:var(--mud-palette-dark);border-radius:28px;padding:3px;margin:12px 0;">
             @foreach (var tab in tabs)
             {
                 var isActive = _activeTab == tab;
-                <div @onclick="@(() => { _activeTab = tab; SaveState("tab", tab); if (tab == "Stats" && _extras is null) _ = LoadExtrasAsync(); if (tab == "Highlights") _ = LoadHighlightsAsync(); })"
+                <div @onclick="@(() => { _activeTab = tab; SaveState("tab", tab); if (tab == "Stats" && _extras is null) _ = LoadExtrasAsync(); if (tab == "Replay" && _replay is null) _ = LoadReplayAsync(); if (tab == "Highlights") _ = LoadHighlightsAsync(); })"
                      style="flex:1;text-align:center;padding:8px 0;border-radius:24px;font-size:0.8rem;font-weight:700;cursor:pointer;
                             background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
                             color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
@@ -463,6 +463,105 @@
             }
         }
 
+
+        @* Replay Tab *@
+        @if (_activeTab == "Replay")
+        {
+            @if (_replay is null)
+            {
+                <div style="text-align:center;padding:40px 0;color:var(--mud-palette-text-secondary);font-size:14px;">
+                    Loading replay...
+                </div>
+            }
+            else
+            {
+                <MudPaper Elevation="1" Style="border-radius:12px;padding:14px;margin-bottom:10px;">
+                    <MudText Typo="Typo.subtitle2" Style="font-weight:700;margin-bottom:8px;">🎯 Your Prediction</MudText>
+                    <div style="text-align:center;">
+                        <div style="font-size:28px;font-weight:800;">@_replay.PredictedHome - @_replay.PredictedAway</div>
+                        @if (_replay.Outcome is not null)
+                        {
+                            <div style="margin-top:4px;">
+                                <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;
+                                    background:@(PredictionBg(_replay.Outcome));color:white;">
+                                    @((_replay.Outcome ?? "").Replace("CorrectResultAndGoalDifference","Result + GD").Replace("CorrectResult","Result ✓").Replace("ExactScore","Exact! 🎯").Replace("CorrectGoalDifference","GD ✓").Replace("Incorrect","✗"))
+                                    — @_replay.PointsEarned pts
+                                </span>
+                            </div>
+                        }
+                    </div>
+
+                    @if (_replay.DeathMinute is not null)
+                    {
+                        <div style="margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(198,40,40,0.08);text-align:center;font-size:13px;color:#C62828;">
+                            💀 Your prediction died at minute <strong>@_replay.DeathMinute</strong>
+                        </div>
+                    }
+                    else if (_replay.Outcome == "ExactScore")
+                    {
+                        <div style="margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(46,125,50,0.08);text-align:center;font-size:13px;color:#2E7D32;font-weight:600;">
+                            🎯 You nailed it. Exact score.
+                        </div>
+                    }
+
+                    @if (_replay.AiCommentary is not null)
+                    {
+                        <div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--mud-palette-background);border:1px solid rgba(0,0,0,0.06);">
+                            <div style="font-size:10px;font-weight:700;color:var(--mud-palette-text-secondary);letter-spacing:0.06em;margin-bottom:4px;">🎙️ THE VERDICT</div>
+                            <div style="font-size:13px;line-height:1.5;font-style:italic;">@_replay.AiCommentary</div>
+                        </div>
+                    }
+
+                    @if (_replay.GoalTimeline.Count > 0)
+                    {
+                        <div style="margin-top:10px;">
+                            <div style="font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);margin-bottom:6px;">GOAL TIMELINE</div>
+                            @foreach (var g in _replay.GoalTimeline)
+                            {
+                                var icon = g.PredictionStatus switch { "exact" => "✅", "alive" => "🟢", _ => "💀" };
+                                <div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(0,0,0,0.04);">
+                                    <span style="min-width:28px;text-align:right;font-weight:700;color:var(--mud-palette-text-secondary);">@g.Minute'</span>
+                                    <span>@icon</span>
+                                    <span style="font-weight:600;">⚽ @g.Scorer</span>
+                                    <span style="color:var(--mud-palette-text-secondary);margin-left:auto;">@g.RunningHome–@g.RunningAway</span>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @if (_replay.LeagueRivals.Count > 0)
+                    {
+                        <div style="margin-top:10px;">
+                            <div style="font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);margin-bottom:6px;">LEAGUE RIVALS</div>
+                            @foreach (var rival in _replay.LeagueRivals)
+                            {
+                                <div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;border-bottom:1px solid rgba(0,0,0,0.04);">
+                                    <span style="font-weight:600;">@rival.DisplayName</span>
+                                    <span style="color:var(--mud-palette-text-secondary);">@rival.PredictedHome–@rival.PredictedAway</span>
+                                    <span style="margin-left:auto;font-weight:700;color:@(PredictionBg(rival.Outcome));">@rival.Points pts</span>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <div style="margin-top:12px;display:flex;gap:6px;">
+                        <div style="flex:1;text-align:center;background:var(--mud-palette-background);border-radius:10px;padding:10px 6px;border:1px solid rgba(0,0,0,0.06);">
+                            <div style="font-size:18px;font-weight:800;color:var(--mud-palette-primary);">@_replay.SeasonAccuracy.AccuracyPct%</div>
+                            <div style="font-size:10px;font-weight:600;color:var(--mud-palette-text-secondary);">ACCURACY</div>
+                        </div>
+                        <div style="flex:1;text-align:center;background:var(--mud-palette-background);border-radius:10px;padding:10px 6px;border:1px solid rgba(0,0,0,0.06);">
+                            <div style="font-size:18px;font-weight:800;color:var(--mud-palette-primary);">@_replay.SeasonAccuracy.ExactScores</div>
+                            <div style="font-size:10px;font-weight:600;color:var(--mud-palette-text-secondary);">EXACT</div>
+                        </div>
+                        <div style="flex:1;text-align:center;background:var(--mud-palette-background);border-radius:10px;padding:10px 6px;border:1px solid rgba(0,0,0,0.06);">
+                            <div style="font-size:18px;font-weight:800;color:var(--mud-palette-primary);">@_replay.SeasonAccuracy.TotalPredictions</div>
+                            <div style="font-size:10px;font-weight:600;color:var(--mud-palette-text-secondary);">TOTAL</div>
+                        </div>
+                    </div>
+                </MudPaper>
+            }
+        }
+
         @* Stats Tab *@
         @if (_activeTab == "Stats")
         {
@@ -474,7 +573,7 @@
             }
             else
             {
-                @* Your Prediction *@
+                @* Your Prediction (fallback when no replay) *@
                 @if (_extras.MyPrediction is not null)
                 {
                     <MudPaper Elevation="1" Style="border-radius:12px;padding:14px;margin-bottom:10px;">
@@ -496,54 +595,6 @@
                                 }
                             </div>
                         </div>
-
-                        @* Inline Replay Content *@
-                        @if (_replay is not null)
-                        {
-                            @if (_replay.DeathMinute is not null)
-                            {
-                                <div style="margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(198,40,40,0.08);text-align:center;font-size:13px;color:#C62828;">
-                                    💀 Your prediction died at minute <strong>@_replay.DeathMinute</strong>
-                                </div>
-                            }
-                            else if (_replay.Outcome == "ExactScore")
-                            {
-                                <div style="margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(46,125,50,0.08);text-align:center;font-size:13px;color:#2E7D32;font-weight:600;">
-                                    🎯 You nailed it. Exact score.
-                                </div>
-                            }
-
-                            @if (_replay.AiCommentary is not null)
-                            {
-                                <div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--mud-palette-background);border:1px solid rgba(0,0,0,0.06);">
-                                    <div style="font-size:10px;font-weight:700;color:var(--mud-palette-text-secondary);letter-spacing:0.06em;margin-bottom:4px;">🎙️ THE VERDICT</div>
-                                    <div style="font-size:13px;line-height:1.5;font-style:italic;">@_replay.AiCommentary</div>
-                                </div>
-                            }
-
-                            @if (_replay.GoalTimeline.Count > 0)
-                            {
-                                <div style="margin-top:10px;">
-                                    <div style="font-size:11px;font-weight:700;color:var(--mud-palette-text-secondary);margin-bottom:6px;">GOAL TIMELINE</div>
-                                    @foreach (var g in _replay.GoalTimeline)
-                                    {
-                                        var icon = g.PredictionStatus switch { "exact" => "✅", "alive" => "🟢", _ => "💀" };
-                                        <div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(0,0,0,0.04);">
-                                            <span style="min-width:28px;text-align:right;font-weight:700;color:var(--mud-palette-text-secondary);">@g.Minute'</span>
-                                            <span>@icon</span>
-                                            <span style="font-weight:600;">⚽ @g.Scorer</span>
-                                            <span style="color:var(--mud-palette-text-secondary);margin-left:auto;">@g.RunningHome–@g.RunningAway</span>
-                                        </div>
-                                    }
-                                </div>
-                            }
-
-                            <div style="margin-top:10px;text-align:center;">
-                                <a href="/replay/@MatchId/0" style="font-size:12px;font-weight:700;color:var(--mud-palette-tertiary);text-decoration:none;">
-                                    📽️ Full Replay →
-                                </a>
-                            </div>
-                        }
                     </MudPaper>
                 }
 

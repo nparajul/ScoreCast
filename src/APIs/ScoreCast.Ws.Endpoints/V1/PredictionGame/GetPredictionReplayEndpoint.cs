@@ -9,13 +9,14 @@ public sealed class GetPredictionReplayEndpoint : Endpoint<GetPredictionReplayRe
 {
     public override void Configure()
     {
-        Get("/replay/{MatchId}/{PredictionLeagueId}");
+        Get("/replay/{MatchId}", "/replay/{MatchId}/{PredictionLeagueId}");
         Group<PredictionGroup>();
     }
 
     public override async Task HandleAsync(GetPredictionReplayRequest request, CancellationToken ct)
     {
-        var result = await new GetPredictionReplayQuery(request.MatchId, request.UserId!, request.PredictionLeagueId)
+        long? leagueId = request.PredictionLeagueId > 0 ? request.PredictionLeagueId : null;
+        var result = await new GetPredictionReplayQuery(request.MatchId, request.UserId!, leagueId)
             .ExecuteAsync(ct);
         await Send.OkAsync(result, ct);
     }
