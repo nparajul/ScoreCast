@@ -4,5 +4,5 @@ using ScoreCast.Ws.Application.V1.Interfaces;
 
 namespace ScoreCast.Ws.Application.V1.PredictionGame.Queries;
 
-public record GetPredictionReplayCardQuery(long MatchId, long UserId)
+public record GetPredictionReplayCardQuery(long MatchId, long UserId, string? BaseUrl = null)
     : IQuery<ScoreCastResponse<PredictionReplayCardResult>>;

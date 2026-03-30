@@ -14,8 +14,9 @@ public sealed class GetPredictionReplayOgEndpoint : Endpoint<GetPredictionReplay
 
     public override async Task HandleAsync(GetPredictionReplayCardRequest req, CancellationToken ct)
     {
-        var result = await new GetPredictionReplayCardQuery(req.MatchId, req.TargetUserId).ExecuteAsync(ct);
-        if (!result.Success || result.Data is null) { HttpContext.Response.Redirect($"https://scorecast.uk/match/{req.MatchId}"); return; }
+        var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}";
+        var result = await new GetPredictionReplayCardQuery(req.MatchId, req.TargetUserId, baseUrl).ExecuteAsync(ct);
+        if (!result.Success || result.Data is null) { HttpContext.Response.Redirect($"/matches/{req.MatchId}"); return; }
 
         HttpContext.Response.ContentType = "text/html";
         await HttpContext.Response.WriteAsync(result.Data.OgHtml, ct);

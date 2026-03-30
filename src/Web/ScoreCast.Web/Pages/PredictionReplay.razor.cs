@@ -31,7 +31,8 @@ public partial class PredictionReplay : ScoreCastComponentBase
 
     private async Task ShareReplay()
     {
-        var url = $"https://scorecast.uk/api/v1/share/replay/{MatchId}/{_internalUserId}/og";
+        var baseUrl = Nav.BaseUri.TrimEnd('/');
+        var url = $"{baseUrl}/replay/{MatchId}/{LeagueId}";
         await JS.InvokeVoidAsync("navigator.share", new { title = "My ScoreCast Prediction", url });
     }
 

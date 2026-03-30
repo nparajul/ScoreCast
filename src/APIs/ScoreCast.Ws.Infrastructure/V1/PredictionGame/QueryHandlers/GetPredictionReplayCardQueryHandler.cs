@@ -49,7 +49,7 @@ internal sealed record GetPredictionReplayCardQueryHandler(
         var pa = pred.PredictedAwayScore ?? 0;
 
         var svg = BuildSvg(pred.DisplayName, match.Home, match.Away, hs, aws, ph, pa, label, color, points);
-        var ogHtml = BuildOgHtml(pred.DisplayName, match.Home, match.Away, hs, aws, ph, pa, label, points, query.MatchId, query.UserId);
+        var ogHtml = BuildOgHtml(pred.DisplayName, match.Home, match.Away, hs, aws, ph, pa, label, points, query.MatchId, query.UserId, query.BaseUrl ?? "https://scorecast.uk");
 
         return ScoreCastResponse<PredictionReplayCardResult>.Ok(new PredictionReplayCardResult(svg, ogHtml));
     }
@@ -78,12 +78,12 @@ internal sealed record GetPredictionReplayCardQueryHandler(
             """;
     }
 
-    private static string BuildOgHtml(string name, string home, string away, int hs, int aws, int ph, int pa, string label, int pts, long matchId, long userId)
+    private static string BuildOgHtml(string name, string home, string away, int hs, int aws, int ph, int pa, string label, int pts, long matchId, long userId, string baseUrl)
     {
         var title = Esc($"{name} predicted {home} {ph}-{pa} {away}");
         var desc = Esc($"Result: {home} {hs}-{aws} {away} — {label}");
-        var img = $"https://scorecast.uk/api/v1/share/replay/{matchId}/{userId}";
-        var page = $"https://scorecast.uk/replay/{matchId}/0";
+        var img = $"{baseUrl}/api/v1/share/replay/{matchId}/{userId}";
+        var page = $"{baseUrl}/replay/{matchId}/0";
 
         return $"""
             <!DOCTYPE html><html><head>
