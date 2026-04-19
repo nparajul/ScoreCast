@@ -1,15 +1,31 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
-import { CompetitionResult, SeasonResult, PointsTableResult, BracketResult, CompetitionZoneResult, GameweekMatchesResult, PlayerStatsResult, PlayerStatRow } from '@/lib/types';
+import type { CompetitionResult, SeasonResult, PointsTableResult, BracketResult, CompetitionZoneResult, GameweekMatchesResult, PlayerStatsResult, PlayerStatRow, MatchDetail } from '@/lib/types';
 import LeagueTable from '@/components/league-table';
 import GroupStage from '@/components/group-stage';
 import BestThirdTable from '@/components/best-third-table';
 import KnockoutBracket from '@/components/knockout-bracket';
+import { MatchTile } from '@/components/match-tile';
 
 type SortCol = 'Goals' | 'Assists' | 'YellowCards' | 'RedCards';
+const TABS = ['Table', 'Scores', 'Players'] as const;
+const GROUP_TABS = ['Groups', 'Best 3rd', 'Knockout'] as const;
+const PLAYER_TABS = ['Overall', 'Goals', 'Assists', 'Discipline'] as const;
+
+function dateLabel(dateStr: string) {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const target = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const diff = (target.getTime() - today.getTime()) / 86400000;
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  if (diff === -1) return 'Yesterday';
+  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+}
 
 export default function CompetitionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -23,16 +39,17 @@ export default function CompetitionDetailPage() {
   const [zones, setZones] = useState<CompetitionZoneResult[]>([]);
   const [gw, setGw] = useState<GameweekMatchesResult | null>(null);
   const [stats, setStats] = useState<PlayerStatsResult | null>(null);
-  const [tab, setTab] = useState('Table');
-  const [groupTab, setGroupTab] = useState('Groups');
-  const [playerTab, setPlayerTab] = useState('Overall');
+  const [tab, setTab] = useState<string>(() => typeof window !== 'undefined' ? sessionStorage.getItem(`comp-${compId}-tab`) ?? 'Table' : 'Table');
+  const [groupTab, setGroupTab] = useState<string>('Groups');
+  const [playerTab, setPlayerTab] = useState<string>('Overall');
   const [sortCol, setSortCol] = useState<SortCol>('Goals');
   const [sortDesc, setSortDesc] = useState(true);
+  const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
-  const loadSeason = useCallback(async (c: CompetitionResult, s: SeasonResult) => {
+  const loadSeason = useCallback(async (c: CompetitionResult, s: SeasonResult, savedGw?: number) => {
     const [tR, bR, zR, gR, sR] = await Promise.all([
       api.getPointsTable(s.id), api.getBracket(s.id), api.getCompetitionZones(c.code),
-      api.getGameweekMatches(s.id, 0), api.getPlayerStats(s.id),
+      api.getGameweekMatches(s.id, savedGw ?? 0), api.getPlayerStats(s.id),
     ]);
     if (tR.data) setTable(tR.data);
     if (bR.data) setBracket(bR.data);
@@ -51,24 +68,50 @@ export default function CompetitionDetailPage() {
       if (sRes.data) {
         setSeasons(sRes.data);
         const cur = sRes.data.find(x => x.isCurrent) ?? sRes.data[0];
-        if (cur) { setSeason(cur); await loadSeason(c, cur); }
+        if (cur) {
+          setSeason(cur);
+          const savedGw = typeof window !== 'undefined' ? Number(sessionStorage.getItem(`comp-${compId}-gw`)) || 0 : 0;
+          await loadSeason(c, cur, savedGw);
+        }
       }
     })();
   }, [compId, loadSeason]);
+
+  // Live polling for scores tab
+  useEffect(() => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    if (tab !== 'Scores' || !gw?.matches.some(m => m.status === 'Live') || !season) return;
+    pollRef.current = setInterval(async () => {
+      const r = await api.getGameweekMatches(season.id, gw.gameweekNumber);
+      if (r.success && r.data) setGw(r.data);
+    }, 30000);
+    return () => clearInterval(pollRef.current);
+  }, [tab, gw, season]);
+
+  const switchTab = (t: string) => {
+    setTab(t);
+    if (typeof window !== 'undefined') sessionStorage.setItem(`comp-${compId}-tab`, t);
+  };
 
   const onSeasonChange = async (sid: number) => {
     const s = seasons.find(x => x.id === sid);
     if (s && comp) { setSeason(s); setTable(null); setBracket(null); setGw(null); setStats(null); await loadSeason(comp, s); }
   };
 
-  const prevGw = async () => { if (season && gw && gw.gameweekNumber > 1) { const r = await api.getGameweekMatches(season.id, gw.gameweekNumber - 1); if (r.data) setGw(r.data); } };
-  const nextGw = async () => { if (season && gw && gw.gameweekNumber < gw.totalGameweeks) { const r = await api.getGameweekMatches(season.id, gw.gameweekNumber + 1); if (r.data) setGw(r.data); } };
-
-  const isGroup = table?.format === 'GroupAndKnockout';
-  const mainTabs = isGroup ? ['Table', 'Scores', 'Players'] : ['Table', 'Scores', 'Players'];
-  const groupTabs = ['Groups', 'Best 3rd', 'Knockout'];
+  const navGw = async (dir: -1 | 1) => {
+    if (!season || !gw) return;
+    const next = gw.gameweekNumber + dir;
+    if (next < 1 || next > gw.totalGameweeks) return;
+    const r = await api.getGameweekMatches(season.id, next);
+    if (r.success && r.data) {
+      setGw(r.data);
+      if (typeof window !== 'undefined') sessionStorage.setItem(`comp-${compId}-gw`, String(r.data.gameweekNumber));
+    }
+  };
 
   const sortBy = (col: SortCol) => { if (sortCol === col) setSortDesc(!sortDesc); else { setSortCol(col); setSortDesc(true); } };
+  const sortArrow = (col: SortCol) => sortCol === col ? (sortDesc ? ' ▼' : ' ▲') : '';
+
   const sorted = (rows: PlayerStatRow[]) => {
     const s = [...rows];
     const dir = sortDesc ? -1 : 1;
@@ -78,19 +121,25 @@ export default function CompetitionDetailPage() {
     });
     return s;
   };
+
   const mobileStats = (rows: PlayerStatRow[]) => {
     const s = [...rows];
     s.sort((a, b) => playerTab === 'Goals' ? (b.goals + b.penaltyGoals) - (a.goals + a.penaltyGoals) : playerTab === 'Assists' ? b.assists - a.assists : playerTab === 'Discipline' ? (b.yellowCards + b.redCards) - (a.yellowCards + a.redCards) : (b.goals + b.penaltyGoals) - (a.goals + a.penaltyGoals));
     return s.slice(0, 50);
   };
 
-  const matchesByDate = gw?.matches.reduce<Record<string, typeof gw.matches>>((acc, m) => {
-    const d = m.kickoffTime ? new Date(m.kickoffTime).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : 'TBD';
-    (acc[d] ??= []).push(m);
+  const matchesByDate = gw?.matches.reduce<{ label: string; matches: MatchDetail[] }[]>((acc, m) => {
+    const key = m.kickoffTime ? new Date(m.kickoffTime).toDateString() : 'TBD';
+    const label = m.kickoffTime ? dateLabel(m.kickoffTime) : 'TBD';
+    const existing = acc.find(g => g.label === label);
+    if (existing) existing.matches.push(m);
+    else acc.push({ label, matches: [m] });
     return acc;
-  }, {}) ?? {};
+  }, []) ?? [];
 
-  if (!comp) return null;
+  const isGroup = table?.format === 'GroupAndKnockout';
+
+  if (!comp) return <div className="py-12 text-center text-sm opacity-50">Loading…</div>;
 
   return (
     <div>
@@ -113,11 +162,11 @@ export default function CompetitionDetailPage() {
         </div>
       </div>
 
-      {/* Tab bar */}
+      {/* Sticky tab bar */}
       <div className="sticky top-14 z-10 bg-[var(--sc-bg)] border-b-2 border-[var(--sc-border)]">
         <div className="max-w-3xl mx-auto flex overflow-x-auto">
-          {mainTabs.map(t => (
-            <button key={t} onClick={() => setTab(t)} className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap cursor-pointer border-b-2 ${tab === t ? 'border-[var(--sc-tertiary)] text-[var(--sc-primary)] font-bold' : 'border-transparent text-[var(--sc-text-secondary)]'} bg-transparent`}>{t}</button>
+          {TABS.map(t => (
+            <button key={t} onClick={() => switchTab(t)} className={`px-4 py-2.5 text-sm whitespace-nowrap cursor-pointer border-b-2 bg-transparent ${tab === t ? 'border-[var(--sc-tertiary)] text-[var(--sc-primary)] font-bold' : 'border-transparent text-[var(--sc-text-secondary)] font-medium'}`}>{t}</button>
           ))}
         </div>
       </div>
@@ -128,7 +177,7 @@ export default function CompetitionDetailPage() {
           isGroup ? (
             <>
               <div className="flex bg-[var(--sc-primary)] rounded-full p-0.5 mb-3">
-                {groupTabs.map(t => (
+                {GROUP_TABS.map(t => (
                   <button key={t} onClick={() => setGroupTab(t)} className={`flex-1 text-center py-1.5 rounded-full text-xs font-semibold cursor-pointer ${groupTab === t ? 'bg-[var(--sc-surface)] text-[var(--sc-primary)]' : 'text-white/70 bg-transparent'}`}>{t}</button>
                 ))}
               </div>
@@ -136,33 +185,39 @@ export default function CompetitionDetailPage() {
               {groupTab === 'Best 3rd' && <BestThirdTable rows={table.bestThirdPlaced} />}
               {groupTab === 'Knockout' && <KnockoutBracket bracket={bracket ?? undefined} />}
             </>
-          ) : table.groups.length > 0 ? <LeagueTable rows={table.groups[0].rows} zones={zones} /> : <p className="text-sm text-[var(--sc-text-secondary)]">No table data.</p>
+          ) : table.groups.length > 0 ? (
+            <>
+              <LeagueTable rows={table.groups[0].rows} zones={zones} />
+              {zones.length > 0 && (
+                <div className="flex flex-wrap gap-3 mt-3 text-xs">
+                  {zones.map(z => (
+                    <div key={z.name} className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-sm" style={{ background: z.color }} />
+                      <span className="text-[var(--sc-text-secondary)]">{z.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : <p className="text-sm text-[var(--sc-text-secondary)]">No table data.</p>
         )}
 
         {/* Scores tab */}
         {tab === 'Scores' && gw && (
           <div>
             <div className="flex items-center justify-center gap-2 mb-4">
-              <button onClick={prevGw} disabled={gw.gameweekNumber <= 1} className="px-2 py-1 rounded bg-[var(--sc-surface)] border border-[var(--sc-border)] disabled:opacity-30 cursor-pointer">◀</button>
-              <span className="text-sm font-bold bg-[var(--sc-primary)] text-white px-3 py-1 rounded-full">MW {gw.gameweekNumber}</span>
-              <button onClick={nextGw} disabled={gw.gameweekNumber >= gw.totalGameweeks} className="px-2 py-1 rounded bg-[var(--sc-surface)] border border-[var(--sc-border)] disabled:opacity-30 cursor-pointer">▶</button>
+              <button onClick={() => navGw(-1)} disabled={gw.gameweekNumber <= 1} className="p-1 rounded hover:bg-black/5 disabled:opacity-30 cursor-pointer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
+              </button>
+              <span className="px-3 py-1 rounded-full bg-[var(--sc-primary)] text-white text-xs font-bold">MW {gw.gameweekNumber}</span>
+              <button onClick={() => navGw(1)} disabled={gw.gameweekNumber >= gw.totalGameweeks} className="p-1 rounded hover:bg-black/5 disabled:opacity-30 cursor-pointer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
+              </button>
             </div>
-            {Object.entries(matchesByDate).map(([date, matches]) => (
-              <div key={date} className="bg-[var(--sc-surface)] rounded-lg border border-[var(--sc-border)] mb-3 overflow-hidden">
-                <div className="text-center font-bold text-sm py-2">{date}</div>
-                {matches.map(m => (
-                  <div key={m.matchId} className="flex items-center justify-between px-3 py-2 border-t border-[var(--sc-border)] text-sm">
-                    <div className="flex items-center gap-2 flex-1">
-                      {m.homeTeamLogoUrl && <img src={m.homeTeamLogoUrl} alt="" className="w-5 h-5" />}
-                      <span className="font-semibold truncate">{m.homeTeamShortName ?? m.homeTeamName}</span>
-                    </div>
-                    <div className="font-bold px-3">{m.homeScore ?? '-'} - {m.awayScore ?? '-'}</div>
-                    <div className="flex items-center gap-2 flex-1 justify-end">
-                      <span className="font-semibold truncate">{m.awayTeamShortName ?? m.awayTeamName}</span>
-                      {m.awayTeamLogoUrl && <img src={m.awayTeamLogoUrl} alt="" className="w-5 h-5" />}
-                    </div>
-                  </div>
-                ))}
+            {matchesByDate.map(g => (
+              <div key={g.label} className="bg-[var(--sc-surface)] rounded-xl border border-[var(--sc-border)] mb-3 overflow-hidden">
+                <div className="text-center font-bold text-sm py-2">{g.label}</div>
+                {g.matches.map(m => <MatchTile key={m.matchId} match={m} />)}
               </div>
             ))}
           </div>
@@ -174,7 +229,7 @@ export default function CompetitionDetailPage() {
             {/* Mobile */}
             <div className="md:hidden">
               <div className="flex bg-[var(--sc-primary)] rounded-full p-0.5 mb-3 overflow-x-auto">
-                {['Overall', 'Goals', 'Assists', 'Discipline'].map(t => (
+                {PLAYER_TABS.map(t => (
                   <button key={t} onClick={() => setPlayerTab(t)} className={`flex-1 text-center py-1.5 rounded-full text-[10px] font-bold cursor-pointer whitespace-nowrap px-2 ${playerTab === t ? 'bg-[var(--sc-surface)] text-[var(--sc-primary)]' : 'text-white/70 bg-transparent'}`}>{t}</button>
                 ))}
               </div>
@@ -206,16 +261,16 @@ export default function CompetitionDetailPage() {
               <table className="w-full text-sm border-collapse">
                 <thead><tr className="text-xs text-[var(--sc-text-secondary)] border-b border-[var(--sc-border)]">
                   <th className="p-2 text-left w-10">#</th><th className="p-2 text-left">Player</th><th className="p-2 text-left">Team</th>
-                  <th className="p-2 text-center cursor-pointer" onClick={() => sortBy('Goals')}>⚽ Goals {sortCol === 'Goals' && (sortDesc ? '▼' : '▲')}</th>
-                  <th className="p-2 text-center cursor-pointer" onClick={() => sortBy('Assists')}>👟 Assists {sortCol === 'Assists' && (sortDesc ? '▼' : '▲')}</th>
-                  <th className="p-2 text-center cursor-pointer" onClick={() => sortBy('YellowCards')}>🟨 {sortCol === 'YellowCards' && (sortDesc ? '▼' : '▲')}</th>
-                  <th className="p-2 text-center cursor-pointer" onClick={() => sortBy('RedCards')}>🟥 {sortCol === 'RedCards' && (sortDesc ? '▼' : '▲')}</th>
+                  <th className="p-2 text-center cursor-pointer" onClick={() => sortBy('Goals')}>⚽ Goals{sortArrow('Goals')}</th>
+                  <th className="p-2 text-center cursor-pointer" onClick={() => sortBy('Assists')}>👟 Assists{sortArrow('Assists')}</th>
+                  <th className="p-2 text-center cursor-pointer" onClick={() => sortBy('YellowCards')}>🟨 Yellows{sortArrow('YellowCards')}</th>
+                  <th className="p-2 text-center cursor-pointer" onClick={() => sortBy('RedCards')}>🟥 Reds{sortArrow('RedCards')}</th>
                 </tr></thead>
                 <tbody>
                   {sorted(stats.rows).map((r, i) => (
                     <tr key={r.playerId} className="border-b border-[var(--sc-border)] hover:bg-black/5">
                       <td className="p-2">{i + 1}</td>
-                      <td className="p-2 font-semibold"><div className="flex items-center gap-2">{r.playerImageUrl && <img src={r.playerImageUrl} alt="" className="w-8 h-8 rounded-full" />}{r.playerName}</div></td>
+                      <td className="p-2 font-semibold"><div className="flex items-center gap-2">{r.playerImageUrl && <img src={r.playerImageUrl} alt="" className="w-8 h-8 rounded-full" />}{r.playerName}{r.position && <span className="text-xs text-[var(--sc-text-secondary)] font-normal">({r.position})</span>}</div></td>
                       <td className="p-2"><div className="flex items-center gap-2">{r.teamLogo && <img src={r.teamLogo} alt="" className="w-5 h-5" />}{r.teamName}</div></td>
                       <td className="p-2 text-center font-bold">{r.goals + r.penaltyGoals}{r.penaltyGoals > 0 && <span className="text-xs text-[var(--sc-text-secondary)]"> ({r.penaltyGoals}p)</span>}</td>
                       <td className="p-2 text-center">{r.assists}</td>

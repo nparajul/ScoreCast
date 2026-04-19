@@ -317,6 +317,7 @@ export interface PlayerStatRow {
   yellowCards: number;
   redCards: number;
   cleanSheets?: number;
+  minutesPlayed?: number;
 }
 
 // ===== Teams =====
@@ -345,10 +346,12 @@ export interface TeamDetailResult {
   countryFlagUrl?: string;
   venue?: string;
   coach?: string;
+  coachPhoto?: string;
   founded?: number;
   clubColors?: string;
   website?: string;
   nextMatch?: TeamNextMatch;
+  recentForm?: TeamFormMatch[];
   form?: TeamFormMatch[];
   competitions?: TeamCompetitionSeason[];
 }
@@ -359,6 +362,10 @@ export interface TeamNextMatch {
   opponentLogoUrl?: string;
   kickoffTime?: string;
   isHome: boolean;
+  competitionName?: string;
+  competitionLogo?: string;
+  dayOfWeek?: string;
+  dateLabel?: string;
 }
 
 export interface TeamFormMatch {
@@ -370,7 +377,9 @@ export interface TeamFormMatch {
 
 export interface TeamCompetitionSeason {
   competitionId: number;
+  competitionCode?: string;
   competitionName: string;
+  competitionLogo?: string;
   seasonId: number;
   seasonName: string;
 }
@@ -416,6 +425,7 @@ export interface SquadPlayer {
   imageUrl?: string;
   photoUrl?: string;
   dateOfBirth?: string;
+  isCoach?: boolean;
   [key: string]: unknown;
 }
 
@@ -515,13 +525,17 @@ export interface PlayerGameweekResult {
   riskPlays: RiskPlayResult[];
 }
 
+export type RiskPlayType = "DoubleDown" | "ExactScoreBoost" | "CleanSheetBet" | "FirstGoalTeam" | "OverUnderGoals";
+
 export interface RiskPlayResult {
-  riskType: string;
-  matchId: number;
-  selection: string;
-  bonusPoints: number;
-  isWon: boolean;
-  isResolved: boolean;
+  riskType: RiskPlayType | string;
+  matchId?: number;
+  selection?: string;
+  bonusPoints?: number;
+  isWon?: boolean;
+  isResolved?: boolean;
+  isActive?: boolean;
+  [key: string]: unknown;
 }
 
 // ===== Global / Community =====
@@ -735,5 +749,36 @@ export interface MatchInsightResult {
   keyPlayers?: string[];
   topScoreline?: string;
   topScorelinePct?: number;
+  [key: string]: unknown;
+}
+
+
+export interface MatchPredictionResult {
+  homeExpectedGoals: number;
+  awayExpectedGoals: number;
+  homeWinPct: number;
+  drawPct: number;
+  awayWinPct: number;
+  topScorelines: ScorelineProbability[];
+}
+
+export interface ScorelineProbability {
+  home: number;
+  away: number;
+  pct: number;
+}
+
+export interface ScoringRuleResult {
+  label: string;
+  points: number;
+  description?: string;
+  outcome?: string;
+  displayOrder?: number;
+  [key: string]: unknown;
+}
+
+export interface RoleResult {
+  id: number;
+  name: string;
   [key: string]: unknown;
 }

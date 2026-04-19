@@ -2,9 +2,11 @@
 
 import { api } from "@/lib/api";
 import type { GlobalLeaderboardEntry } from "@/lib/types";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const medal = (r: number) => r === 1 ? "🥇" : r === 2 ? "🥈" : r === 3 ? "🥉" : `#${r}`;
+const rankBg = (r: number) => r === 1 ? "bg-amber-50" : r === 2 ? "bg-gray-50" : r === 3 ? "bg-orange-50" : "";
 
 export default function GlobalLeaderboardPage() {
   const [entries, setEntries] = useState<GlobalLeaderboardEntry[]>([]);
@@ -19,19 +21,20 @@ export default function GlobalLeaderboardPage() {
 
   return (
     <div className="py-4 px-2">
-      <h1 className="text-xl font-extrabold mb-3">🏆 Top Predictors</h1>
-      {loaded && entries.length === 0 && <p className="text-sm opacity-50">No predictions yet.</p>}
-      <div className="rounded-xl border border-white/10 overflow-hidden divide-y divide-white/10">
+      <Link href="/global" className="text-sm text-[var(--sc-secondary)] font-semibold">← Back</Link>
+      <h1 className="text-xl font-extrabold mb-3 mt-2">🏆 Top Predictors</h1>
+      {loaded && entries.length === 0 && <p className="text-sm text-[var(--sc-text-secondary)]">No predictions yet.</p>}
+      <div className="bg-[var(--sc-surface)] rounded-xl shadow-sm overflow-hidden divide-y divide-[var(--sc-border)]">
         {entries.map((e) => (
-          <div key={e.rank} className="flex items-center px-3 py-3" style={e.rank <= 3 ? { background: `linear-gradient(135deg, rgba(${e.rank === 1 ? "255,215,0" : e.rank === 2 ? "192,192,192" : "205,127,50"},0.1), transparent)` } : {}}>
+          <div key={e.rank} className={`flex items-center px-3 py-3 ${rankBg(e.rank)}`}>
             <span className="w-10 font-bold text-base">{medal(e.rank)}</span>
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-sm">{e.username}</div>
-              <div className="text-[11px] opacity-40">{e.exactScores} exact · {e.totalPredictions} predictions</div>
+              <p className="font-semibold text-sm">{e.username ?? e.displayName}</p>
+              <p className="text-[11px] text-[var(--sc-text-secondary)]">{e.exactScores} exact · {e.totalPredictions ?? e.predictionCount} predictions</p>
             </div>
             <div className="text-right">
-              <span className="font-extrabold" style={{ color: "var(--sc-tertiary)" }}>{e.totalPoints}</span>
-              <span className="text-[11px] opacity-40 ml-0.5">pts</span>
+              <span className="font-extrabold text-[var(--sc-tertiary)]">{e.totalPoints}</span>
+              <span className="text-[11px] text-[var(--sc-text-secondary)] ml-0.5">pts</span>
             </div>
           </div>
         ))}
