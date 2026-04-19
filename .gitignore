@@ -24,6 +24,9 @@ logs/
 
 ## Docker
 .env
+web-next/.env.local
+web-next/node_modules/
+web-next/.next/
 
 ## User secrets
 secrets.json
