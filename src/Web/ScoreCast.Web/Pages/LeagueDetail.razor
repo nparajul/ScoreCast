@@ -47,7 +47,7 @@
                                         <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
                                     }
                                 </MudAvatar>
-                                <span @onclick="@(() => Nav.NavigateTo($"/dashboard/{LeagueId}/player/{row.UserId}"))"
+                                <span @onclick="@(() => NavigateToPlayer(row.UserId))"
                                       style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:@(IsMobile ? "100px" : "none");cursor:pointer;text-decoration:underline;text-decoration-color:var(--mud-palette-text-secondary);text-underline-offset:2px;">@row.DisplayName</span>
                             </div>
                         </td>

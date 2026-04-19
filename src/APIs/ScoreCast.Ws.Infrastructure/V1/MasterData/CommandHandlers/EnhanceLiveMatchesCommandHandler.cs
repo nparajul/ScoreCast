@@ -152,6 +152,7 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
     private async Task<(List<long> LiveMatchIds, int UpdatedCount)> EnrichFromPulseAsync(HttpClient pulseClient, Season season, CancellationToken ct)
     {
         var liveMatchIds = new List<long>();
+        var newlyFinishedMatchIds = new List<long>();
         var updatedCount = 0;
 
         // Only fetch non-finished matches — no need to re-fetch completed ones
@@ -230,6 +231,7 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
             }
             else if (pulseStatus == MatchStatus.Finished)
             {
+                newlyFinishedMatchIds.Add(matchId);
                 dbMatch.Minute = PulseApi.DisplayLabels.FullTime;
             }
 
@@ -242,11 +244,12 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
             }
         }
 
-        // Events enrichment — only for live matches
-        if (liveMatchIds.Count == 0) return (liveMatchIds, updatedCount);
+        // Events enrichment — for live and newly finished matches
+        var eventMatchIds = liveMatchIds.Concat(newlyFinishedMatchIds).ToList();
+        if (eventMatchIds.Count == 0) return (liveMatchIds, updatedCount);
 
         var existingEvents = await DbContext.MatchEvents
-            .Where(e => liveMatchIds.Contains(e.MatchId))
+            .Where(e => eventMatchIds.Contains(e.MatchId))
             .Select(e => $"{e.MatchId}|{e.PlayerId}|{e.EventType}|{e.Minute}")
             .ToListAsync(ct);
         var existingEventKeys = existingEvents.ToHashSet();
@@ -265,7 +268,7 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
 
         foreach (var (matchId, pulseData) in results)
         {
-            if (pulseData?.Events is null || !liveMatchIds.Contains(matchId)) continue;
+            if (pulseData?.Events is null || !eventMatchIds.Contains(matchId)) continue;
             if (!matchTeams.TryGetValue(matchId, out _)) continue;
 
             foreach (var pe in pulseData.Events)
@@ -309,7 +312,7 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
             }
         }
 
-        Logger.LogInformation("Enhanced {Count} live matches, added {Events} events", liveMatchIds.Count, eventCount);
+        Logger.LogInformation("Enhanced {Count} live matches ({Finished} newly finished), added {Events} events", liveMatchIds.Count, newlyFinishedMatchIds.Count, eventCount);
         return (liveMatchIds, updatedCount);
     }
 
