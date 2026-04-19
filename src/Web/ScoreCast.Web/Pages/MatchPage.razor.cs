@@ -1,4 +1,5 @@
 using ScoreCast.Models.V1.Responses.Football;
+using ScoreCast.Models.V1.Responses.Prediction;
 using ScoreCast.Shared.Constants;
 using ScoreCast.Shared.Enums;
 using ScoreCast.Web.Components;
@@ -19,6 +20,7 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
 
     private MatchPageResult? _match;
     private MatchExtrasResult? _extras;
+    private PredictionReplayResult? _replay;
     private MatchHighlightsResult? _highlights;
     private bool _highlightsLoading;
     private bool _loaded;
@@ -380,6 +382,19 @@ public partial class MatchPage : ScoreCastComponentBase, IDisposable
         {
             _extras = new MatchExtrasResult([], [], [], null, new CommunityPredictions(0, 0, 0, 0, null, 0), [], []);
         }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadReplayAsync()
+    {
+        if (_replay is not null) return;
+        try
+        {
+            var resp = await Api.GetPredictionReplayAsync(MatchId, CancellationToken.None);
+            if (resp is { Success: true, Data: not null })
+                _replay = resp.Data;
+        }
+        catch { /* non-critical */ }
         await InvokeAsync(StateHasChanged);
     }
 

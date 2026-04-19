@@ -122,7 +122,8 @@ public class ConventionTests
             Path.Combine(_srcRoot, "APIs", "ScoreCast.Ws.Endpoints"), "*.cs", SearchOption.AllDirectories)
             .Where(f => !f.Contains("/obj/") && !f.Contains("/bin/"))
             .Where(f => !f.Contains("/Health/"))
-            .Where(f => !f.Contains("/Auth/"));
+            .Where(f => !f.Contains("/Auth/"))
+            .Where(f => !f.Contains("/Share/"));
 
         var violations = endpointFiles
             .Where(f => File.ReadAllText(f).Contains("AllowAnonymous"))

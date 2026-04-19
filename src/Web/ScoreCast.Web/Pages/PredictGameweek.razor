@@ -281,7 +281,14 @@
                         </div>
                         <div style="text-align:center;font-size:11px;font-weight:600;color:var(--mud-palette-text-secondary);margin-top:2px;">
                             @if (match.IsPostponed) { <span style="color:#f44336;">Postponed</span> }
-                            else if (match.Status == nameof(MatchStatus.Finished)) { <text>FT @match.HomeScore-@match.AwayScore</text> }
+                            else if (match.Status == nameof(MatchStatus.Finished))
+                            {
+                                <text>FT @match.HomeScore-@match.AwayScore</text>
+                                @if (match.HasPrediction && match.Outcome is not null)
+                                {
+                                    <a href="/replay/@match.MatchId/@_myUserId" style="margin-left:6px;color:var(--mud-palette-tertiary);text-decoration:none;font-weight:700;">📽️</a>
+                                }
+                            }
                             else if (match.KickoffTime.HasValue) { @ClientTime.ToLocal(match.KickoffTime.Value).ToString("dd MMM HH:mm") }
                         </div>
                         @{ var confidence = GetConfidenceText(match); }
