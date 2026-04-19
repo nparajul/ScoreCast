@@ -13,6 +13,7 @@ public partial class LeagueDetail : ScoreCastComponentBase
     [Inject] private NavigationManager Nav { get; set; } = null!;
 
     private LeagueStandingsResult? _standings;
+    private long _myUserId;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -20,14 +21,28 @@ public partial class LeagueDetail : ScoreCastComponentBase
 
         await Loading.While(async () =>
         {
-            var response = await Api.GetLeagueStandingsAsync(LeagueId, CancellationToken.None);
-            if (response is { Success: true, Data: not null })
-                _standings = response.Data;
+            var standingsTask = Api.GetLeagueStandingsAsync(LeagueId, CancellationToken.None);
+            var profileTask = Api.GetMyProfileAsync(CancellationToken.None);
+            await Task.WhenAll(standingsTask, profileTask);
+
+            if (standingsTask.Result is { Success: true, Data: not null })
+                _standings = standingsTask.Result.Data;
             else
-                Alert.Add(response?.Message ?? "League not found", Severity.Error);
+                Alert.Add(standingsTask.Result?.Message ?? "League not found", Severity.Error);
+
+            if (profileTask.Result is { Success: true, Data: not null })
+                _myUserId = profileTask.Result.Data.Id;
         });
 
         StateHasChanged();
+    }
+
+    private void NavigateToPlayer(long userId)
+    {
+        if (userId == _myUserId && _standings is not null)
+            Nav.NavigateTo($"/predict/{_standings.SeasonId}");
+        else
+            Nav.NavigateTo($"/dashboard/{LeagueId}/player/{userId}");
     }
 
     private void NavigateToPredict() => Nav.NavigateTo("/dashboard");

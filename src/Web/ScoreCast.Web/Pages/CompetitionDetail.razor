@@ -61,7 +61,55 @@
                 case "Table":
                     @if (_table is not null && _table.Groups.Count > 0)
                     {
-                        <LeagueTableView Rows="_table.Groups[0].Rows" Zones="_zones" />
+                        @if (_table.Format is CompetitionFormat.GroupAndKnockout)
+                        {
+                            @if (IsMobile)
+                            {
+                                <div style="display:flex;background:var(--mud-palette-dark);border-radius:20px;padding:3px;margin-bottom:12px;">
+                                    @foreach (var tab in new[] { "Groups", "Best 3rd", "Knockout" })
+                                    {
+                                        var isActive = _groupTab == tab;
+                                        <div @onclick="@(() => _groupTab = tab)"
+                                             style="flex:1;text-align:center;padding:5px 0;border-radius:17px;font-size:0.75rem;font-weight:600;cursor:pointer;
+                                                    background:@(isActive ? "var(--mud-palette-surface)" : "transparent");
+                                                    color:@(isActive ? "var(--mud-palette-primary)" : "rgba(255,255,255,0.7)");">
+                                            @tab
+                                        </div>
+                                    }
+                                </div>
+
+                                @if (_groupTab == "Groups")
+                                {
+                                    <GroupStageView Groups="_table.Groups" Zones="_zones" />
+                                }
+                                else if (_groupTab == "Best 3rd")
+                                {
+                                    <BestThirdPlacedTable Rows="_table.BestThirdPlaced" />
+                                }
+                                else
+                                {
+                                    <KnockoutBracket Bracket="_bracket" />
+                                }
+                            }
+                            else
+                            {
+                                <MudTabs Elevation="1" Rounded="true" ApplyEffectsToContainer="true" Class="mt-0">
+                                    <MudTabPanel Text="Group Stage" Icon="@Icons.Material.Filled.Groups">
+                                        <GroupStageView Groups="_table.Groups" Zones="_zones" />
+                                    </MudTabPanel>
+                                    <MudTabPanel Text="Best 3rd Placed" Icon="@Icons.Material.Filled.EmojiEvents">
+                                        <BestThirdPlacedTable Rows="_table.BestThirdPlaced" />
+                                    </MudTabPanel>
+                                    <MudTabPanel Text="Knockout" Icon="@Icons.Material.Filled.AccountTree">
+                                        <KnockoutBracket Bracket="_bracket" />
+                                    </MudTabPanel>
+                                </MudTabs>
+                            }
+                        }
+                        else
+                        {
+                            <LeagueTableView Rows="_table.Groups[0].Rows" Zones="_zones" />
+                        }
                     }
                     else if (_table is not null)
                     {

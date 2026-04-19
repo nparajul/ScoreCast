@@ -20,16 +20,18 @@ public partial class CompetitionDetail : ScoreCastComponentBase
     private List<SeasonResult> _seasons = [];
     private SeasonResult? _selectedSeason;
     private PointsTableResult? _table;
+    private BracketResult? _bracket;
     private List<CompetitionZoneResult> _zones = [];
     private GameweekMatchesResult? _gameweek;
     private PlayerStatsResult? _playerStats;
     private readonly HashSet<long> _expandedMatches = [];
 
     private string _activeTab = "Table";
+    private string _groupTab = "Groups";
     private string _playerStatTab = "Overall";
     private string _sortColumn = "Goals";
     private bool _sortDescending = true;
-    private static readonly string[] _tabs = ["Table", "Scores", "Players"];
+    private string[] _tabs = ["Table", "Scores", "Players"];
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -68,20 +70,26 @@ public partial class CompetitionDetail : ScoreCastComponentBase
         var savedGw = RestoreState<int>("gw");
         var gwTask = Api.GetGameweekMatchesAsync(_selectedSeason.Id, savedGw > 0 ? savedGw : SharedConstants.CurrentGameweek, CancellationToken.None);
         var statsTask = Api.GetPlayerStatsAsync(_selectedSeason.Id, CancellationToken.None);
+        var bracketTask = Api.GetBracketAsync(_selectedSeason.Id, CancellationToken.None);
 
-        await Task.WhenAll(tableTask, zonesTask, gwTask, statsTask);
+        await Task.WhenAll(tableTask, zonesTask, gwTask, statsTask, bracketTask);
 
         if (tableTask.Result is { Success: true, Data: not null }) _table = tableTask.Result.Data;
         if (zonesTask.Result is { Success: true, Data: not null }) _zones = zonesTask.Result.Data;
         if (gwTask.Result is { Success: true, Data: not null }) _gameweek = gwTask.Result.Data;
         if (statsTask.Result is { Success: true, Data: not null }) _playerStats = statsTask.Result.Data;
+        if (bracketTask.Result is { Success: true, Data: not null }) _bracket = bracketTask.Result.Data;
+
+        _tabs = _table?.Format is CompetitionFormat.GroupAndKnockout
+            ? ["Groups", "Best 3rd", "Bracket", "Scores", "Players"]
+            : ["Table", "Scores", "Players"];
     }
 
     private async Task OnSeasonChanged(ChangeEventArgs e)
     {
         if (!long.TryParse(e.Value?.ToString(), out var seasonId)) return;
         _selectedSeason = _seasons.FirstOrDefault(s => s.Id == seasonId);
-        _table = null; _gameweek = null; _playerStats = null; _zones = [];
+        _table = null; _bracket = null; _gameweek = null; _playerStats = null; _zones = [];
 
         await Loading.While(LoadSeasonDataAsync);
         StateHasChanged();
