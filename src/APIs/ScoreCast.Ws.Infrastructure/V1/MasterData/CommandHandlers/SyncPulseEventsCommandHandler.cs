@@ -57,7 +57,7 @@ internal sealed record SyncPulseEventsCommandHandler(
         var matchDetails = await DbContext.Matches
             .Where(m => m.Gameweek.SeasonId == currentSeason.Id
                         && (m.Status == MatchStatus.Finished || m.Status == MatchStatus.Live))
-            .Select(m => new { m.Id, m.HomeTeamId, m.AwayTeamId, m.Status })
+            .Select(m => new { m.Id, m.HomeTeamId, m.AwayTeamId, m.Status, m.HomeScore, m.AwayScore })
             .ToDictionaryAsync(m => m.Id, ct);
 
         // Pulse-synced means ALL events were captured — safe to skip
@@ -72,14 +72,26 @@ internal sealed record SyncPulseEventsCommandHandler(
             .Distinct()
             .ToHashSetAsync(ct);
 
-        // Build pending list — live always, finished only if not fully synced or missing lineups
+        // Matches where captured goal events match the scoreline (sanity check for integrity)
+        var goalCountsByMatch = await DbContext.MatchEvents
+            .Where(e => e.EventType == MatchEventType.Goal || e.EventType == MatchEventType.PenaltyGoal || e.EventType == MatchEventType.OwnGoal)
+            .GroupBy(e => e.MatchId)
+            .Select(g => new { MatchId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.MatchId, x => x.Count, ct);
+
+        // Build pending list — live always, finished only if not fully synced, missing lineups, or goal count mismatch
         var pendingMatches = new List<(int PulseId, long MatchId, long HomeTeamId, long AwayTeamId)>();
         foreach (var pm in pulseRefMappings)
         {
             if (!matchDetails.TryGetValue(pm.MatchId, out var md)) continue;
+            var capturedGoals = goalCountsByMatch.GetValueOrDefault(pm.MatchId, 0);
+            var expectedGoals = md.Status == MatchStatus.Finished ? (md.HomeScore ?? 0) + (md.AwayScore ?? 0) : -1;
+            var goalsMatch = expectedGoals == -1 || capturedGoals >= expectedGoals;
+
             if (md.Status == MatchStatus.Finished
                 && pulseSyncedMatchIds.Contains(pm.MatchId)
-                && matchIdsWithLineups.Contains(pm.MatchId)) continue;
+                && matchIdsWithLineups.Contains(pm.MatchId)
+                && goalsMatch) continue;
             pendingMatches.Add((pm.PulseId, pm.MatchId, md.HomeTeamId, md.AwayTeamId));
         }
 
@@ -334,27 +346,29 @@ internal sealed record SyncPulseEventsCommandHandler(
     {
         if (pulse.Events is null) return;
 
-        // Collect all personIds (+ assistIds) from events that are unmapped
-        var unmapped = new HashSet<int>();
+        // Collect unmapped personIds, tracking the event's teamId as fallback for team resolution
+        var unmapped = new Dictionary<int, int?>(); // personId -> hinted pulseTeamId from event
         foreach (var pe in pulse.Events)
         {
             if (pe.PersonId is { } pid && !pulsePlayerMap.ContainsKey(pid.ToString()))
-                unmapped.Add(pid);
+                unmapped.TryAdd(pid, pe.TeamId);
             if (pe.AssistId is { } aid && !pulsePlayerMap.ContainsKey(aid.ToString()))
-                unmapped.Add(aid);
+                unmapped.TryAdd(aid, pe.TeamId);
         }
         if (unmapped.Count == 0) return;
 
-        foreach (var pulsePersonId in unmapped)
+        foreach (var (pulsePersonId, hintedTeamId) in unmapped)
         {
             try
             {
                 var resp = await pulseClient.GetFromJsonAsync<PulsePlayerResponse>(
                     $"football/players/{pulsePersonId}", ct);
-                if (resp?.Name?.Display is null || resp.CurrentTeam?.Id is null) continue;
+                if (resp?.Name?.Display is null) continue;
 
-                var pulseTeamId = (int)resp.CurrentTeam.Id;
-                if (!pulseTeamMap.TryGetValue(pulseTeamId, out var ourTeamId)) continue;
+                // Resolve team: prefer Pulse player's current team, fall back to event's teamId
+                var pulseTeamId = resp.CurrentTeam?.Id is { } curId ? (int)curId : hintedTeamId;
+                if (pulseTeamId is null) continue;
+                if (!pulseTeamMap.TryGetValue(pulseTeamId.Value, out var ourTeamId)) continue;
                 if (!ourPlayersByTeam.TryGetValue(ourTeamId, out var teamPlayers)) continue;
 
                 var displayName = resp.Name.Display;
