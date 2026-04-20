@@ -155,9 +155,18 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
         var newlyFinishedMatchIds = new List<long>();
         var updatedCount = 0;
 
-        // Only fetch non-finished matches — no need to re-fetch completed ones
+        // Matches that have been fully synced from Pulse (events captured) — skip these
+        var pulseSyncedMatchIds = await DbContext.ExternalMappings
+            .Where(m => m.Source == ExternalSource.Pulse && m.EntityType == EntityType.Match
+                        && DbContext.Matches.Any(mt => mt.Id == m.EntityId && mt.Gameweek.SeasonId == season.Id))
+            .Select(m => m.EntityId)
+            .ToListAsync(ct);
+        var pulseSyncedSet = pulseSyncedMatchIds.ToHashSet();
+
+        // Include: all non-finished matches + finished matches not yet fully Pulse-synced
         var candidateMatches = await DbContext.Matches
-            .Where(m => m.Gameweek.SeasonId == season.Id && m.Status != MatchStatus.Finished)
+            .Where(m => m.Gameweek.SeasonId == season.Id
+                        && (m.Status != MatchStatus.Finished || !pulseSyncedSet.Contains(m.Id)))
             .Select(m => m.Id)
             .ToListAsync(ct);
 
@@ -309,6 +318,35 @@ internal sealed record EnhanceLiveMatchesCommandHandler(
                         }
                     }
                 }
+            }
+
+            // Mark finished match as Pulse-synced ONLY when all Pulse goals are captured in our DB.
+            // If goals are missing (late goal hasn't propagated yet, or unmapped player), leave unmarked so we retry next poll.
+            if (!newlyFinishedMatchIds.Contains(matchId) || pulseSyncedSet.Contains(matchId)) continue;
+            if (!dbMatches.TryGetValue(matchId, out var dbMatchForMarker)) continue;
+
+            var expectedGoals = (dbMatchForMarker.HomeScore ?? 0) + (dbMatchForMarker.AwayScore ?? 0);
+            var capturedGoals = await DbContext.MatchEvents
+                .Where(e => e.MatchId == matchId && (e.EventType == MatchEventType.Goal || e.EventType == MatchEventType.PenaltyGoal || e.EventType == MatchEventType.OwnGoal))
+                .CountAsync(ct) + DbContext.MatchEvents.Local.Count(e => e.MatchId == matchId && (e.EventType == MatchEventType.Goal || e.EventType == MatchEventType.PenaltyGoal || e.EventType == MatchEventType.OwnGoal));
+
+            if (capturedGoals >= expectedGoals)
+            {
+                var pulseFixtureId = pulseMappings.TryGetValue(matchId, out var pid) ? pid.ToString() : null;
+                if (pulseFixtureId is not null)
+                {
+                    DbContext.ExternalMappings.Add(new ExternalMapping
+                    {
+                        EntityType = EntityType.Match,
+                        EntityId = matchId,
+                        Source = ExternalSource.Pulse,
+                        ExternalCode = pulseFixtureId
+                    });
+                }
+            }
+            else
+            {
+                Logger.LogWarning("Match {MatchId} goals mismatch: expected {Expected}, captured {Captured} — will retry next poll", matchId, expectedGoals, capturedGoals);
             }
         }
 
