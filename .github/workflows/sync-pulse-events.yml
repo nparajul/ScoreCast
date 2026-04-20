@@ -1,0 +1,60 @@
+name: Sync Pulse Events
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'  # every 2 hours
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: 'Batch size (default 20)'
+        default: '20'
+        required: false
+
+env:
+  API_BASE_URL: ${{ secrets.SCORECAST_API_URL }}
+  API_KEY: ${{ secrets.SCORECAST_API_KEY }}
+  BATCH_SIZE: ${{ github.event.inputs.batch_size || '20' }}
+
+jobs:
+  sync-pulse-events:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake up API
+        run: |
+          for i in 1 2 3 4 5 6 7 8; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$API_BASE_URL/api/v1/health/")
+            echo "Attempt $i: HTTP $STATUS"
+            if [ "$STATUS" = "200" ]; then break; fi
+            sleep 15
+          done
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::API did not wake up"
+            exit 1
+          fi
+
+      - name: Sync Premier League Pulse events
+        run: |
+          # Loop until all pending matches are processed or we hit a safety limit
+          for attempt in 1 2 3 4 5; do
+            HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" --max-time 180 -X POST \
+              -H "X-Api-Key: $API_KEY" -H "Content-Type: application/json" \
+              -d "{\"competitionCode\":\"PL\",\"batchSize\":$BATCH_SIZE,\"appName\":\"GITHUB-ACTIONS:SYNC-PULSE-EVENTS\"}" \
+              "$API_BASE_URL/api/v1/master-data/sync/pulse-events")
+            RESULT=$(cat /tmp/response.json)
+            SUCCESS=$(echo "$RESULT" | jq -r '.success // false' 2>/dev/null)
+            MSG=$(echo "$RESULT" | jq -r '.message // empty' 2>/dev/null)
+            COMPLETE=$(echo "$RESULT" | jq -r '.data.complete // false' 2>/dev/null)
+            PROCESSED=$(echo "$RESULT" | jq -r '.data.processed // 0' 2>/dev/null)
+            EVENTS_ADDED=$(echo "$RESULT" | jq -r '.data.eventsAdded // 0' 2>/dev/null)
+            echo "Batch $attempt: HTTP $HTTP_CODE success=$SUCCESS processed=$PROCESSED events=$EVENTS_ADDED complete=$COMPLETE"
+            echo "  $MSG"
+            if [ "$SUCCESS" != "true" ]; then
+              echo "::error::Batch failed"
+              exit 1
+            fi
+            if [ "$COMPLETE" = "true" ] || [ "$PROCESSED" = "0" ]; then
+              echo "✓ Sync complete"
+              break
+            fi
+            sleep 5
+          done
