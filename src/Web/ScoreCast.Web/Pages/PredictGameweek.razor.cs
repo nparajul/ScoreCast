@@ -213,11 +213,19 @@ public partial class PredictGameweek
                 var riskEntries = _riskPlays.Where(r => r.IsActive)
                     .Select(r => new RiskPlayEntry { MatchId = r.MatchId!.Value, RiskType = r.RiskType, Selection = r.Selection })
                     .ToList();
-                if (riskEntries.Count > 0)
-                    await Api.SubmitRiskPlaysAsync(new SubmitRiskPlaysRequest { SeasonId = SeasonId, RiskPlays = riskEntries }, CancellationToken.None);
+                var riskResponse = riskEntries.Count > 0
+                    ? await Api.SubmitRiskPlaysAsync(new SubmitRiskPlaysRequest { SeasonId = SeasonId, RiskPlays = riskEntries }, CancellationToken.None)
+                    : null;
 
-                Alert.Add(response.Message ?? "Predictions saved!",
-                    response.Message?.Contains("skipped") == true ? Severity.Warning : Severity.Success);
+                if (riskResponse is { Success: false })
+                {
+                    Alert.Add($"Predictions saved, but risk plays failed: {riskResponse.Message}", Severity.Warning);
+                }
+                else
+                {
+                    Alert.Add(response.Message ?? "Predictions saved!",
+                        response.Message?.Contains("skipped") == true ? Severity.Warning : Severity.Success);
+                }
 
                 // Load community confidence data
                 _ = LoadConfidenceAsync();

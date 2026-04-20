@@ -14,10 +14,6 @@ internal sealed record SubmitRiskPlaysCommandHandler(
     IScoreCastDbContext DbContext,
     IUnitOfWork UnitOfWork) : ICommandHandler<SubmitRiskPlaysCommand, ScoreCastResponse>
 {
-    private const int MaxDoubleDown = 1;
-    private const int MaxExactScoreBoost = 1;
-    private const int MaxMinorRiskPlays = 2; // CleanSheet + FirstGoal + OverUnder combined
-
     public async Task<ScoreCastResponse> ExecuteAsync(SubmitRiskPlaysCommand command, CancellationToken ct)
     {
         var request = command.Request;
@@ -50,15 +46,6 @@ internal sealed record SubmitRiskPlaysCommandHandler(
         var validPlays = request.RiskPlays.Where(r => !lockedIds.Contains(r.MatchId)).ToList();
         if (validPlays.Count == 0 && request.RiskPlays.Count > 0)
             return ScoreCastResponse.Error("All selected matches have already kicked off");
-
-        // Validate limits
-        var ddCount = validPlays.Count(r => r.RiskType == RiskPlayType.DoubleDown);
-        var esCount = validPlays.Count(r => r.RiskType == RiskPlayType.ExactScoreBoost);
-        var minorCount = validPlays.Count(r => r.RiskType is RiskPlayType.CleanSheetBet or RiskPlayType.FirstGoalTeam or RiskPlayType.OverUnderGoals);
-
-        if (ddCount > MaxDoubleDown) return ScoreCastResponse.Error("Max 1 Double Down per gameweek");
-        if (esCount > MaxExactScoreBoost) return ScoreCastResponse.Error("Max 1 Exact Score Boost per gameweek");
-        if (minorCount > MaxMinorRiskPlays) return ScoreCastResponse.Error("Max 2 minor risk plays per gameweek");
 
         // Load existing risk plays for this GW
         var existing = await DbContext.RiskPlays
